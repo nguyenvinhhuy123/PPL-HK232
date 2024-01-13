@@ -1,0 +1,28 @@
+token literal names:
+null
+null
+null
+null
+'\n'
+null
+null
+null
+null
+
+token symbolic names:
+null
+IDENTIFIER
+COMMENT
+WS
+NEW_LINE
+NOT_NEW_LINE
+ERROR_CHAR
+UNCLOSE_STRING
+ILLEGAL_ESCAPE
+
+rule names:
+program
+
+
+atn:
+[4, 1, 8, 5, 2, 0, 7, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 3, 0, 2, 1, 0, 0, 0, 2, 3, 1, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0]

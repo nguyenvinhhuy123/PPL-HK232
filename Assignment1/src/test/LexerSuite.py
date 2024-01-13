@@ -10,4 +10,8 @@ class LexerSuite(unittest.TestCase):
     def test_complex_string(self):
         """test complex string"""
         self.assertTrue(TestLexer.test("'isn''t'","'isn''t',<EOF>",102))
+        
+    def test_simple_identifier(self):
+        """test simple identifier"""
+        self.assertTrue(TestLexer.test("_myID","_myID,<EOF>",105))
     

@@ -1,4 +1,4 @@
-# Generated from main/zcode/parser/ZCode.g4 by ANTLR 4.9.2
+# Generated from c:/Users/nvhuy/Documents/GitHub/PPl-HK232/Assignment1/src/main/zcode/parser/ZCode.g4 by ANTLR 4.13.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -8,14 +8,11 @@ if sys.version_info[1] > 5:
 else:
 	from typing.io import TextIO
 
-
 def serializedATN():
-    with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\7")
-        buf.write("\7\4\2\t\2\3\2\3\2\3\2\2\2\3\2\2\2\2\5\2\4\3\2\2\2\4\5")
-        buf.write("\3\2\2\2\5\3\3\2\2\2\2")
-        return buf.getvalue()
-
+    return [
+        4,1,8,5,2,0,7,0,1,0,1,0,1,0,0,0,1,0,0,0,3,0,2,1,0,0,0,2,3,1,0,0,
+        0,3,1,1,0,0,0,0
+    ]
 
 class ZCodeParser ( Parser ):
 
@@ -27,10 +24,11 @@ class ZCodeParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [  ]
+    literalNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "'\\n'" ]
 
-    symbolicNames = [ "<INVALID>", "IDENTIFIER", "WS", "ERROR_CHAR", "UNCLOSE_STRING", 
-                      "ILLEGAL_ESCAPE" ]
+    symbolicNames = [ "<INVALID>", "IDENTIFIER", "COMMENT", "WS", "NEW_LINE", 
+                      "NOT_NEW_LINE", "ERROR_CHAR", "UNCLOSE_STRING", "ILLEGAL_ESCAPE" ]
 
     RULE_program = 0
 
@@ -38,14 +36,17 @@ class ZCodeParser ( Parser ):
 
     EOF = Token.EOF
     IDENTIFIER=1
-    WS=2
-    ERROR_CHAR=3
-    UNCLOSE_STRING=4
-    ILLEGAL_ESCAPE=5
+    COMMENT=2
+    WS=3
+    NEW_LINE=4
+    NOT_NEW_LINE=5
+    ERROR_CHAR=6
+    UNCLOSE_STRING=7
+    ILLEGAL_ESCAPE=8
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.9.2")
+        self.checkVersion("4.13.1")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
@@ -62,12 +63,6 @@ class ZCodeParser ( Parser ):
 
         def getRuleIndex(self):
             return ZCodeParser.RULE_program
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitProgram" ):
-                return visitor.visitProgram(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
