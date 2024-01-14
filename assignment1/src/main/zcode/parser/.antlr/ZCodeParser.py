@@ -10,7 +10,7 @@ else:
 
 def serializedATN():
     return [
-        4,1,8,5,2,0,7,0,1,0,1,0,1,0,0,0,1,0,0,0,3,0,2,1,0,0,0,2,3,1,0,0,
+        4,1,0,5,2,0,7,0,1,0,1,0,1,0,0,0,1,0,0,0,3,0,2,1,0,0,0,2,3,1,0,0,
         0,3,1,1,0,0,0,0
     ]
 
@@ -24,26 +24,15 @@ class ZCodeParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "'\\n'" ]
+    literalNames = [  ]
 
-    symbolicNames = [ "<INVALID>", "IDENTIFIER", "COMMENT", "WS", "NEW_LINE", 
-                      "NOT_NEW_LINE", "ERROR_CHAR", "UNCLOSE_STRING", "ILLEGAL_ESCAPE" ]
+    symbolicNames = [  ]
 
     RULE_program = 0
 
     ruleNames =  [ "program" ]
 
     EOF = Token.EOF
-    IDENTIFIER=1
-    COMMENT=2
-    WS=3
-    NEW_LINE=4
-    NOT_NEW_LINE=5
-    ERROR_CHAR=6
-    UNCLOSE_STRING=7
-    ILLEGAL_ESCAPE=8
-
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
         self.checkVersion("4.13.1")
