@@ -16,9 +16,12 @@ fragment IDENTIFIER_HEAD: [_a-zA-Z];
 IDENTIFIER: IDENTIFIER_HEAD+[a-zA-Z0-9]*;
 
 //*Number */
-fragment DIGIT: [0-9];
-fragment FLOATING_POINT: [.]DIGIT+;
-NUMBER: DIGIT+ (FLOATING_POINT)?;
+fragment ZERO: '0';
+fragment NON_ZERO_DIGIT: [1-9];
+fragment DIGIT: ZERO | NON_ZERO_DIGIT;
+fragment FLOATING_POINT: '.'DIGIT*;
+fragment EXPONENTIAL: [eE]('+'|'-')* NON_ZERO_DIGIT DIGIT*;
+NUMBER: NON_ZERO_DIGIT DIGIT* FLOATING_POINT* EXPONENTIAL* | ZERO;
 
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
@@ -42,10 +45,6 @@ KW_ELIF: 'elif';
 KW_BEGIN: 'begin';
 KW_END: 'end';
 
-//!might not need KW declare for these can be declare as operator fix later if needed
-KW_NOT: 'not';
-KW_AND: 'and';
-KW_OR: 'or';
 //
 //*Operator */
 //*Operator token naming rule: OP_operator_name */
@@ -54,9 +53,9 @@ OP_SUBTRACT: '-';
 OP_MULTI: '*';
 OP_DIVIDE: '/';
 OP_REMAINDER: '%';
-OP_NOT: KW_NOT;
-OP_AND: KW_AND;
-OP_OR: KW_OR;
+OP_NOT: 'not';
+OP_AND: 'and';
+OP_OR: 'or';
 OP_EQUAL: '=';
 OP_LEFT_ARROW: '<-';
 OP_NOT_EQUAL: '!=';
@@ -66,8 +65,6 @@ OP_SMALLER_EQUAL: '<=';
 OP_GREATER_EQUAL: '>=';
 OP_EQUAL_COMPARE: '==';
 OP_TRIPLE_DOT: '...';
-
-
 
 //*Bracket */
 
