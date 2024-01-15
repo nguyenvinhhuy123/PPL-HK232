@@ -21,9 +21,54 @@ fragment FLOATING_POINT: [.]DIGIT+;
 NUMBER: DIGIT+ (FLOATING_POINT)?;
 
 //*Keyword */
-KEYWORD: 'main';
+//*Keyword token naming rule: KW_Keyname */
+KW_TRUE: 'true';
+KW_FALSE: 'false';
+KW_NUMBER: 'number';
+KW_BOOL: 'bool';
+KW_STRING:'string';
+KW_RETURN: 'return';
+KW_VAR: 'var';
+KW_DYNAMIC: 'dynamic';
+KW_FUNC: 'func';
+KW_FOR: 'for';
+KW_UNTIL: 'until';
+KW_BY: 'by';
+KW_BREAK: 'break';
+KW_CONTINUE: 'continue';
+KW_IF: 'if';
+KW_ELSE: 'else';
+KW_ELIF: 'elif';
+KW_BEGIN: 'begin';
+KW_END: 'end';
+
+//!might not need KW declare for these can be declare as operator fix later if needed
+KW_NOT: 'not';
+KW_AND: 'and';
+KW_OR: 'or';
+//
 //*Operator */
-Operator: '';
+//*Operator token naming rule: OP_operator_name */
+OP_ADD: '+';
+OP_SUBTRACT: '-';
+OP_MULTI: '*';
+OP_DIVIDE: '/';
+OP_REMAINDER: '%';
+OP_NOT: KW_NOT;
+OP_AND: KW_AND;
+OP_OR: KW_OR;
+OP_EQUAL: '=';
+OP_LEFT_ARROW: '<-';
+OP_NOT_EQUAL: '!=';
+OP_SMALLER: '<';
+OP_GREATER: '>';
+OP_SMALLER_EQUAL: '<=';
+OP_GREATER_EQUAL: '>=';
+OP_EQUAL_COMPARE: '==';
+OP_TRIPLE_DOT: '...';
+
+
+
 //*Bracket */
 
 //*Comment
