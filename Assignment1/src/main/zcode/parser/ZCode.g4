@@ -23,6 +23,19 @@ fragment FLOATING_POINT: '.'DIGIT*;
 fragment EXPONENTIAL: [eE]('+'|'-')* NON_ZERO_DIGIT DIGIT*;
 NUMBER: NON_ZERO_DIGIT DIGIT* FLOATING_POINT* EXPONENTIAL* | ZERO;
 
+//*Boolen */
+BOOLEN: KW_TRUE | KW_FALSE;
+
+
+//*String */
+fragment STRING_CHAR: ~[\\\b\f\r\n\t'"]; //*Any character that not a escape seq char and quote*/
+fragment ESCAPE_SIGN:. '\\';
+fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ~'"' | ESCAPE_SIGN NEW_LINE; 
+//*Any char with escape sign prefix and not a double quote count as esc_seq*/
+fragment DOUBLE_QUOTE_IN_STRING: '\'''"';
+fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
+STRING: '"' STRING_LITTERAL* '"';
+
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
 KW_TRUE: 'true';
@@ -66,11 +79,16 @@ OP_GREATER_EQUAL: '>=';
 OP_EQUAL_COMPARE: '==';
 OP_TRIPLE_DOT: '...';
 
-//*Bracket */
+//*Separator */
+SEP_OPEN_PAREN: '(';
+SEP_CLOSE_PAREN: ')';
+SEP_OPEN_BRACK: '[';
+SEP_CLOSE_BRACK: ']';
+SEP_COMA: ',';	
 
 //*Comment
 fragment COMMENT_HEAD: '##';
-COMMENT: COMMENT_HEAD NOT_NEW_LINE* (NEW_LINE|EOF) -> Skip; 
+COMMENT: COMMENT_HEAD NOT_NEW_LINE* (NEW_LINE|EOF); 
 //Skip any character not a newline character after comment start fragment end a comment with newline/eof token
 
 //*Whitespace and newline */
