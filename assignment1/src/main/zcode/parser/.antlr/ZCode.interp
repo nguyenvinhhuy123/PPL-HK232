@@ -2,6 +2,8 @@ token literal names:
 null
 null
 null
+null
+null
 'true'
 'false'
 'number'
@@ -38,6 +40,11 @@ null
 '>='
 '=='
 '...'
+'('
+')'
+'['
+']'
+','
 null
 null
 '\n'
@@ -50,6 +57,8 @@ token symbolic names:
 null
 IDENTIFIER
 NUMBER
+BOOLEN
+STRING
 KW_TRUE
 KW_FALSE
 KW_NUMBER
@@ -86,6 +95,11 @@ OP_SMALLER_EQUAL
 OP_GREATER_EQUAL
 OP_EQUAL_COMPARE
 OP_TRIPLE_DOT
+SEP_OPEN_PAREN
+SEP_CLOSE_PAREN
+SEP_OPEN_BRACK
+SEP_CLOSE_BRACK
+SEP_COMA
 COMMENT
 WS
 NEW_LINE
@@ -99,4 +113,4 @@ program
 
 
 atn:
-[4, 1, 45, 5, 2, 0, 7, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 3, 0, 2, 1, 0, 0, 0, 2, 3, 1, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0]
+[4, 1, 52, 5, 2, 0, 7, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 3, 0, 2, 1, 0, 0, 0, 2, 3, 1, 0, 0, 0, 3, 1, 1, 0, 0, 0, 0]

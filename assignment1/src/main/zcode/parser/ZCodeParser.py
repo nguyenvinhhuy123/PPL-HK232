@@ -11,7 +11,7 @@ else:
 
 def serializedATN():
     with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\n")
+        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\66")
         buf.write("\7\4\2\t\2\3\2\3\2\3\2\2\2\3\2\2\2\2\5\2\4\3\2\2\2\4\5")
         buf.write("\3\2\2\2\5\3\3\2\2\2\2")
         return buf.getvalue()
@@ -28,9 +28,26 @@ class ZCodeParser ( Parser ):
     sharedContextCache = PredictionContextCache()
 
     literalNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "'\n'" ]
+                     "<INVALID>", "'true'", "'false'", "'number'", "'bool'", 
+                     "'string'", "'return'", "'var'", "'dynamic'", "'func'", 
+                     "'for'", "'until'", "'by'", "'break'", "'continue'", 
+                     "'if'", "'else'", "'elif'", "'begin'", "'end'", "'+'", 
+                     "'-'", "'*'", "'/'", "'%'", "'not'", "'and'", "'or'", 
+                     "'='", "'<-'", "'!='", "'<'", "'>'", "'<='", "'>='", 
+                     "'=='", "'...'", "'('", "')'", "'['", "']'", "','", 
+                     "<INVALID>", "<INVALID>", "'\n'" ]
 
-    symbolicNames = [ "<INVALID>", "IDENTIFIER", "COMMENT", "WS", "NEW_LINE", 
+    symbolicNames = [ "<INVALID>", "IDENTIFIER", "NUMBER", "BOOLEN", "STRING", 
+                      "KW_TRUE", "KW_FALSE", "KW_NUMBER", "KW_BOOL", "KW_STRING", 
+                      "KW_RETURN", "KW_VAR", "KW_DYNAMIC", "KW_FUNC", "KW_FOR", 
+                      "KW_UNTIL", "KW_BY", "KW_BREAK", "KW_CONTINUE", "KW_IF", 
+                      "KW_ELSE", "KW_ELIF", "KW_BEGIN", "KW_END", "OP_ADD", 
+                      "OP_SUBTRACT", "OP_MULTI", "OP_DIVIDE", "OP_REMAINDER", 
+                      "OP_NOT", "OP_AND", "OP_OR", "OP_EQUAL", "OP_LEFT_ARROW", 
+                      "OP_NOT_EQUAL", "OP_SMALLER", "OP_GREATER", "OP_SMALLER_EQUAL", 
+                      "OP_GREATER_EQUAL", "OP_EQUAL_COMPARE", "OP_TRIPLE_DOT", 
+                      "SEP_OPEN_PAREN", "SEP_CLOSE_PAREN", "SEP_OPEN_BRACK", 
+                      "SEP_CLOSE_BRACK", "SEP_COMA", "COMMENT", "WS", "NEW_LINE", 
                       "NOT_NEW_LINE", "ERROR_CHAR", "UNCLOSE_STRING", "ILLEGAL_ESCAPE" ]
 
     RULE_program = 0
@@ -39,13 +56,57 @@ class ZCodeParser ( Parser ):
 
     EOF = Token.EOF
     IDENTIFIER=1
-    COMMENT=2
-    WS=3
-    NEW_LINE=4
-    NOT_NEW_LINE=5
-    ERROR_CHAR=6
-    UNCLOSE_STRING=7
-    ILLEGAL_ESCAPE=8
+    NUMBER=2
+    BOOLEN=3
+    STRING=4
+    KW_TRUE=5
+    KW_FALSE=6
+    KW_NUMBER=7
+    KW_BOOL=8
+    KW_STRING=9
+    KW_RETURN=10
+    KW_VAR=11
+    KW_DYNAMIC=12
+    KW_FUNC=13
+    KW_FOR=14
+    KW_UNTIL=15
+    KW_BY=16
+    KW_BREAK=17
+    KW_CONTINUE=18
+    KW_IF=19
+    KW_ELSE=20
+    KW_ELIF=21
+    KW_BEGIN=22
+    KW_END=23
+    OP_ADD=24
+    OP_SUBTRACT=25
+    OP_MULTI=26
+    OP_DIVIDE=27
+    OP_REMAINDER=28
+    OP_NOT=29
+    OP_AND=30
+    OP_OR=31
+    OP_EQUAL=32
+    OP_LEFT_ARROW=33
+    OP_NOT_EQUAL=34
+    OP_SMALLER=35
+    OP_GREATER=36
+    OP_SMALLER_EQUAL=37
+    OP_GREATER_EQUAL=38
+    OP_EQUAL_COMPARE=39
+    OP_TRIPLE_DOT=40
+    SEP_OPEN_PAREN=41
+    SEP_CLOSE_PAREN=42
+    SEP_OPEN_BRACK=43
+    SEP_CLOSE_BRACK=44
+    SEP_COMA=45
+    COMMENT=46
+    WS=47
+    NEW_LINE=48
+    NOT_NEW_LINE=49
+    ERROR_CHAR=50
+    UNCLOSE_STRING=51
+    ILLEGAL_ESCAPE=52
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
