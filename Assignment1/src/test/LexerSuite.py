@@ -23,3 +23,10 @@ class LexerSuite(unittest.TestCase):
         """Test simple comment at before EOF"""
         self.assertTrue(TestLexer.test("##This is a comment","##This is a comment,<EOF>", 107))
     
+    def test_simple_variable_declare(self):
+        """Test simple variable declare"""
+        self.assertTrue(TestLexer.test(
+            "var _myVar = 5",
+            "var,_myVar,=,5,<EOF>",108
+        ))
+    

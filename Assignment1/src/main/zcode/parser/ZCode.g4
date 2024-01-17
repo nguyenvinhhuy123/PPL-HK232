@@ -20,7 +20,7 @@ fragment ZERO: '0';
 fragment NON_ZERO_DIGIT: [1-9];
 fragment DIGIT: ZERO | NON_ZERO_DIGIT;
 fragment FLOATING_POINT: '.'DIGIT*;
-fragment EXPONENTIAL: [eE]('+'|'-')* NON_ZERO_DIGIT DIGIT*;
+fragment EXPONENTIAL: [eE]('+'|'-')? NON_ZERO_DIGIT DIGIT*;
 NUMBER: NON_ZERO_DIGIT DIGIT* FLOATING_POINT* EXPONENTIAL* | ZERO;
 
 //*Boolen */
@@ -88,7 +88,7 @@ SEP_COMA: ',';
 
 //*Comment
 fragment COMMENT_HEAD: '##';
-COMMENT: COMMENT_HEAD NOT_NEW_LINE* (NEW_LINE|EOF); 
+COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> channel(HIDDEN); 
 //Skip any character not a newline character after comment start fragment end a comment with newline/eof token
 
 //*Whitespace and newline */
@@ -99,5 +99,7 @@ NOT_NEW_LINE: ~'\n';
 
 //*error handling
 ERROR_CHAR: . {raise ErrorToken(self.text)};
-UNCLOSE_STRING: .;
+UNCLOSE_STRING: 
+	'"' STRING_LITTERAL EOF 
+	{raise UncloseString(self.text)};
 ILLEGAL_ESCAPE: .;
