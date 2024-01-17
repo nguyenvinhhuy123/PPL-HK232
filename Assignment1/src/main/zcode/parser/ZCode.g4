@@ -9,7 +9,7 @@ options {
 	language=Python3;
 }
 
-program:;
+program:.;
 
 //*Identifier */
 fragment IDENTIFIER_HEAD: [_a-zA-Z];
@@ -23,18 +23,16 @@ fragment FLOATING_POINT: '.'DIGIT*;
 fragment EXPONENTIAL: [eE]('+'|'-')? NON_ZERO_DIGIT DIGIT*;
 NUMBER: NON_ZERO_DIGIT DIGIT* FLOATING_POINT* EXPONENTIAL* | ZERO;
 
-//*Boolen */
-BOOLEN: KW_TRUE | KW_FALSE;
-
 
 //*String */
 fragment STRING_CHAR: ~[\\\b\f\r\n\t'"]; //*Any character that not a escape seq char and quote*/
-fragment ESCAPE_SIGN:. '\\';
-fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ~'"' | ESCAPE_SIGN NEW_LINE; 
+fragment ESCAPE_SIGN:. [\\];
+fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ~["]; 
 //*Any char with escape sign prefix and not a double quote count as esc_seq*/
-fragment DOUBLE_QUOTE_IN_STRING: '\'''"';
+fragment DOUBLE_QUOTE_IN_STRING: [']["];
 fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
-STRING: '"' STRING_LITTERAL* '"';
+STRING: ["] STRING_LITTERAL* ["] 
+	{self.text = self.text[1:-1]} ;
 
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
@@ -88,18 +86,21 @@ SEP_COMA: ',';
 
 //*Comment
 fragment COMMENT_HEAD: '##';
-COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> channel(HIDDEN); 
+COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip; 
 //Skip any character not a newline character after comment start fragment end a comment with newline/eof token
 
 //*Whitespace and newline */
 WS : [ \t\r\b\f]+ -> skip ; // skip spaces, tabs, newlines
 
 NEW_LINE: '\n';
-NOT_NEW_LINE: ~'\n';
+fragment NOT_NEW_LINE: ~'\n';
 
 //*error handling
-ERROR_CHAR: . {raise ErrorToken(self.text)};
-UNCLOSE_STRING: 
-	'"' STRING_LITTERAL EOF 
+ERROR_CHAR: . 
+{raise ErrorToken(self.text)};
+
+UNCLOSE_STRING: ["] STRING_LITTERAL* EOF 
 	{raise UncloseString(self.text)};
+
 ILLEGAL_ESCAPE: .;
+

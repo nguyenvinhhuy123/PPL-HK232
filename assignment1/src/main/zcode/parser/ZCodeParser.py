@@ -11,9 +11,9 @@ else:
 
 def serializedATN():
     with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\66")
+        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\65")
         buf.write("\7\4\2\t\2\3\2\3\2\3\2\2\2\3\2\2\2\2\5\2\4\3\2\2\2\4\5")
-        buf.write("\3\2\2\2\5\3\3\2\2\2\2")
+        buf.write("\13\2\2\2\5\3\3\2\2\2\2")
         return buf.getvalue()
 
 
@@ -48,7 +48,7 @@ class ZCodeParser ( Parser ):
                       "OP_GREATER_EQUAL", "OP_EQUAL_COMPARE", "OP_TRIPLE_DOT", 
                       "SEP_OPEN_PAREN", "SEP_CLOSE_PAREN", "SEP_OPEN_BRACK", 
                       "SEP_CLOSE_BRACK", "SEP_COMA", "COMMENT", "WS", "NEW_LINE", 
-                      "NOT_NEW_LINE", "ERROR_CHAR", "UNCLOSE_STRING", "ILLEGAL_ESCAPE" ]
+                      "ERROR_CHAR", "UNCLOSE_STRING", "ILLEGAL_ESCAPE" ]
 
     RULE_program = 0
 
@@ -103,10 +103,9 @@ class ZCodeParser ( Parser ):
     COMMENT=46
     WS=47
     NEW_LINE=48
-    NOT_NEW_LINE=49
-    ERROR_CHAR=50
-    UNCLOSE_STRING=51
-    ILLEGAL_ESCAPE=52
+    ERROR_CHAR=49
+    UNCLOSE_STRING=50
+    ILLEGAL_ESCAPE=51
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -143,7 +142,8 @@ class ZCodeParser ( Parser ):
         self.enterRule(localctx, 0, self.RULE_program)
         try:
             self.enterOuterAlt(localctx, 1)
-
+            self.state = 2
+            self.matchWildcard()
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
