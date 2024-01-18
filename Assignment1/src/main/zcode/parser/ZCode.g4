@@ -10,6 +10,27 @@ options {
 }
 
 program:.;
+//*PARSER RULES */
+main_derclaration: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_BRACK code_block;
+
+//*function */
+function: KW_FUNC IDENTIFIER SEP_OPEN_PAREN SEP_CLOSE_BRACK code_block;
+
+code_block:;
+
+
+//*variable */
+var_declaration:.;
+var_assign: IDENTIFIER OP_LEFT_ARROW expression;
+
+//*expression */
+expression: NUMBER | IDENTIFIER operation expression;
+operation: OP_ADD | OP_AND | OP_SUBTRACT | OP_REMAINDER | OP_DIVIDE;
+
+
+//*LEXER RULES */
+//*main func */
+MAIN_TOKEN: 'main';
 
 //*Identifier */
 fragment IDENTIFIER_HEAD: [_a-zA-Z];
@@ -92,7 +113,7 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 //*Whitespace and newline */
 WS : [ \t\r\b\f]+ -> skip ; // skip spaces, tabs, newlines
 
-NEW_LINE: '\n';
+NEW_LINE: '\n' -> channel(HIDDEN);
 fragment NOT_NEW_LINE: ~'\n';
 
 //*error handling
@@ -102,5 +123,7 @@ ERROR_CHAR: .
 UNCLOSE_STRING: ["] STRING_LITTERAL* EOF 
 	{raise UncloseString(self.text)};
 
-ILLEGAL_ESCAPE: .;
+ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ESCAPE_SIGN STRING_LITTERAL* ["]?
+	{raise IllegalEscape(self.text)};
+//TODO: Walkthough this lexeme?
 
