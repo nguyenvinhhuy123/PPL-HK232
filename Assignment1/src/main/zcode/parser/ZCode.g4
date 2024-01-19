@@ -121,9 +121,9 @@ ERROR_CHAR: .
 {raise ErrorToken(self.text)};
 
 UNCLOSE_STRING: ["] STRING_LITTERAL* EOF 
-	{raise UncloseString(self.text)};
+	{raise UncloseString(self.text[1:])};
 
-ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ESCAPE_SIGN STRING_LITTERAL* ["]?
-	{raise IllegalEscape(self.text)};
+ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ESCAPE_SIGN STRING_LITTERAL* ["]
+	{raise IllegalEscape(self.text[1:-1])};
 //TODO: Walkthough this lexeme?
 
