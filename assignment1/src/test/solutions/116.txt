@@ -1,3 +1,1 @@
-
-,_myIdent1,
-,_myIdent2,<EOF>
+48,2,48,2,<EOF>

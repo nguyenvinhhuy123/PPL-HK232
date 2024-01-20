@@ -78,3 +78,47 @@ class LexerSuite(unittest.TestCase):
         input = "\n_myIdent1\n_myIdent2"
         expected = "\n,_myIdent1,\n,_myIdent2,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,116))
+    
+    #*Case 121-130: Operation recognition
+    def test_simple_assignment(self):
+        '''simple assignment'''
+        input = "_myVar <- 5 + 3"
+        expected = "_myVar,<-,5,+,3,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,121))
+    
+    def test_complex_assignment(self):
+        '''complex assignment'''
+        input = "_myVar <- (5 + 3)*2/_myOtherVar"
+        expected = "_myVar,<-,(,5,+,3,),*,2,/,_myOtherVar,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,122))
+        
+    def test_string_assignment(self):
+        '''string assignment'''
+        input = "_myVar <- \"This is my string\""
+        expected = "_myVar,<-,This is my string,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,123))
+        
+    def test_comparison(self):
+        '''simple comparison statement'''
+        input = " _myVar <= 2"
+        expected = "_myVar,<=,2,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,124))
+        
+    def test_complex_comparison(self):
+        '''complex comparison statement'''
+        input = "_myVar >= (2+3)*_myOther"
+        expected = "_myVar,>=,(,2,+,3,),*,_myOther,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,125))
+
+    def test_string_compare(self):
+        '''string comparison statement'''
+        input = "_myVar >= \"This is a compared string\""
+        expected = "_myVar,>=,This is a compared string,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,126))
+    def test_logic_operator(self):
+        '''logic operator statement'''
+        input = "_myLogic <- _myVar and _myOther"
+        expected = "_mLogic,<-,_myVar,and,_myOther,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,126))
+    
+    
