@@ -14,7 +14,7 @@ program:.;
 main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_BRACK code_block;
 
 sign_number: OP_SUBTRACT NUMBER | NUMBER;
-literal: sign_number | STRING | BOOLEN ;
+literal: sign_number | STRING | BOOL ;
 code_block:;
 line:;
 statement:;
@@ -25,10 +25,10 @@ implicit_type_def: KW_VAR | KW_DYNAMIC;
 
 //*variable */
 value_init: OP_LEFT_ARROW expression;
-var_declare:type_def IDENTIFIER value_init?
-		| KW_VAR IDENTIFIER value_init
-		| KW_DYNAMIC IDENTIFIER value_init?; //? Should value_init be obligatory for dynamic variables?
-var_assign: IDENTIFIER value_init;
+var_declare:(type_def IDENTIFIER value_init? NEW_LINE)
+		| (KW_VAR IDENTIFIER value_init NEW_LINE)
+		| (KW_DYNAMIC IDENTIFIER value_init? NEW_LINE); //? Should value_init be obligatory for dynamic variables?
+var_assign: IDENTIFIER value_init NEW_LINE;
 
 //*Array */
 number_list: NUMBER number_list_tail?;
@@ -64,31 +64,8 @@ operation: OP_ADD | OP_AND | OP_SUBTRACT | OP_REMAINDER | OP_DIVIDE;
 //*main func */
 MAIN_TOKEN: 'main';
 
-//*Identifier */
-fragment IDENTIFIER_HEAD: [_a-zA-Z];
-IDENTIFIER: IDENTIFIER_HEAD+[a-zA-Z0-9]*;
-
-//*Number */
-fragment ZERO: '0';
-fragment NON_ZERO_DIGIT: [1-9];
-fragment DIGIT: ZERO | NON_ZERO_DIGIT;
-fragment FLOATING_POINT: '.'DIGIT*;
-fragment EXPONENTIAL: [eE]('+'|'-')? NON_ZERO_DIGIT DIGIT*;
-NUMBER: NON_ZERO_DIGIT DIGIT* FLOATING_POINT* EXPONENTIAL* | ZERO;
-
-
-//*String */
-fragment STRING_CHAR: ~[\\\b\f\r\n\t'"]; //*Any character that not a escape seq char and quote*/
-fragment ESCAPE_SIGN:. [\\];
-fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ~["]; 
-//*Any char with escape sign prefix and not a double quote count as esc_seq*/
-fragment DOUBLE_QUOTE_IN_STRING: [']["];
-fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
-STRING: ["] STRING_LITTERAL* ["] 
-	{self.text = self.text[1:-1]} ;
-
 //*Boolen */
-BOOLEN: KW_TRUE | KW_FALSE;
+BOOL: KW_TRUE | KW_FALSE;
 
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
@@ -140,6 +117,31 @@ SEP_OPEN_BRACK: '[';
 SEP_CLOSE_BRACK: ']';
 SEP_COMA: ',';	
 
+
+//*Identifier */
+fragment IDENTIFIER_HEAD: [_a-zA-Z];
+IDENTIFIER: IDENTIFIER_HEAD+[a-zA-Z0-9]*;
+
+//*Number */
+fragment ZERO: '0';
+fragment NON_ZERO_DIGIT: [1-9];
+fragment DIGIT: ZERO | NON_ZERO_DIGIT;
+fragment FLOATING_POINT: '.'DIGIT*;
+fragment EXPONENTIAL: [eE]('+'|'-')? NON_ZERO_DIGIT DIGIT*;
+NUMBER: NON_ZERO_DIGIT DIGIT* FLOATING_POINT* EXPONENTIAL* | ZERO;
+
+
+//*String */
+fragment STRING_CHAR: ~[\\\b\f\r\n\t'"]; //*Any character that not a escape seq char and quote*/
+fragment ESCAPE_SIGN:. [\\];
+fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ~["]; 
+//*Any char with escape sign prefix and not a double quote count as esc_seq*/
+fragment DOUBLE_QUOTE_IN_STRING: [']["];
+fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
+STRING: ["] STRING_LITTERAL* ["] 
+	{self.text = self.text[1:-1]} ;
+
+
 //*Comment
 fragment COMMENT_HEAD: '##';
 COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip; 
@@ -148,7 +150,7 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 //*Whitespace and newline */
 WS : [ \t\r\b\f]+ -> skip ; // skip spaces, tabs, newlines
 
-NEW_LINE: '\n' -> channel(HIDDEN);
+NEW_LINE: '\n';
 fragment NOT_NEW_LINE: ~'\n';
 
 //*error handling

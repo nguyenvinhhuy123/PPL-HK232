@@ -118,7 +118,11 @@ class LexerSuite(unittest.TestCase):
     def test_logic_operator(self):
         '''logic operator statement'''
         input = "_myLogic <- _myVar and _myOther"
-        expected = "_mLogic,<-,_myVar,and,_myOther,<EOF>"
-        self.assertTrue(TestLexer.test(input,expected,126))
-    
-    
+        expected = "_myLogic,<-,_myVar,and,_myOther,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,127))
+    #*Case 131=140: Keyword recognition#
+    def test_simple_keyword(self):
+        '''Simple keyword recognition: Case dynamic,var,true'''
+        input = "dynamic var true"
+        expected = "dynamic,var,true,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,130))
