@@ -11,21 +11,53 @@ options {
 
 program:.;
 //*PARSER RULES */
-main_derclaration: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_BRACK code_block;
+main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_BRACK code_block;
 
-//*function */
-function: KW_FUNC IDENTIFIER SEP_OPEN_PAREN SEP_CLOSE_BRACK code_block;
-
+sign_number: OP_SUBTRACT NUMBER | NUMBER;
+literal: sign_number | STRING | BOOLEN ;
 code_block:;
+line:;
+statement:;
 
+//*type def */
+type_def: KW_NUMBER | KW_STRING | KW_BOOL;
+implicit_type_def: KW_VAR | KW_DYNAMIC;
 
 //*variable */
-var_declaration:.;
-var_assign: IDENTIFIER OP_LEFT_ARROW expression;
+value_init: OP_LEFT_ARROW expression;
+var_declare:type_def IDENTIFIER value_init?
+		| KW_VAR IDENTIFIER value_init
+		| KW_DYNAMIC IDENTIFIER value_init?; //? Should value_init be obligatory for dynamic variables?
+var_assign: IDENTIFIER value_init;
+
+//*Array */
+number_list: NUMBER number_list_tail?;
+number_list_tail: SEP_COMA NUMBER number_list_tail?;
+array_dim_list: SEP_OPEN_BRACK number_list SEP_CLOSE_BRACK;
+
+array_declare: type_def IDENTIFIER  array_dim_list array_init?;
+array_init: OP_LEFT_ARROW (IDENTIFIER 
+			| array_value_init);
+
+array_value_init: SEP_OPEN_BRACK (array_value_init+|literal) SEP_CLOSE_BRACK;
+
+//*function */
+param_list:IDENTIFIER param_list_tail?;
+param_list_tail: SEP_COMA IDENTIFIER param_list_tail?;
+
+param_def_list: (type_def IDENTIFIER) param_def_list?;
+param_def_list_tail: SEP_COMA (type_def IDENTIFIER) param_def_list_tail?;
+
+func_def: KW_FUNC IDENTIFIER SEP_OPEN_PAREN param_def_list? SEP_CLOSE_BRACK code_block;
+
 
 //*expression */
 expression: NUMBER | IDENTIFIER operation expression;
 operation: OP_ADD | OP_AND | OP_SUBTRACT | OP_REMAINDER | OP_DIVIDE;
+
+
+
+
 
 
 //*LEXER RULES */
@@ -54,6 +86,9 @@ fragment DOUBLE_QUOTE_IN_STRING: [']["];
 fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
 STRING: ["] STRING_LITTERAL* ["] 
 	{self.text = self.text[1:-1]} ;
+
+//*Boolen */
+BOOLEN: KW_TRUE | KW_FALSE;
 
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
