@@ -245,14 +245,14 @@ class ZCodeLexer(Lexer):
     OP_AND = 28
     OP_OR = 29
     OP_EQUAL = 30
-    OP_LEFT_ARROW = 31
+    OP_ASSIGN = 31
     OP_NOT_EQUAL = 32
     OP_SMALLER = 33
     OP_GREATER = 34
     OP_SMALLER_EQUAL = 35
     OP_GREATER_EQUAL = 36
-    OP_EQUAL_COMPARE = 37
-    OP_TRIPLE_DOT = 38
+    OP_STRING_EQUAL = 37
+    OP_STRING_CONCAT = 38
     SEP_OPEN_PAREN = 39
     SEP_CLOSE_PAREN = 40
     SEP_OPEN_BRACK = 41
@@ -287,9 +287,9 @@ class ZCodeLexer(Lexer):
             "KW_FOR", "KW_UNTIL", "KW_BY", "KW_BREAK", "KW_CONTINUE", "KW_IF", 
             "KW_ELSE", "KW_ELIF", "KW_BEGIN", "KW_END", "OP_ADD", "OP_SUBTRACT", 
             "OP_MULTI", "OP_DIVIDE", "OP_REMAINDER", "OP_NOT", "OP_AND", 
-            "OP_OR", "OP_EQUAL", "OP_LEFT_ARROW", "OP_NOT_EQUAL", "OP_SMALLER", 
-            "OP_GREATER", "OP_SMALLER_EQUAL", "OP_GREATER_EQUAL", "OP_EQUAL_COMPARE", 
-            "OP_TRIPLE_DOT", "SEP_OPEN_PAREN", "SEP_CLOSE_PAREN", "SEP_OPEN_BRACK", 
+            "OP_OR", "OP_EQUAL", "OP_ASSIGN", "OP_NOT_EQUAL", "OP_SMALLER", 
+            "OP_GREATER", "OP_SMALLER_EQUAL", "OP_GREATER_EQUAL", "OP_STRING_EQUAL", 
+            "OP_STRING_CONCAT", "SEP_OPEN_PAREN", "SEP_CLOSE_PAREN", "SEP_OPEN_BRACK", 
             "SEP_CLOSE_BRACK", "SEP_COMA", "IDENTIFIER", "NUMBER", "STRING", 
             "COMMENT", "WS", "NEW_LINE", "ERROR_CHAR", "UNCLOSE_STRING", 
             "ILLEGAL_ESCAPE" ]
@@ -300,9 +300,9 @@ class ZCodeLexer(Lexer):
                   "KW_CONTINUE", "KW_IF", "KW_ELSE", "KW_ELIF", "KW_BEGIN", 
                   "KW_END", "OP_ADD", "OP_SUBTRACT", "OP_MULTI", "OP_DIVIDE", 
                   "OP_REMAINDER", "OP_NOT", "OP_AND", "OP_OR", "OP_EQUAL", 
-                  "OP_LEFT_ARROW", "OP_NOT_EQUAL", "OP_SMALLER", "OP_GREATER", 
-                  "OP_SMALLER_EQUAL", "OP_GREATER_EQUAL", "OP_EQUAL_COMPARE", 
-                  "OP_TRIPLE_DOT", "SEP_OPEN_PAREN", "SEP_CLOSE_PAREN", 
+                  "OP_ASSIGN", "OP_NOT_EQUAL", "OP_SMALLER", "OP_GREATER", 
+                  "OP_SMALLER_EQUAL", "OP_GREATER_EQUAL", "OP_STRING_EQUAL", 
+                  "OP_STRING_CONCAT", "SEP_OPEN_PAREN", "SEP_CLOSE_PAREN", 
                   "SEP_OPEN_BRACK", "SEP_CLOSE_BRACK", "SEP_COMA", "IDENTIFIER_HEAD", 
                   "IDENTIFIER", "ZERO", "NON_ZERO_DIGIT", "DIGIT", "FLOATING_POINT", 
                   "EXPONENTIAL", "NUMBER", "STRING_CHAR", "ESCAPE_SIGN", 

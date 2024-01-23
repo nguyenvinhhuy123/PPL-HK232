@@ -8,3 +8,10 @@ class ParserSuite(unittest.TestCase):
         """
         expect = "successful"
         self.assertTrue(TestParser.test(input,expect,201))
+        
+    def test_simple_program_fail(self):
+        """Simple program: int main() {} """
+        input = """int main () return 1
+        """
+        expect = "Error on line 1 col 0: int"
+        self.assertTrue(TestParser.test(input,expect,202))
