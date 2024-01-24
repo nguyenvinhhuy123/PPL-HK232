@@ -20,7 +20,7 @@ define: func_def | var_def | array_def;
 code_block:.;
 lines: (line)*;
 line: var_def | var_assign | array_def | array_asign;
-statements:(statements)*;
+statements: (statement)*;
 statement:;
 //*type def */
 type_def: KW_NUMBER | KW_STRING | KW_BOOL;
