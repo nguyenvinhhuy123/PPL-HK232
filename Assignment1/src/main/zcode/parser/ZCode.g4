@@ -17,11 +17,14 @@ main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN code_block;
 
 define: func_def | var_def | array_def;
 
-code_block:.;
-lines: (line)*;
-line: var_def | var_assign | array_def | array_asign;
-statements: (statement)*;
-statement:;
+code_block: 
+	KW_BEGIN lines KW_END
+	| lines return_statement
+	;
+lines: (line|statement)*;
+line: var_def | var_assign | array_def | array_asign ;
+statement:; //TODO: all statement type together
+
 //*type def */
 type_def: KW_NUMBER | KW_STRING | KW_BOOL;
 implicit_type_def: KW_VAR | KW_DYNAMIC;
@@ -30,10 +33,11 @@ implicit_type_def: KW_VAR | KW_DYNAMIC;
 var_def: static_var_def | dynamic_var_def ;
 
 value_init: OP_ASSIGN expression;
-static_var_def: (type_def IDENTIFIER (value_init| ));
+static_var_def: (type_def IDENTIFIER value_init?);
 dynamic_var_def:
 	(KW_VAR IDENTIFIER value_init)
-	| (KW_DYNAMIC IDENTIFIER (value_init| )); //? Should value_init be obligatory for dynamic variables?
+	| (KW_DYNAMIC IDENTIFIER value_init?)
+	; //? Should value_init be obligatory for dynamic variables?
 var_assign: IDENTIFIER value_init;
 
 //*Array */
@@ -47,6 +51,7 @@ array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
 array_value_init: SEP_OPEN_BRACK (array_value_init+|literal) SEP_CLOSE_BRACK;
 
 array_asign: IDENTIFIER array_asign;
+
 //*function */
 param_list:IDENTIFIER param_list_tail | ;
 param_list_tail: SEP_COMA IDENTIFIER param_list_tail | ;
@@ -59,12 +64,20 @@ param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
 
 func_def: KW_FUNC IDENTIFIER param_def code_block;
 
-foward_func_def: KW_FUNC IDENTIFIER param_def NEW_LINE;
+foward_func_def: KW_FUNC IDENTIFIER param_def;
 
 func_call: IDENTIFIER SEP_OPEN_PAREN param_def_list SEP_CLOSE_BRACK;
 
 //*expression */
-expression:;
+expressions: (expression)*;
+expression: string_expr
+	| relation_expr
+	| logic_expr
+	| add_expr
+	| multi_expr
+	| negate_expr
+	| primary_expression
+	| array_expr;
 
 string_expr: relation_expr string_op relation_expr | relation_expr;
 string_op: OP_STRING_CONCAT;
@@ -81,12 +94,12 @@ add_op: (OP_ADD | OP_SUBTRACT);
 multi_expr: multi_expr multi_op negate_expr | negate_expr;
 multi_op: (OP_MULTI | OP_DIVIDE | OP_REMAINDER);
 
-negate_expr: negate_op negate_expr | array_expr;
+negate_expr: negate_op negate_expr | primary_expression;
 negate_op: OP_NOT;
 
 primary_expression:
 	SEP_OPEN_PAREN expression SEP_CLOSE_PAREN
-	| sign_number
+	| literal
 	| array_expr
 	;
 
@@ -94,17 +107,12 @@ array_expr: array_expr  indexer | term;
 indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
 index_op: expression (SEP_COMA index_op)*;
 
-term: literal | IDENTIFIER | func_call;
+term: IDENTIFIER | func_call;
 
-
-	// | expression multi_op expression
-	// | expression add_op expression
-	// | expression logic_op expression
-	// | 
 
 //*Literal */
 sign_number: (OP_SUBTRACT| ) NUMBER;
-literal: sign_number | STRING | boolean ;
+literal: sign_number | STRING | boolean;
 //*Boolen */
 boolean: KW_TRUE | KW_FALSE;
 
