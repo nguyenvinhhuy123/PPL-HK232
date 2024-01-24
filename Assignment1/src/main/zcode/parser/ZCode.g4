@@ -20,8 +20,8 @@ define: func_def | var_def | array_def;
 code_block:.;
 lines: (line)*;
 line: var_def | var_assign | array_def | array_asign;
-statements:;
-statement:(statements)*;
+statements:(statements)*;
+statement:;
 //*type def */
 type_def: KW_NUMBER | KW_STRING | KW_BOOL;
 implicit_type_def: KW_VAR | KW_DYNAMIC;
