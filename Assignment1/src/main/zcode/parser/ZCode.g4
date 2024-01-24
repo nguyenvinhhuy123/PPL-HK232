@@ -18,76 +18,97 @@ main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN code_block;
 define: func_def | var_def | array_def;
 
 code_block:.;
-line:;
-statement:;
-
+lines: (line)*;
+line: var_def | var_assign | array_def | array_asign;
+statements:;
+statement:(statements)*;
 //*type def */
 type_def: KW_NUMBER | KW_STRING | KW_BOOL;
 implicit_type_def: KW_VAR | KW_DYNAMIC;
 
 //*variable */
+var_def: static_var_def | dynamic_var_def ;
+
 value_init: OP_ASSIGN expression;
-var_def:(type_def IDENTIFIER value_init? NEW_LINE)
-		| (KW_VAR IDENTIFIER value_init NEW_LINE)
-		| (KW_DYNAMIC IDENTIFIER value_init? NEW_LINE); //? Should value_init be obligatory for dynamic variables?
-var_assign: IDENTIFIER value_init NEW_LINE;
+static_var_def: (type_def IDENTIFIER (value_init| ));
+dynamic_var_def:
+	(KW_VAR IDENTIFIER value_init)
+	| (KW_DYNAMIC IDENTIFIER (value_init| )); //? Should value_init be obligatory for dynamic variables?
+var_assign: IDENTIFIER value_init;
 
 //*Array */
-number_list: NUMBER number_list_tail?;
-number_list_tail: SEP_COMA NUMBER number_list_tail?;
+number_list: NUMBER number_list_tail |;
+number_list_tail: SEP_COMA NUMBER number_list_tail |;
 array_dim_list: SEP_OPEN_BRACK number_list SEP_CLOSE_BRACK;
 
 array_def: type_def IDENTIFIER  array_dim_list array_init? NEW_LINE;
-array_init: OP_ASSIGN (IDENTIFIER 
-			| array_value_init);
 
+array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
 array_value_init: SEP_OPEN_BRACK (array_value_init+|literal) SEP_CLOSE_BRACK;
 
+array_asign: IDENTIFIER array_asign;
 //*function */
-param_list:IDENTIFIER param_list_tail?;
-param_list_tail: SEP_COMA IDENTIFIER param_list_tail?;
+param_list:IDENTIFIER param_list_tail | ;
+param_list_tail: SEP_COMA IDENTIFIER param_list_tail | ;
 
-param_def_list: (type_def IDENTIFIER) param_def_list?;
-param_def_list_tail: SEP_COMA (type_def IDENTIFIER) param_def_list_tail?;
-param_def: SEP_OPEN_PAREN param_def_list? SEP_CLOSE_PAREN;
+param_def_list: param param_def_list_tail | ;
+param_def_list_tail: SEP_COMA param param_def_list_tail|;
+param: type_def IDENTIFIER;
+
+param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
 
 func_def: KW_FUNC IDENTIFIER param_def code_block;
 
 foward_func_def: KW_FUNC IDENTIFIER param_def NEW_LINE;
 
-func_call: IDENTIFIER SEP_OPEN_PAREN param_def_list? SEP_CLOSE_BRACK;
+func_call: IDENTIFIER SEP_OPEN_PAREN param_def_list SEP_CLOSE_BRACK;
 
 //*expression */
-expression:
-	SEP_OPEN_PAREN expression SEP_CLOSE_PAREN
-	| expression SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK
-	| sign_number
-	| <assoc=right> negate_op expression
-	| expression multi_op expression
-	| expression add_op expression
-	| expression logic_op expression
-	| expression relational_op expression
-	| expression string_op expression
-	| IDENTIFIER
-	| literal;
+expression:;
 
-index_op: expression (SEP_COMA index_op)*;
-
-negate_op: OP_NOT;
-
-multi_op: (OP_MULTI | OP_DIVIDE | OP_REMAINDER);
-
-add_op: (OP_ADD | OP_SUBTRACT);
-
-logic_op: (OP_AND | OP_OR);
-
-relational_op: (OP_GREATER | OP_GREATER_EQUAL | OP_EQUAL | OP_NOT_EQUAL | OP_SMALLER | OP_SMALLER_EQUAL | OP_STRING_EQUAL );
-
+string_expr: relation_expr string_op relation_expr | relation_expr;
 string_op: OP_STRING_CONCAT;
 
+relation_expr: logic_expr relational_op logic_expr | logic_expr;
+relational_op: (OP_GREATER | OP_GREATER_EQUAL | OP_EQUAL | OP_NOT_EQUAL | OP_SMALLER | OP_SMALLER_EQUAL | OP_STRING_EQUAL);
+
+logic_expr: logic_expr logic_op add_expr | add_expr;
+logic_op: (OP_AND | OP_OR);
+
+add_expr: add_expr add_op multi_expr | multi_expr;
+add_op: (OP_ADD | OP_SUBTRACT);
+
+multi_expr: multi_expr multi_op negate_expr | negate_expr;
+multi_op: (OP_MULTI | OP_DIVIDE | OP_REMAINDER);
+
+negate_expr: negate_op negate_expr | array_expr;
+negate_op: OP_NOT;
+
+primary_expression:
+	SEP_OPEN_PAREN expression SEP_CLOSE_PAREN
+	| sign_number
+	| array_expr
+	;
+
+array_expr: array_expr  indexer | term;
+indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
+index_op: expression (SEP_COMA index_op)*;
+
+term: literal | IDENTIFIER | func_call;
+
+
+	// | expression multi_op expression
+	// | expression add_op expression
+	// | expression logic_op expression
+	// | 
+
 //*Literal */
-sign_number: <assoc=right> OP_SUBTRACT? NUMBER;
-literal: NUMBER | STRING | BOOL ;
+sign_number: (OP_SUBTRACT| ) NUMBER;
+literal: sign_number | STRING | boolean ;
+//*Boolen */
+boolean: KW_TRUE | KW_FALSE;
+
+comment: NEW_LINE COMMENT NEW_LINE;
 
 
 
@@ -96,8 +117,6 @@ literal: NUMBER | STRING | BOOL ;
 //*main func */
 MAIN_TOKEN: 'main';
 
-//*Boolen */
-BOOL: KW_TRUE | KW_FALSE;
 
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
