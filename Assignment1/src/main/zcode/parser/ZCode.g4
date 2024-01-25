@@ -109,6 +109,8 @@ index_op: expression (SEP_COMA index_op)*;
 
 term: IDENTIFIER | func_call;
 
+//*Statements */
+return_statement: KW_RETURN expression;
 
 //*Literal */
 sign_number: (OP_SUBTRACT| ) NUMBER;
@@ -116,7 +118,7 @@ literal: sign_number | STRING | boolean;
 //*Boolen */
 boolean: KW_TRUE | KW_FALSE;
 
-comment: NEW_LINE COMMENT NEW_LINE;
+
 
 
 
@@ -179,21 +181,26 @@ SEP_COMA: ',';
 
 //*Identifier */
 fragment IDENTIFIER_HEAD: [_a-zA-Z];
-IDENTIFIER: IDENTIFIER_HEAD+[a-zA-Z0-9]*;
+fragment IDENTIFIER_TAIL: [_a-zA-Z0-9]*;
+IDENTIFIER: IDENTIFIER_HEAD+ IDENTIFIER_TAIL;
 
 //*Number */
 fragment ZERO: '0';
 fragment NON_ZERO_DIGIT: [1-9];
 fragment DIGIT: ZERO | NON_ZERO_DIGIT;
-fragment FLOATING_POINT: '.'DIGIT*;
-fragment EXPONENTIAL: [eE]('+'|'-')? NON_ZERO_DIGIT DIGIT*;
-NUMBER: NON_ZERO_DIGIT DIGIT* FLOATING_POINT* EXPONENTIAL* | ZERO;
+fragment DECIMAL: NON_ZERO_DIGIT DIGIT*;
+fragment FLOATING_POINT: '.'DIGIT* | ;
+fragment EXPONENTIAL: [eE]('+'|'-')? NON_ZERO_DIGIT DIGIT* | ;
+NUMBER: DECIMAL FLOATING_POINT EXPONENTIAL | ZERO;
 
 
 //*String */
 fragment STRING_CHAR: ~[\\\b\f\r\n\t'"]; //*Any character that not a escape seq char and quote*/
 fragment ESCAPE_SIGN:. [\\];
-fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ~["]; 
+fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ESCAPE_REP;
+fragment ESCAPE_REP: [\bfrnt'"]; //[\bfrnt'"] : escape seq representation char 
+fragment NOT_ESCAPE_REP: ~[\bfrnt'"];
+fragment ILLEGAL_ESCAPW_SEQ: ESCAPE_SIGN NOT_ESCAPE_REP;
 //*Any char with escape sign prefix and not a double quote count as esc_seq*/
 fragment DOUBLE_QUOTE_IN_STRING: [']["];
 fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
@@ -219,7 +226,7 @@ ERROR_CHAR: .
 UNCLOSE_STRING: ["] STRING_LITTERAL* EOF 
 	{raise UncloseString(self.text[1:])};
 
-ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ESCAPE_SIGN STRING_LITTERAL* ["]
-	{raise IllegalEscape(self.text[1:-1])};
-//TODO: Walkthough this lexeme?
+ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ILLEGAL_ESCAPW_SEQ 
+	{raise IllegalEscape(self.text[1:])};
+
 
