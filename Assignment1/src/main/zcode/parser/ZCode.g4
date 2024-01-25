@@ -13,17 +13,24 @@ program: foward_func_def* define* main_def define*;
 //? Should main func be the last function tho?
 
 //*PARSER RULES */
-main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN code_block;
+main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN inner_scope;
 
-define: func_def | var_def | array_def;
+foward_func: foward_func_def NEW_LINE;
+define: func_def | foward_func | def_line;
 
-code_block: 
-	KW_BEGIN lines KW_END
+inner_scope: 
+	KW_BEGIN lines KW_END //gonna be block statement
 	| lines return_statement
 	;
+
 lines: (line|statement)*;
-line: var_def | var_assign | array_def | array_asign ;
-statement:; //TODO: all statement type together
+line: def_line | assign_line | expr_line;
+
+def_line: (var_def | array_def) NEW_LINE;
+assign_line: (var_assign | array_asign) NEW_LINE;
+expr_line: expression NEW_LINE;
+
+statement: 'not yet'; //TODO: all statement type together
 
 //*type def */
 type_def: KW_NUMBER | KW_STRING | KW_BOOL;
@@ -41,35 +48,41 @@ dynamic_var_def:
 var_assign: IDENTIFIER value_init;
 
 //*Array */
-number_list: NUMBER number_list_tail |;
-number_list_tail: SEP_COMA NUMBER number_list_tail |;
-array_dim_list: SEP_OPEN_BRACK number_list SEP_CLOSE_BRACK;
+dim_list: expression dim_list_tail |;
+dim_list_tail: SEP_COMA expression dim_list_tail |;
+array_dim: SEP_OPEN_BRACK dim_list SEP_CLOSE_BRACK;
 
-array_def: type_def IDENTIFIER  array_dim_list array_init? NEW_LINE;
+array_def: array_static_def | array_implicit_def;
+
+array_identifier: IDENTIFIER array_dim;
+array_static_def: type_def array_identifier array_init?;
+array_implicit_def: KW_VAR array_identifier array_init;
 
 array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
-array_value_init: SEP_OPEN_BRACK (array_value_init+|literal) SEP_CLOSE_BRACK;
+array_value_init: SEP_OPEN_BRACK (array_value_init+|expression) SEP_CLOSE_BRACK;
 
-array_asign: IDENTIFIER array_asign;
+array_asign: IDENTIFIER array_init;
 
 //*function */
-param_list:IDENTIFIER param_list_tail | ;
-param_list_tail: SEP_COMA IDENTIFIER param_list_tail | ;
-
-param_def_list: param param_def_list_tail | ;
-param_def_list_tail: SEP_COMA param param_def_list_tail|;
-param: type_def IDENTIFIER;
+param_def_list: param NEW_LINE* param_def_list_tail | NEW_LINE* |;
+param_def_list_tail: SEP_COMA param NEW_LINE* param_def_list_tail|;
+param: array_def | var_def;
 
 param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
 
-func_def: KW_FUNC IDENTIFIER param_def code_block;
+func_def: KW_FUNC IDENTIFIER param_def inner_scope;
 
 foward_func_def: KW_FUNC IDENTIFIER param_def;
 
-func_call: IDENTIFIER SEP_OPEN_PAREN param_def_list SEP_CLOSE_BRACK;
+passing_arg: SEP_OPEN_PAREN passing_list SEP_CLOSE_BRACK;
+passing_list: expression passing_list_tail | ;
+passing_list_tail: SEP_COMA expression passing_list_tail | ;
+
+func_call: IDENTIFIER passing_arg;
 
 //*expression */
 expressions: (expression)*;
+
 expression: string_expr
 	| relation_expr
 	| logic_expr
@@ -110,16 +123,33 @@ index_op: expression (SEP_COMA index_op)*;
 term: IDENTIFIER | func_call;
 
 //*Statements */
+//*if stmt */
+if_statement: if_clause elif_clause* else_clause?;
+
+if_clause: KW_IF if_condition NEW_LINE* statement;
+elif_clause:KW_ELIF if_condition NEW_LINE* statement;
+else_clause:KW_ELSE statement;
+
+if_condition: SEP_OPEN_PAREN expression SEP_CLOSE_PAREN;
+
+//*for stmt */
+for_statement: for_clause condition_clause update_clause NEW_LINE* statement;
+
+for_clause:KW_FOR IDENTIFIER;
+condition_clause:KW_UNTIL expression;
+update_clause:KW_BY expression;
+
+
 return_statement: KW_RETURN expression;
+
+
+
 
 //*Literal */
 sign_number: (OP_SUBTRACT| ) NUMBER;
 literal: sign_number | STRING | boolean;
 //*Boolen */
 boolean: KW_TRUE | KW_FALSE;
-
-
-
 
 
 
