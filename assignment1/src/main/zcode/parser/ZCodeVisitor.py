@@ -374,5 +374,10 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ZCodeParser#end_line.
+    def visitEnd_line(self, ctx:ZCodeParser.End_lineContext):
+        return self.visitChildren(ctx)
+
+
 
 del ZCodeParser

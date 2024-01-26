@@ -9,26 +9,26 @@ options {
 	language=Python3;
 }
 
-program: foward_func_def* define* main_def define*;
+program: foward_func_def* define* main_def define* EOF;
 //? Should main func be the last function tho?
 
 //*PARSER RULES */
 main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN inner_scope;
 
-foward_func: foward_func_def NEW_LINES;
+foward_func: foward_func_def end_line;
 define: func_def | foward_func | def_line;
 
 inner_scope: 
-	| block_statement
-	| lines return_statement
+	block_statement end_line
+	| lines return_statement end_line
 	;
 
 lines: (line|statement)*;
 line: def_line | assign_line | expr_line;
 
-def_line: (var_def | array_def) NEW_LINES;
-assign_line: (var_assign | array_asign) NEW_LINES;
-expr_line: expression NEW_LINES; //? Can expresstion be on 1 line, ie: 1 + 2 \n //valid?
+def_line: (var_def | array_def) end_line;
+assign_line: (var_assign | array_asign) end_line;
+expr_line: expression end_line; //? Can expresstion be on 1 line, ie: 1 + 2 \n //valid?
 
 statement: 
 	(if_statement
@@ -37,7 +37,7 @@ statement:
 	| continue_statement
 	| return_statement
 	| block_statement)
-	NEW_LINES; //TODO: all statement type together
+	end_line; //TODO: all statement type together
 
 //*type def */
 type_def: KW_NUMBER | KW_STRING | KW_BOOL;
@@ -71,8 +71,8 @@ array_value_init: SEP_OPEN_BRACK (array_value_init+|expression) SEP_CLOSE_BRACK;
 array_asign: IDENTIFIER array_init;
 
 //*function */
-param_def_list: param NEW_LINES? param_def_list_tail | NEW_LINES? |;
-param_def_list_tail: SEP_COMA param NEW_LINES? param_def_list_tail|;
+param_def_list: param end_line? param_def_list_tail | end_line? |;
+param_def_list_tail: SEP_COMA param end_line? param_def_list_tail|;
 param: array_def | var_def;
 
 param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
@@ -128,14 +128,14 @@ term: IDENTIFIER | func_call;
 //*if stmt */
 if_statement: if_clause elif_clause* else_clause?;
 
-if_clause: KW_IF if_condition NEW_LINES? statement;
-elif_clause:KW_ELIF if_condition NEW_LINES? statement;
+if_clause: KW_IF if_condition end_line? statement;
+elif_clause:KW_ELIF if_condition end_line? statement;
 else_clause:KW_ELSE statement;
 
 if_condition: SEP_OPEN_PAREN expression SEP_CLOSE_PAREN;
 
 //*for stmt */
-for_statement: for_clause condition_clause update_clause NEW_LINES? statement;
+for_statement: for_clause condition_clause update_clause end_line? statement;
 
 for_clause:KW_FOR IDENTIFIER;
 condition_clause:KW_UNTIL expression;
@@ -148,7 +148,7 @@ break_statement: KW_BREAK;
 continue_statement:KW_CONTINUE;
 
 //*return stmt*/
-return_statement: KW_RETURN expression;
+return_statement: KW_RETURN expression?;
 
 //*function call/invoke */
 passing_arg: SEP_OPEN_PAREN passing_list SEP_CLOSE_BRACK;
@@ -158,7 +158,7 @@ passing_list_tail: SEP_COMA expression passing_list_tail | ;
 func_call: IDENTIFIER passing_arg;
 
 //*block stmt */
-block_statement: KW_BEGIN lines KW_END;
+block_statement: KW_BEGIN end_line? lines end_line? KW_END;
 
 //*Literal */
 sign_number: (OP_SUBTRACT| ) NUMBER;
@@ -166,6 +166,7 @@ literal: sign_number | STRING | boolean;
 //*Boolen */
 boolean: KW_TRUE | KW_FALSE;
 
+end_line: (NEW_LINE)+ ;
 
 
 //*LEXER RULES */
@@ -260,15 +261,15 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 
 //*Whitespace and newline */
 WS : [ \t\r\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
-
+ //*why + op here: end_line token can be at least 1 \n char,
 NEW_LINE: [\n];
-NEW_LINES: NEW_LINE+; //*why + op here: new_lines token can be at least 1 \n char,
+
 //* thus making multiple newline for 1 line of code viable */
 fragment NOT_NEW_LINE: ~'\n';
 
 //*error handling
-ERROR_CHAR: . 
-{raise ErrorToken(self.text)};
+ERROR_CHAR:. 
+ 	{raise ErrorToken(self.text)};
 
 UNCLOSE_STRING: ["] STRING_LITTERAL* EOF 
 	{raise UncloseString(self.text[1:])};
