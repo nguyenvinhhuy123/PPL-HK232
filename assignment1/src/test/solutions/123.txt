@@ -1,1 +1,1 @@
-44,31,46,<EOF>
+_myVar,<-,This is my string,<EOF>
