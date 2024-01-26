@@ -59,7 +59,7 @@ def serializedATN():
         buf.write("\2g\2i.k\2m\2o\2q\2s\2u\2w\2y\2{/}\2\177\60\u0081\61\u0083")
         buf.write("\62\u0085\2\u0087\63\u0089\64\u008b\65\3\2\16\5\2C\\a")
         buf.write("ac|\6\2\62;C\\aac|\3\2\63;\4\2GGgg\4\2--//\7\2\n\f\16")
-        buf.write("\17$$))^^\3\2^^\t\2\n\n$$))hhppttvv\3\2))\3\2$$\5\2\n")
+        buf.write("\17$$))^^\3\2^^\n\2$$))^^ddhhppttvv\3\2))\3\2$$\5\2\n")
         buf.write("\13\16\17\"\"\3\2\f\f\2\u01be\2\3\3\2\2\2\2\5\3\2\2\2")
         buf.write("\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3\2\2\2\2\r\3\2\2\2\2\17")
         buf.write("\3\2\2\2\2\21\3\2\2\2\2\23\3\2\2\2\2\25\3\2\2\2\2\27\3")
@@ -305,7 +305,7 @@ class ZCodeLexer(Lexer):
                   "IDENTIFIER", "ZERO", "NON_ZERO_DIGIT", "DIGIT", "DECIMAL", 
                   "FLOATING_POINT", "EXPONENTIAL", "NUMBER", "STRING_CHAR", 
                   "ESCAPE_SIGN", "ESCAPE_SEQUENCE", "ESCAPE_REP", "NOT_ESCAPE_REP", 
-                  "ILLEGAL_ESCAPW_SEQ", "DOUBLE_QUOTE_IN_STRING", "STRING_LITTERAL", 
+                  "ILLEGAL_ESCAPE_SEQ", "DOUBLE_QUOTE_IN_STRING", "STRING_LITTERAL", 
                   "STRING", "COMMENT_HEAD", "COMMENT", "WS", "NEW_LINE", 
                   "NOT_NEW_LINE", "ERROR_CHAR", "UNCLOSE_STRING", "ILLEGAL_ESCAPE" ]
 

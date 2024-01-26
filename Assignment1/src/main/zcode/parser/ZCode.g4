@@ -241,12 +241,12 @@ NUMBER: DECIMAL FLOATING_POINT EXPONENTIAL | ZERO;
 
 
 //*String */
-fragment STRING_CHAR: ~[\\\b\f\r\n\t'"]; //*Any character that not a escape seq char and quote*/
+fragment STRING_CHAR: ~[\\\b\f\r\n\t"]; //*Any character that not a escape seq char and quote*/
 fragment ESCAPE_SIGN:. [\\];
 fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ESCAPE_REP;
-fragment ESCAPE_REP: [\bfrnt'"]; //[\bfrnt'"] : escape seq representation char 
-fragment NOT_ESCAPE_REP: ~[\bfrnt'"];
-fragment ILLEGAL_ESCAPW_SEQ: ESCAPE_SIGN NOT_ESCAPE_REP;
+fragment ESCAPE_REP: [\\bfrnt'"]; //[\bfrnt'"] : escape seq representation char 
+fragment NOT_ESCAPE_REP: ~[\\bfrnt'"];
+fragment ILLEGAL_ESCAPE_SEQ: ESCAPE_SIGN NOT_ESCAPE_REP;
 //*Any char with escape sign prefix and not a double quote count as esc_seq*/
 fragment DOUBLE_QUOTE_IN_STRING: [']["];
 fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
@@ -274,7 +274,7 @@ ERROR_CHAR:.
 UNCLOSE_STRING: ["] STRING_LITTERAL* EOF 
 	{raise UncloseString(self.text[1:])};
 
-ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ILLEGAL_ESCAPW_SEQ 
+ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ILLEGAL_ESCAPE_SEQ 
 	{raise IllegalEscape(self.text[1:])};
 
 

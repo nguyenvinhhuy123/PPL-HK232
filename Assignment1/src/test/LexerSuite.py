@@ -126,3 +126,7 @@ class LexerSuite(unittest.TestCase):
         input = "dynamic var true"
         expected = "dynamic,var,true,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,130))
+    
+    def test_string_err(self):
+        self.assertTrue(TestLexer.test("\" \' \"", "Error Token: \'", 141))
+    
