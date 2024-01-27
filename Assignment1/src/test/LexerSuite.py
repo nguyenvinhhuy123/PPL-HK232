@@ -128,5 +128,5 @@ class LexerSuite(unittest.TestCase):
         self.assertTrue(TestLexer.test(input,expected,130))
     
     def test_string_err(self):
-        self.assertTrue(TestLexer.test("\" \' \"", "Error Token: \'", 141))
+        self.assertTrue(TestLexer.test("\"\'\"", "Unclosed String: \'\"", 141))
     

@@ -241,15 +241,19 @@ NUMBER: DECIMAL FLOATING_POINT EXPONENTIAL | ZERO;
 
 
 //*String */
-fragment STRING_CHAR: ~[\\\b\f\r\n\t"]; //*Any character that not a escape seq char and quote*/
+fragment STRING_CHAR: ~[\\\n"]; //*Any character that not a escape seq char and quote*/
 fragment ESCAPE_SIGN:. [\\];
 fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ESCAPE_REP;
 fragment ESCAPE_REP: [\\bfrnt'"]; //[\bfrnt'"] : escape seq representation char 
 fragment NOT_ESCAPE_REP: ~[\\bfrnt'"];
 fragment ILLEGAL_ESCAPE_SEQ: ESCAPE_SIGN NOT_ESCAPE_REP;
-//*Any char with escape sign prefix and not a double quote count as esc_seq*/
+
 fragment DOUBLE_QUOTE_IN_STRING: [']["];
-fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR;
+fragment STRING_LITTERAL: STRING_CHAR | ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | NEW_LINE ;
+//*Why NEW_LINE here: Put NL in stirng_char and tto it like this is nearly the same, 
+//*however, when we do this way, we can count the number of NL even when it in string
+//*Thus will be helpful for count line for frontend to be able to give the exatc error line
+//*Ex: string: "a\na\na\n" -> should be count as 4 different line in parser, not 1*/
 STRING: ["] STRING_LITTERAL* ["] 
 	{self.text = self.text[1:-1]} ;
 
@@ -261,7 +265,6 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 
 //*Whitespace and newline */
 WS : [ \t\r\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
- //*why + op here: end_line token can be at least 1 \n char,
 NEW_LINE: [\n];
 
 //* thus making multiple newline for 1 line of code viable */
