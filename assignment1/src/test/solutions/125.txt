@@ -1,1 +1,1 @@
-_myVar,>=,(,2,+,3,),*,_myOther,<EOF>
+IDENTIFIER : _myVar, OP_GREATER_EQUAL : >=, SEP_OPEN_PAREN : (, NUMBER : 2, OP_ADD : +, NUMBER : 3, SEP_CLOSE_PAREN : ), OP_MULTI : *, IDENTIFIER : _myOther, <EOF>

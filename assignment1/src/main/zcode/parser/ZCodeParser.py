@@ -306,7 +306,7 @@ class ZCodeParser ( Parser ):
 
     RULE_program = 0
     RULE_main_def = 1
-    RULE_foward_func = 2
+    RULE_forward_func = 2
     RULE_define = 3
     RULE_inner_scope = 4
     RULE_lines = 5
@@ -331,13 +331,13 @@ class ZCodeParser ( Parser ):
     RULE_array_implicit_def = 24
     RULE_array_init = 25
     RULE_array_value_init = 26
-    RULE_array_asign = 27
+    RULE_array_assign = 27
     RULE_param_def_list = 28
     RULE_param_def_list_tail = 29
     RULE_param = 30
     RULE_param_def = 31
     RULE_func_def = 32
-    RULE_foward_func_def = 33
+    RULE_forward_func_def = 33
     RULE_expressions = 34
     RULE_expression = 35
     RULE_string_expr = 36
@@ -379,15 +379,15 @@ class ZCodeParser ( Parser ):
     RULE_boolean = 72
     RULE_end_line = 73
 
-    ruleNames =  [ "program", "main_def", "foward_func", "define", "inner_scope", 
+    ruleNames =  [ "program", "main_def", "forward_func", "define", "inner_scope", 
                    "lines", "line", "def_line", "assign_line", "expr_line", 
                    "statement", "type_def", "implicit_type_def", "var_def", 
                    "value_init", "static_var_def", "dynamic_var_def", "var_assign", 
                    "dim_list", "dim_list_tail", "array_dim", "array_def", 
                    "array_identifier", "array_static_def", "array_implicit_def", 
-                   "array_init", "array_value_init", "array_asign", "param_def_list", 
+                   "array_init", "array_value_init", "array_assign", "param_def_list", 
                    "param_def_list_tail", "param", "param_def", "func_def", 
-                   "foward_func_def", "expressions", "expression", "string_expr", 
+                   "forward_func_def", "expressions", "expression", "string_expr", 
                    "string_op", "relation_expr", "relational_op", "logic_expr", 
                    "logic_op", "add_expr", "add_op", "multi_expr", "multi_op", 
                    "negate_expr", "negate_op", "primary_expression", "array_expr", 
@@ -474,11 +474,11 @@ class ZCodeParser ( Parser ):
         def EOF(self):
             return self.getToken(ZCodeParser.EOF, 0)
 
-        def foward_func_def(self, i:int=None):
+        def forward_func_def(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(ZCodeParser.Foward_func_defContext)
+                return self.getTypedRuleContexts(ZCodeParser.Forward_func_defContext)
             else:
-                return self.getTypedRuleContext(ZCodeParser.Foward_func_defContext,i)
+                return self.getTypedRuleContext(ZCodeParser.Forward_func_defContext,i)
 
 
         def define(self, i:int=None):
@@ -513,7 +513,7 @@ class ZCodeParser ( Parser ):
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt==1:
                     self.state = 148
-                    self.foward_func_def() 
+                    self.forward_func_def() 
                 self.state = 153
                 self._errHandler.sync(self)
                 _alt = self._interp.adaptivePredict(self._input,0,self._ctx)
@@ -612,15 +612,15 @@ class ZCodeParser ( Parser ):
         return localctx
 
 
-    class Foward_funcContext(ParserRuleContext):
+    class Forward_funcContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def foward_func_def(self):
-            return self.getTypedRuleContext(ZCodeParser.Foward_func_defContext,0)
+        def forward_func_def(self):
+            return self.getTypedRuleContext(ZCodeParser.Forward_func_defContext,0)
 
 
         def end_line(self):
@@ -628,25 +628,25 @@ class ZCodeParser ( Parser ):
 
 
         def getRuleIndex(self):
-            return ZCodeParser.RULE_foward_func
+            return ZCodeParser.RULE_forward_func
 
         def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFoward_func" ):
-                return visitor.visitFoward_func(self)
+            if hasattr( visitor, "visitForward_func" ):
+                return visitor.visitForward_func(self)
             else:
                 return visitor.visitChildren(self)
 
 
 
 
-    def foward_func(self):
+    def forward_func(self):
 
-        localctx = ZCodeParser.Foward_funcContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 4, self.RULE_foward_func)
+        localctx = ZCodeParser.Forward_funcContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 4, self.RULE_forward_func)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 175
-            self.foward_func_def()
+            self.forward_func_def()
             self.state = 176
             self.end_line()
         except RecognitionException as re:
@@ -669,8 +669,8 @@ class ZCodeParser ( Parser ):
             return self.getTypedRuleContext(ZCodeParser.Func_defContext,0)
 
 
-        def foward_func(self):
-            return self.getTypedRuleContext(ZCodeParser.Foward_funcContext,0)
+        def forward_func(self):
+            return self.getTypedRuleContext(ZCodeParser.Forward_funcContext,0)
 
 
         def def_line(self):
@@ -706,7 +706,7 @@ class ZCodeParser ( Parser ):
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 179
-                self.foward_func()
+                self.forward_func()
                 pass
 
             elif la_ == 3:
@@ -1011,8 +1011,8 @@ class ZCodeParser ( Parser ):
             return self.getTypedRuleContext(ZCodeParser.Var_assignContext,0)
 
 
-        def array_asign(self):
-            return self.getTypedRuleContext(ZCodeParser.Array_asignContext,0)
+        def array_assign(self):
+            return self.getTypedRuleContext(ZCodeParser.Array_assignContext,0)
 
 
         def getRuleIndex(self):
@@ -1043,7 +1043,7 @@ class ZCodeParser ( Parser ):
 
             elif la_ == 2:
                 self.state = 211
-                self.array_asign()
+                self.array_assign()
                 pass
 
 
@@ -2102,7 +2102,7 @@ class ZCodeParser ( Parser ):
         return localctx
 
 
-    class Array_asignContext(ParserRuleContext):
+    class Array_assignContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2117,21 +2117,21 @@ class ZCodeParser ( Parser ):
 
 
         def getRuleIndex(self):
-            return ZCodeParser.RULE_array_asign
+            return ZCodeParser.RULE_array_assign
 
         def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitArray_asign" ):
-                return visitor.visitArray_asign(self)
+            if hasattr( visitor, "visitArray_assign" ):
+                return visitor.visitArray_assign(self)
             else:
                 return visitor.visitChildren(self)
 
 
 
 
-    def array_asign(self):
+    def array_assign(self):
 
-        localctx = ZCodeParser.Array_asignContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 54, self.RULE_array_asign)
+        localctx = ZCodeParser.Array_assignContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 54, self.RULE_array_assign)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 307
@@ -2469,7 +2469,7 @@ class ZCodeParser ( Parser ):
         return localctx
 
 
-    class Foward_func_defContext(ParserRuleContext):
+    class Forward_func_defContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -2487,21 +2487,21 @@ class ZCodeParser ( Parser ):
 
 
         def getRuleIndex(self):
-            return ZCodeParser.RULE_foward_func_def
+            return ZCodeParser.RULE_forward_func_def
 
         def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFoward_func_def" ):
-                return visitor.visitFoward_func_def(self)
+            if hasattr( visitor, "visitForward_func_def" ):
+                return visitor.visitForward_func_def(self)
             else:
                 return visitor.visitChildren(self)
 
 
 
 
-    def foward_func_def(self):
+    def forward_func_def(self):
 
-        localctx = ZCodeParser.Foward_func_defContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 66, self.RULE_foward_func_def)
+        localctx = ZCodeParser.Forward_func_defContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 66, self.RULE_forward_func_def)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 345

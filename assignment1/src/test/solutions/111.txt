@@ -1,1 +1,1 @@
-_myIdent,<EOF>
+IDENTIFIER : _myIdent, <EOF>

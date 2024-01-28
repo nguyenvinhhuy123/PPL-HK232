@@ -1,1 +1,1 @@
-123,_myiDent,<EOF>
+NUMBER : 123, IDENTIFIER : _myiDent, <EOF>

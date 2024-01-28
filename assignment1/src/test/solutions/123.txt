@@ -1,1 +1,1 @@
-_myVar,<-,This is my string,<EOF>
+IDENTIFIER : _myVar, OP_ASSIGN : <-, STRING : This is my string, <EOF>

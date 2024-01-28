@@ -1,1 +1,1 @@
-dynamic,var,true,<EOF>
+KW_DYNAMIC : dynamic, KW_VAR : var, KW_TRUE : true, <EOF>

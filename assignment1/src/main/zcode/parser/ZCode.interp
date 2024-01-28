@@ -109,7 +109,7 @@ ILLEGAL_ESCAPE
 rule names:
 program
 main_def
-foward_func
+forward_func
 define
 inner_scope
 lines
@@ -134,13 +134,13 @@ array_static_def
 array_implicit_def
 array_init
 array_value_init
-array_asign
+array_assign
 param_def_list
 param_def_list_tail
 param
 param_def
 func_def
-foward_func_def
+forward_func_def
 expressions
 expression
 string_expr

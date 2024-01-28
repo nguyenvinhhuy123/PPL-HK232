@@ -19,8 +19,8 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#foward_func.
-    def visitFoward_func(self, ctx:ZCodeParser.Foward_funcContext):
+    # Visit a parse tree produced by ZCodeParser#forward_func.
+    def visitForward_func(self, ctx:ZCodeParser.Forward_funcContext):
         return self.visitChildren(ctx)
 
 
@@ -144,8 +144,8 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#array_asign.
-    def visitArray_asign(self, ctx:ZCodeParser.Array_asignContext):
+    # Visit a parse tree produced by ZCodeParser#array_assign.
+    def visitArray_assign(self, ctx:ZCodeParser.Array_assignContext):
         return self.visitChildren(ctx)
 
 
@@ -174,8 +174,8 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#foward_func_def.
-    def visitFoward_func_def(self, ctx:ZCodeParser.Foward_func_defContext):
+    # Visit a parse tree produced by ZCodeParser#forward_func_def.
+    def visitForward_func_def(self, ctx:ZCodeParser.Forward_func_defContext):
         return self.visitChildren(ctx)
 
 

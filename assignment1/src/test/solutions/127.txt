@@ -1,1 +1,1 @@
-_myLogic,<-,_myVar,and,_myOther,<EOF>
+IDENTIFIER : _myLogic, OP_ASSIGN : <-, IDENTIFIER : _myVar, OP_AND : and, IDENTIFIER : _myOther, <EOF>

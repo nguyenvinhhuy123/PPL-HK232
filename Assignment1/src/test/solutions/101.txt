@@ -1,1 +1,1 @@
-Yanxi Palace - 2018,<EOF>
+STRING : Yanxi Palace - 2018, <EOF>

@@ -20,9 +20,9 @@ class LexerSuite(unittest.TestCase):
         """test complex string"""
         self.assertTrue(TestLexer.test("\"isn\\\'t\"","isn\\\'t,<EOF>",102))
         
-    def test_simple_identifier(self):
+    def test_identifier(self):
         """test simple identifier"""
-        self.assertTrue(TestLexer.test("_myID","_myID,<EOF>",105))
+        self.assertTrue(TestLexer.test("_myID","_myID,<EOF>",103))
         
     def test_simple_comment_line(self):
         """Test simple comment"""

@@ -9,14 +9,14 @@ options {
 	language=Python3;
 }
 
-program: foward_func_def* define* main_def define* EOF;
+program: forward_func_def* define* main_def define* EOF;
 //? Should main func be the last function tho?
 
 //*PARSER RULES */
 main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN inner_scope;
 
-foward_func: foward_func_def end_line;
-define: func_def | foward_func | def_line;
+forward_func: forward_func_def end_line;
+define: func_def | forward_func | def_line;
 
 inner_scope: 
 	block_statement end_line
@@ -27,7 +27,7 @@ lines: (line|statement)*;
 line: def_line | assign_line | expr_line;
 
 def_line: (var_def | array_def) end_line;
-assign_line: (var_assign | array_asign) end_line;
+assign_line: (var_assign | array_assign) end_line;
 expr_line: expression end_line; //? Can expresstion be on 1 line, ie: 1 + 2 \n //valid?
 
 statement: 
@@ -68,7 +68,7 @@ array_implicit_def: KW_VAR array_identifier array_init;
 array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
 array_value_init: SEP_OPEN_BRACK (array_value_init+|expression) SEP_CLOSE_BRACK;
 
-array_asign: IDENTIFIER array_init;
+array_assign: IDENTIFIER array_init;
 
 //*function */
 param_def_list: param end_line? param_def_list_tail | end_line? |;
@@ -79,7 +79,7 @@ param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
 
 func_def: KW_FUNC IDENTIFIER param_def inner_scope;
 
-foward_func_def: KW_FUNC IDENTIFIER param_def;
+forward_func_def: KW_FUNC IDENTIFIER param_def;
 
 
 //*expression */
@@ -228,7 +228,7 @@ SEP_COMA: ',';
 //*Identifier */
 fragment IDENTIFIER_HEAD: [_a-zA-Z];
 fragment IDENTIFIER_TAIL: [_a-zA-Z0-9]*;
-IDENTIFIER: IDENTIFIER_HEAD+ IDENTIFIER_TAIL;
+IDENTIFIER: IDENTIFIER_HEAD IDENTIFIER_TAIL;
 
 //*Number */
 fragment ZERO: '0';

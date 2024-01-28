@@ -1,1 +1,1 @@
-_myVar,<-,(,5,+,3,),*,2,/,_myOtherVar,<EOF>
+IDENTIFIER : _myVar, OP_ASSIGN : <-, SEP_OPEN_PAREN : (, NUMBER : 5, OP_ADD : +, NUMBER : 3, SEP_CLOSE_PAREN : ), OP_MULTI : *, NUMBER : 2, OP_DIVIDE : /, IDENTIFIER : _myOtherVar, <EOF>

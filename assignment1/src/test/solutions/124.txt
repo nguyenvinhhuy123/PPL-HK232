@@ -1,1 +1,1 @@
-_myVar,<=,2,<EOF>
+IDENTIFIER : _myVar, OP_SMALLER_EQUAL : <=, NUMBER : 2, <EOF>

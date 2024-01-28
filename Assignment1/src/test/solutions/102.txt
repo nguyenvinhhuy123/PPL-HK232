@@ -1,1 +1,1 @@
-isn\'t,<EOF>
+STRING : isn\'t, <EOF>
