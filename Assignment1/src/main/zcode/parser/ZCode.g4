@@ -47,10 +47,11 @@ implicit_type_def: KW_VAR | KW_DYNAMIC;
 var_def: static_var_def | dynamic_var_def ;
 
 value_init: OP_ASSIGN expression;
-static_var_def: (type_def IDENTIFIER value_init?);
+optional_val_init: value_init |;
+static_var_def: (type_def IDENTIFIER optional_val_init);
 dynamic_var_def:
 	(KW_VAR IDENTIFIER value_init)
-	| (KW_DYNAMIC IDENTIFIER value_init?)
+	| (KW_DYNAMIC IDENTIFIER optional_val_init)
 	; //? Should value_init be obligatory for dynamic variables?
 var_assign: IDENTIFIER value_init;
 
@@ -62,17 +63,19 @@ array_dim: SEP_OPEN_BRACK dim_list SEP_CLOSE_BRACK;
 array_def: array_static_def | array_implicit_def;
 
 array_identifier: IDENTIFIER array_dim;
-array_static_def: type_def array_identifier array_init?;
+array_static_def: type_def array_identifier optional_array_init;
 array_implicit_def: KW_VAR array_identifier array_init;
 
 array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
-array_value_init: SEP_OPEN_BRACK (array_value_init+|expression) SEP_CLOSE_BRACK;
+optional_array_init: array_init |;
+array_value_init_list: (array_value_init+ | expression);
+array_value_init: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
 
 array_assign: IDENTIFIER array_init;
 
 //*function */
-param_def_list: param end_line? param_def_list_tail | end_line? |;
-param_def_list_tail: SEP_COMA param end_line? param_def_list_tail|;
+param_def_list: param optional_end_line param_def_list_tail | optional_end_line |;
+param_def_list_tail: SEP_COMA param optional_end_line param_def_list_tail|;
 param: array_def | var_def;
 
 param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
@@ -118,7 +121,7 @@ primary_expression:
 	| array_expr
 	;
 
-array_expr: array_expr  indexer | term;
+array_expr: term indexer | term;
 indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
 index_op: expression (SEP_COMA index_op)*;
 
@@ -126,16 +129,16 @@ term: IDENTIFIER | func_call;
 
 //*Statements */
 //*if stmt */
-if_statement: if_clause elif_clause* else_clause?;
+if_statement: if_clause elif_clause* (else_clause | );
 
-if_clause: KW_IF if_condition end_line? statement;
-elif_clause:KW_ELIF if_condition end_line? statement;
+if_clause: KW_IF if_condition optional_end_line statement;
+elif_clause:KW_ELIF if_condition optional_end_line statement;
 else_clause:KW_ELSE statement;
 
 if_condition: SEP_OPEN_PAREN expression SEP_CLOSE_PAREN;
 
 //*for stmt */
-for_statement: for_clause condition_clause update_clause end_line? statement;
+for_statement: for_clause condition_clause update_clause optional_end_line statement;
 
 for_clause:KW_FOR IDENTIFIER;
 condition_clause:KW_UNTIL expression;
@@ -148,7 +151,7 @@ break_statement: KW_BREAK;
 continue_statement:KW_CONTINUE;
 
 //*return stmt*/
-return_statement: KW_RETURN expression?;
+return_statement: KW_RETURN (expression| );
 
 //*function call/invoke */
 passing_arg: SEP_OPEN_PAREN passing_list SEP_CLOSE_BRACK;
@@ -158,7 +161,7 @@ passing_list_tail: SEP_COMA expression passing_list_tail | ;
 func_call: IDENTIFIER passing_arg;
 
 //*block stmt */
-block_statement: KW_BEGIN end_line? lines end_line? KW_END;
+block_statement: KW_BEGIN optional_end_line lines optional_end_line KW_END;
 
 //*Literal */
 sign_number: (OP_SUBTRACT| ) NUMBER;
@@ -167,7 +170,7 @@ literal: sign_number | STRING | boolean;
 boolean: KW_TRUE | KW_FALSE;
 
 end_line: (NEW_LINE)+ ;
-
+optional_end_line: end_line | ;
 
 //*LEXER RULES */
 //*main func */
@@ -236,13 +239,13 @@ fragment NON_ZERO_DIGIT: [1-9];
 fragment DIGIT: ZERO | NON_ZERO_DIGIT;
 fragment DECIMAL: NON_ZERO_DIGIT DIGIT*;
 fragment FLOATING_POINT: '.'DIGIT* | ;
-fragment EXPONENTIAL: [eE]('+'|'-')? NON_ZERO_DIGIT DIGIT* | ;
+fragment EXPONENTIAL: [eE] ('+'|'-'| ) NON_ZERO_DIGIT DIGIT* | ;
 NUMBER: DECIMAL FLOATING_POINT EXPONENTIAL | ZERO;
 
 
 //*String */
 
-fragment ESCAPE_SIGN:. [\\];
+fragment ESCAPE_SIGN: [\\];
 fragment ESCAPE_SEQUENCE: ESCAPE_SIGN ESCAPE_REP;
 fragment ESCAPE_REP: [bfrnt'\\]; //[\bfrnt'] : escape seq representation char 
 fragment NOT_ESCAPE_REP: ~[bfrnt'\\];
