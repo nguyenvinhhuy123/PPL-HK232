@@ -241,15 +241,16 @@ NUMBER: DECIMAL FLOATING_POINT EXPONENTIAL | ZERO;
 
 
 //*String */
-fragment STRING_CHAR: ~[\\\n"]; //*Any character that not a escape seq char and quote*/
+
 fragment ESCAPE_SIGN:. [\\];
-fragment ESCAPE_SEQUENCE:. ESCAPE_SIGN ESCAPE_REP;
-fragment ESCAPE_REP: [\\bfrnt'"]; //[\bfrnt'"] : escape seq representation char 
-fragment NOT_ESCAPE_REP: ~[\\bfrnt'"];
+fragment ESCAPE_SEQUENCE: ESCAPE_SIGN ESCAPE_REP;
+fragment ESCAPE_REP: [bfrnt'\\]; //[\bfrnt'] : escape seq representation char 
+fragment NOT_ESCAPE_REP: ~[bfrnt'\\];
 fragment ILLEGAL_ESCAPE_SEQ: ESCAPE_SIGN NOT_ESCAPE_REP;
+fragment STRING_CHAR: ~[\\"]; //*Any character that not a escape seq char and quote*/
 
 fragment DOUBLE_QUOTE_IN_STRING: [']["];
-fragment STRING_LITTERAL: STRING_CHAR | ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | NEW_LINE ;
+fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR | NEW_LINE ;
 //*Why NEW_LINE here: Put NL in stirng_char and tto it like this is nearly the same, 
 //*however, when we do this way, we can count the number of NL even when it in string
 //*Thus will be helpful for count line for frontend to be able to give the exatc error line
