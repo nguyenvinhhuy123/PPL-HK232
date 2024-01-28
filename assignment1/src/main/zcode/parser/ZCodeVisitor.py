@@ -84,6 +84,11 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ZCodeParser#optional_val_init.
+    def visitOptional_val_init(self, ctx:ZCodeParser.Optional_val_initContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ZCodeParser#static_var_def.
     def visitStatic_var_def(self, ctx:ZCodeParser.Static_var_defContext):
         return self.visitChildren(ctx)
@@ -136,6 +141,16 @@ class ZCodeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#array_init.
     def visitArray_init(self, ctx:ZCodeParser.Array_initContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#optional_array_init.
+    def visitOptional_array_init(self, ctx:ZCodeParser.Optional_array_initContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#array_value_init_list.
+    def visitArray_value_init_list(self, ctx:ZCodeParser.Array_value_init_listContext):
         return self.visitChildren(ctx)
 
 
@@ -376,6 +391,11 @@ class ZCodeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#end_line.
     def visitEnd_line(self, ctx:ZCodeParser.End_lineContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#optional_end_line.
+    def visitOptional_end_line(self, ctx:ZCodeParser.Optional_end_lineContext):
         return self.visitChildren(ctx)
 
 

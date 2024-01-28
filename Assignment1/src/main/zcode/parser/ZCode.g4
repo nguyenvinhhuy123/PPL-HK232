@@ -237,20 +237,19 @@ IDENTIFIER: IDENTIFIER_HEAD IDENTIFIER_TAIL;
 fragment ZERO: '0';
 fragment NON_ZERO_DIGIT: [1-9];
 fragment DIGIT: ZERO | NON_ZERO_DIGIT;
-fragment DECIMAL: NON_ZERO_DIGIT DIGIT*;
+fragment DECIMAL: DIGIT+;
 fragment FLOATING_POINT: '.'DIGIT* | ;
-fragment EXPONENTIAL: [eE] ('+'|'-'| ) NON_ZERO_DIGIT DIGIT* | ;
+fragment EXPONENTIAL: [eE]('+'|'-'|)DIGIT+ | ;
 NUMBER: DECIMAL FLOATING_POINT EXPONENTIAL | ZERO;
 
 
 //*String */
-
 fragment ESCAPE_SIGN: [\\];
 fragment ESCAPE_SEQUENCE: ESCAPE_SIGN ESCAPE_REP;
 fragment ESCAPE_REP: [bfrnt'\\]; //[\bfrnt'] : escape seq representation char 
 fragment NOT_ESCAPE_REP: ~[bfrnt'\\];
 fragment ILLEGAL_ESCAPE_SEQ: ESCAPE_SIGN NOT_ESCAPE_REP;
-fragment STRING_CHAR: ~[\\"]; //*Any character that not a escape seq char and quote*/
+fragment STRING_CHAR: ~[\\\n"] ; //*Any character that not a escape seq char and quote*/
 
 fragment DOUBLE_QUOTE_IN_STRING: [']["];
 fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR | NEW_LINE ;
@@ -258,7 +257,7 @@ fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR
 //*however, when we do this way, we can count the number of NL even when it in string
 //*Thus will be helpful for count line for frontend to be able to give the exatc error line
 //*Ex: string: "a\na\na\n" -> should be count as 4 different line in parser, not 1*/
-STRING: ["] STRING_LITTERAL* ["] 
+STRING: ["] STRING_LITTERAL* ["]
 	{self.text = self.text[1:-1]} ;
 
 
@@ -269,7 +268,7 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 
 //*Whitespace and newline */
 WS : [ \t\r\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
-NEW_LINE: [\n];
+NEW_LINE: '\n';
 
 //* thus making multiple newline for 1 line of code viable */
 fragment NOT_NEW_LINE: ~'\n';

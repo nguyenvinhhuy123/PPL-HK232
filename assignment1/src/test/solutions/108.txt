@@ -1,1 +1,1 @@
-KW_VAR : var, IDENTIFIER : _myVar, OP_EQUAL : =, NUMBER : 5, <EOF>
+var,_myVar,=,5,<EOF>

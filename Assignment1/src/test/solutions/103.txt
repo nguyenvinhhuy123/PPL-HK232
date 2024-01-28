@@ -1,1 +1,1 @@
-IDENTIFIER : _myID, <EOF>
+_myID,<EOF>

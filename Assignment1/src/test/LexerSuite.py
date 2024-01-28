@@ -1,14 +1,17 @@
 import unittest
 from TestUtils import TestLexer
 
+UNCLOSED_STRING = "Unclosed String: " 
+ERROR_CHAR = "Error Token "
+ILLEGAL_ESC= "Illegal Escape In String: "
+
 class LexerSuite(unittest.TestCase):
     """
     Test function template:
     def test_TEST_NAME(self):
         '''Small description here'''
         input = ""
-        expected = ""
-        test_ID = 1xx
+        expected = ",<EOF>"
         self.assertTrue(TestLexer.test(input,expected,test_ID))
     """
     #*Case 101-110: Simple test for tokens#
@@ -46,7 +49,7 @@ class LexerSuite(unittest.TestCase):
     
     def test_unclose_string(self):
         """Test unclose string error"""
-        self.assertTrue(TestLexer.test("\"This string is not close", "Unclosed String: This string is not close", 110))
+        self.assertTrue(TestLexer.test("\"This string is not close", UNCLOSED_STRING + "This string is not close", 110))
         
     #*Case 111-120: Identifier recognition#
     def test_simple_identifier(self):
@@ -115,18 +118,121 @@ class LexerSuite(unittest.TestCase):
         input = "_myVar >= \"This is a compared string\""
         expected = "_myVar,>=,This is a compared string,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,126))
+    
     def test_logic_operator(self):
         '''logic operator statement'''
         input = "_myLogic <- _myVar and _myOther"
         expected = "_myLogic,<-,_myVar,and,_myOther,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,127))
-    #*Case 131=140: Keyword recognition#
+    #*Case 131 -> 140: Keyword recognition#
     def test_simple_keyword(self):
         '''Simple keyword recognition: Case dynamic,var,true'''
         input = "dynamic var true"
         expected = "dynamic,var,true,<EOF>"
-        self.assertTrue(TestLexer.test(input,expected,130))
+        self.assertTrue(TestLexer.test(input,expected,131))
+        
+    def test_2_keyword_with_no_space(self):
+        '''2 kw with no space, suppose to recognise as id'''
+        input = "truevar"
+        expected = "truevar,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,132))
+        
+    def test_more_keyword(self):
+        '''More keyword in 1 input'''
+        input = "true false func number bool if for elif"
+        expected = "true,false,func,number,bool,if,for,elif,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,133))
+    def test_keyword_in_multiline(self):
+        '''Same with 133 but have a newline'''
+        input = """true false func number 
+        bool if for elif"""
+        expected = "true,false,func,number,\n,bool,if,for,elif,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,134))
     
+    def test_keyword_in_string(self):
+        '''Keyword include in a string token'''
+        input = "\"This string have keyword: dynamic var true \""
+        expected = "This string have keyword: dynamic var true ,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,135))
+    
+    def test_keyword_with_uppercase(self):
+        '''Keyword with uppercases, expected ids, should look at this with modified ultils for correctness'''
+        input = "True vaR faLse"
+        expected = "True,vaR,faLse,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,136))
+    
+    #*Case 141-150: test for strings 
     def test_string_err(self):
-        self.assertTrue(TestLexer.test("\"\'\"", "Unclosed String: \'\"", 141))
+        '''Unclose string cases'''
+        self.assertTrue(TestLexer.test("\"\'\"", UNCLOSED_STRING + "\'\"", 141))
+        
+    def test_edge_case(self):
+        '''edge case mentions in forum'''
+        input = "\" \' \""
+        expected = " \' ,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,142))
+        
+    def test_escape_sequence(self):
+        '''test escape sequence'''
+        input = "\"This string has multiple allowed escape seq: \\t \\b ,\\n \""
+        expected = "This string has multiple allowed escape seq: \\t \\b ,\\n ,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,143))
+        
+    def test_escape_sequence(self):
+        '''test illegal escape sequence'''
+        input = "\"This string has multiple allowed escape seq: \\a \\b ,\\n \""
+        expected =  ILLEGAL_ESC + "This string has multiple allowed escape seq: \\a"
+        self.assertTrue(TestLexer.test(input,expected,144))
+    
+    def test_unclose_string_edge_case(self):
+        '''test illegal escape sequence'''
+        input = "\" \\\\'\""
+        expected = UNCLOSED_STRING + " \\\\'\""
+        self.assertTrue(TestLexer.test(input,expected,145))
+        
+    def test_escape_edge_case(self):
+        '''test escape sequence edge case'''
+        input = "\"\\'\""
+        expected =  "\\',<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,146))
+    
+    def test_multiline_string(self):
+        '''Multiline string'''
+        #!Weird output give 2 newline char instead of 1?
+        input = """\"This is a \rmultiline string \rtestcase with a tab: \r\\t\""""
+        expected = """This is a\nmultiline string\ntestcase with a tab:\n\\t,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,147))
+        
+    def test_complex_string(self):
+        """Complex string with multiple complex literals"""
+        input = """\"This string '"'" is \\t \\b pretty complex tho!!?\""""
+        expected = """This string '"'" is \\t \\b pretty complex tho!!?,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,148))
+    
+    #*Case 151-160: test complex sequence
+    def test_program_like_sequence(self):
+        """Simple program like stream of sequence"""
+        input = """func foo(number a)
+        begin
+            a <- a + 3
+            string b<- \"value of a is:\" + toString(a)
+        end
+        func main()
+        begin
+            number target <- 5
+            foo(target)
+        end
+        """
+        expected = """func,foo,(,number,a,),
+,begin,
+,a,<-,a,+,3,
+,string,b,<-,value of a is:,+,toString,(,a,),
+,end,
+,func,main,(,),
+,begin,
+,number,target,<-,5,
+,foo,(,target,),
+,end,
+,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,148))
     

@@ -1,1 +1,1 @@
-IDENTIFIER : _myIDE_nt123num, <EOF>
+_myIDE_nt123num,<EOF>

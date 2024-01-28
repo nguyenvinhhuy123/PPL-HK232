@@ -1,1 +1,1 @@
-IDENTIFIER : _myVar, OP_ASSIGN : <-, NUMBER : 5, OP_ADD : +, NUMBER : 3, <EOF>
+_myVar,<-,5,+,3,<EOF>

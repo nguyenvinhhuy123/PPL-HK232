@@ -1,2 +1,2 @@
-NEW_LINE : 
-, <EOF>
+
+,<EOF>
