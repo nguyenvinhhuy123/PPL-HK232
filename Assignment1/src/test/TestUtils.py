@@ -1,6 +1,9 @@
 import sys,os
 from antlr4 import *
 from antlr4.error.ErrorListener import ConsoleErrorListener,ErrorListener
+#! Import parser tree function xD
+from antlr4.tree.Trees import Trees
+ 
 if not './main/zcode/parser/' in sys.path:
     sys.path.append('./main/zcode/parser/')
 if os.path.isdir('../target/main/zcode/parser') and not '../target/main/zcode/parser/' in sys.path:
@@ -94,7 +97,11 @@ class TestParser:
         parser.removeErrorListeners()
         parser.addErrorListener(listener)
         try:
-            parser.program()
+            #parser.program()
+            #!This 2 line is use for debugging parse tree 
+            tree = parser.program()
+            dest.write(Trees.toStringTree(tree, None, parser))
+            #
             dest.write("successful")
         except SyntaxException as f:
             dest.write(f.message)

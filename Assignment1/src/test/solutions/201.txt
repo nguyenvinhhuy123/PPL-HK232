@@ -1,1 +1,1 @@
-successful
+(program (main_def func main ( ) (inner_scope (block_statement begin lines end) (end_line \n))) <EOF>)successful
