@@ -20,7 +20,7 @@ define: func_def | forward_func | def_line;
 
 inner_scope: 
 	block_statement end_line
-	| lines return_statement end_line
+	| return_statement end_line
 	;
 
 lines: (line|statement)*;
@@ -45,6 +45,7 @@ implicit_type_def: KW_VAR | KW_DYNAMIC;
 
 //*variable */
 var_def: static_var_def | dynamic_var_def ;
+var_def_for_param: type_def IDENTIFIER;
 
 value_init: OP_ASSIGN expression;
 optional_val_init: value_init |;
@@ -61,9 +62,11 @@ dim_list_tail: SEP_COMA expression dim_list_tail |;
 array_dim: SEP_OPEN_BRACK dim_list SEP_CLOSE_BRACK;
 
 array_def: array_static_def | array_implicit_def;
+array_def_for_param: type_def array_identifier;
 
 array_identifier: IDENTIFIER array_dim;
 array_static_def: type_def array_identifier optional_array_init;
+
 array_implicit_def: KW_VAR array_identifier array_init;
 
 array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
@@ -76,7 +79,7 @@ array_assign: IDENTIFIER array_init;
 //*function */
 param_def_list: param optional_end_line param_def_list_tail | optional_end_line |;
 param_def_list_tail: SEP_COMA param optional_end_line param_def_list_tail|;
-param: array_def | var_def;
+param: array_def_for_param | var_def_for_param;
 
 param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
 
@@ -111,18 +114,20 @@ add_op: (OP_ADD | OP_SUBTRACT);
 multi_expr: multi_expr multi_op negate_expr | negate_expr;
 multi_op: (OP_MULTI | OP_DIVIDE | OP_REMAINDER);
 
-negate_expr: negate_op negate_expr | primary_expression;
+negate_expr: negate_op negate_expr | sign_expr;
 negate_op: OP_NOT;
+
+sign_expr: (OP_SUBTRACT) sign_expr | array_expr;
+
+array_expr: term indexer | primary_expression;
+indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
+index_op: expression (SEP_COMA index_op | );
 
 primary_expression:
 	SEP_OPEN_PAREN expression SEP_CLOSE_PAREN
 	| literal
-	| array_expr
+	| term
 	;
-
-array_expr: term indexer | term;
-indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
-index_op: expression (SEP_COMA index_op)*;
 
 term: IDENTIFIER | func_call;
 
@@ -163,8 +168,7 @@ func_call: IDENTIFIER passing_arg;
 block_statement: KW_BEGIN optional_end_line lines optional_end_line KW_END;
 
 //*Literal */
-sign_number: (OP_SUBTRACT| ) NUMBER;
-literal: sign_number | STRING | boolean;
+literal: NUMBER | STRING | boolean;
 //*Boolen */
 boolean: KW_TRUE | KW_FALSE;
 
@@ -266,8 +270,8 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 //Skip any character not a newline character after comment start fragment end a comment with newline/eof token
 
 //*Whitespace and newline */
-WS : [ \t\r\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
-NEW_LINE: '\n';
+WS : [ \t\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
+NEW_LINE: '\r' | '\r'?'\n' {self.text = '\n'};
 
 //* thus making multiple newline for 1 line of code viable */
 fragment NOT_NEW_LINE: ~'\n';
