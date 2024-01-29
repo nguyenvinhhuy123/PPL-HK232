@@ -78,7 +78,7 @@ class LexerSuite(unittest.TestCase):
         
     def test_identifier_with_newline_token(self):
         '''identifier with newline_token before and after'''
-        input = "\n_myIdent1\n_myIdent2"
+        input = "\r_myIdent1\r_myIdent2"
         expected = "\n,_myIdent1,\n,_myIdent2,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,116))
     
@@ -142,6 +142,7 @@ class LexerSuite(unittest.TestCase):
         input = "true false func number bool if for elif"
         expected = "true,false,func,number,bool,if,for,elif,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,133))
+    
     def test_keyword_in_multiline(self):
         '''Same with 133 but have a newline'''
         input = """true false func number 
@@ -199,7 +200,7 @@ class LexerSuite(unittest.TestCase):
     def test_multiline_string(self):
         '''Multiline string'''
         #!Weird output give 2 newline char instead of 1?
-        input = """\"This is a \rmultiline string \rtestcase with a tab: \r\\t\""""
+        input = """\"This is a\rmultiline string\rtestcase with a tab:\r\\t\""""
         expected = """This is a\nmultiline string\ntestcase with a tab:\n\\t,<EOF>"""
         self.assertTrue(TestLexer.test(input,expected,147))
         
@@ -209,10 +210,76 @@ class LexerSuite(unittest.TestCase):
         expected = """This string '"'" is \\t \\b pretty complex tho!!?,<EOF>"""
         self.assertTrue(TestLexer.test(input,expected,148))
     
-    #*Case 151-160: test complex sequence
+    #*Case 151-160: Number recognition
+    def test_simple_number(self):
+        '''Simple number test'''
+        input = "123456"
+        expected = "123456,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,151))
+        
+    def test_simple_number_before_identifier(self):
+        '''Simple number test before an ident'''
+        input = "123_var4"
+        expected = "123,_var4,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,152))
+        
+    def test_simple_float(self):
+        '''Simple float number'''
+        input = "0123.4560"
+        expected = "0123.4560,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,153))
+        
+    def test_simple_expo(self):
+        '''Simple expo number'''
+        input = "0123e456"
+        expected = "0123e456,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,154))
+        
+    def test_simple_expo_uppercase(self):
+        '''Simple expo number, uppercase, subtract sign'''
+        input = "0123E-456"
+        expected = "0123E-456,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,155))
+    
+    def test_complex_number(self):
+        '''Complex number'''
+        input = "0123.456E798"
+        expected = "0123.456E798,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,156))  
+
+    def test_complex_number_edge_case(self):
+        '''Complex number edge case'''
+        input = "0123.E798"
+        expected = "0123.E798,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,157))   
+    
+    def test_complex_number_edge_case_no_digit(self):
+        '''Complex number edge case 2 with no decimal and expo digit'''
+        '''Suppose to have 3 token because exponential should have at least 1 digit'''
+        input = "0123.E+"
+        expected = "0123.,E,+,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,158))  
+    
+    def test_complex_number_error(self):
+        '''Complex number error case'''
+        input = "0123.#"
+        expected = "0123.," + ERROR_CHAR + "#"
+        self.assertTrue(TestLexer.test(input,expected,159))   
+    
+    def test_complex_number_before_id(self):
+        '''Complex number error case'''
+        input = "0123.E-1A"
+        expected = "0123.E-1,A,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,160))  
+    
+    #*Case 161-170
+    #*Case 181-190: test case for edge case in forum.
+    
+    #*Case 191-200: test complex sequence
     def test_program_like_sequence(self):
         """Simple program like stream of sequence"""
-        input = """func foo(number a)
+        input = """
+        func foo(number a)
         begin
             a <- a + 3
             string b<- \"value of a is:\" + toString(a)
@@ -223,7 +290,8 @@ class LexerSuite(unittest.TestCase):
             foo(target)
         end
         """
-        expected = """func,foo,(,number,a,),
+        expected = """
+,func,foo,(,number,a,),
 ,begin,
 ,a,<-,a,+,3,
 ,string,b,<-,value of a is:,+,toString,(,a,),
@@ -234,5 +302,5 @@ class LexerSuite(unittest.TestCase):
 ,foo,(,target,),
 ,end,
 ,<EOF>"""
-        self.assertTrue(TestLexer.test(input,expected,148))
+        self.assertTrue(TestLexer.test(input,expected,191))
     

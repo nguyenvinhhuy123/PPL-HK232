@@ -79,6 +79,11 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ZCodeParser#var_def_for_param.
+    def visitVar_def_for_param(self, ctx:ZCodeParser.Var_def_for_paramContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ZCodeParser#value_init.
     def visitValue_init(self, ctx:ZCodeParser.Value_initContext):
         return self.visitChildren(ctx)
@@ -121,6 +126,11 @@ class ZCodeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#array_def.
     def visitArray_def(self, ctx:ZCodeParser.Array_defContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#array_def_for_param.
+    def visitArray_def_for_param(self, ctx:ZCodeParser.Array_def_for_paramContext):
         return self.visitChildren(ctx)
 
 
@@ -264,8 +274,8 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#primary_expression.
-    def visitPrimary_expression(self, ctx:ZCodeParser.Primary_expressionContext):
+    # Visit a parse tree produced by ZCodeParser#sign_expr.
+    def visitSign_expr(self, ctx:ZCodeParser.Sign_exprContext):
         return self.visitChildren(ctx)
 
 
@@ -281,6 +291,11 @@ class ZCodeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#index_op.
     def visitIndex_op(self, ctx:ZCodeParser.Index_opContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#primary_expression.
+    def visitPrimary_expression(self, ctx:ZCodeParser.Primary_expressionContext):
         return self.visitChildren(ctx)
 
 
@@ -371,11 +386,6 @@ class ZCodeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#block_statement.
     def visitBlock_statement(self, ctx:ZCodeParser.Block_statementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by ZCodeParser#sign_number.
-    def visitSign_number(self, ctx:ZCodeParser.Sign_numberContext):
         return self.visitChildren(ctx)
 
 
