@@ -273,8 +273,7 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 WS : [ \t\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
 NEW_LINE: '\r' | '\r'?'\n' {self.text = '\n'};
 
-//* thus making multiple newline for 1 line of code viable */
-fragment NOT_NEW_LINE: ~'\n';
+fragment NOT_NEW_LINE: ~[\r\n];
 
 //*error handling
 ERROR_CHAR:. 

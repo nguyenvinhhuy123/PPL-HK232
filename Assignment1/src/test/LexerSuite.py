@@ -78,7 +78,7 @@ class LexerSuite(unittest.TestCase):
         
     def test_identifier_with_newline_token(self):
         '''identifier with newline_token before and after'''
-        input = "\r_myIdent1\r_myIdent2"
+        input = "\n_myIdent1\n_myIdent2" # _myIdent2_myIdent1
         expected = "\n,_myIdent1,\n,_myIdent2,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,116))
     
