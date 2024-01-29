@@ -80,10 +80,9 @@ param: array_def | var_def;
 
 param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
 
-func_def: KW_FUNC IDENTIFIER param_def inner_scope;
+func_def: KW_FUNC IDENTIFIER param_def optional_end_line inner_scope;
 
 forward_func_def: KW_FUNC IDENTIFIER param_def;
-
 
 //*expression */
 expressions: (expression)*;
