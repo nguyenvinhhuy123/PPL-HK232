@@ -71,7 +71,10 @@ array_implicit_def: KW_VAR array_identifier array_init;
 
 array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
 optional_array_init: array_init |;
-array_value_init_list: (array_value_init+ | expression);
+
+array_value_init_list: array_value array_value_init_tail;
+array_value_init_tail: (SEP_COMA array_value_init_list) | ;
+array_value: (array_value_init | expression);
 array_value_init: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
 
 array_assign: IDENTIFIER array_init;
