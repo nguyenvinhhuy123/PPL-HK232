@@ -9,14 +9,14 @@ options {
 	language=Python3;
 }
 
-program: forward_func_def* define* main_def define* EOF;
+program:optional_end_line forward_func* define* main_def define* EOF;
 //? Should main func be the last function tho?
 
 //*PARSER RULES */
-main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN inner_scope;
+main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line block_statement optional_end_line;
 
 forward_func: forward_func_def end_line;
-define: func_def | forward_func | def_line;
+define: func_def | def_line;
 
 inner_scope: 
 	block_statement end_line
@@ -58,7 +58,7 @@ var_assign: IDENTIFIER value_init;
 
 //*Array */
 dim_list: expression dim_list_tail |;
-dim_list_tail: SEP_COMA expression dim_list_tail |;
+dim_list_tail: SEP_COMA NUMBER dim_list_tail |;
 array_dim: SEP_OPEN_BRACK dim_list SEP_CLOSE_BRACK;
 
 array_def: array_static_def | array_implicit_def;
@@ -77,8 +77,8 @@ array_value_init: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
 array_assign: IDENTIFIER array_init;
 
 //*function */
-param_def_list: param optional_end_line param_def_list_tail | optional_end_line |;
-param_def_list_tail: SEP_COMA param optional_end_line param_def_list_tail|;
+param_def_list: param optional_end_line param_def_list_tail |;
+param_def_list_tail: SEP_COMA param param_def_list_tail|;
 param: array_def_for_param | var_def_for_param;
 
 param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
@@ -158,7 +158,7 @@ continue_statement:KW_CONTINUE;
 return_statement: KW_RETURN (expression| );
 
 //*function call/invoke */
-passing_arg: SEP_OPEN_PAREN passing_list SEP_CLOSE_BRACK;
+passing_arg: SEP_OPEN_PAREN passing_list SEP_CLOSE_PAREN;
 passing_list: expression passing_list_tail | ;
 passing_list_tail: SEP_COMA expression passing_list_tail | ;
 
@@ -172,13 +172,11 @@ literal: NUMBER | STRING | boolean;
 //*Boolen */
 boolean: KW_TRUE | KW_FALSE;
 
-end_line: (NEW_LINE)+ ;
-optional_end_line: end_line | ;
-
+optional_end_line: (end_line |);
+end_line: (NEW_LINE)+;
 //*LEXER RULES */
 //*main func */
 MAIN_TOKEN: 'main';
-
 
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
@@ -270,9 +268,10 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 //Skip any character not a newline character after comment start fragment end a comment with newline/eof token
 
 //*Whitespace and newline */
-WS : [ \t\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
-NEW_LINE: '\r' | '\r'?'\n' {self.text = '\n'};
+WS : [ \t\b\r\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
 
+NEW_LINE:  '\n' | '\r' | WINDOW_NEW_LINE {self.text = '\n'};
+fragment WINDOW_NEW_LINE: ('\r\n');
 fragment NOT_NEW_LINE: ~[\r\n];
 
 //*error handling
