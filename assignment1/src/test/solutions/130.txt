@@ -1,1 +1,1 @@
-KW_DYNAMIC : dynamic, KW_VAR : var, KW_TRUE : true, <EOF>
+_myLogic,<-,a,and,b,or,(,num1,+,num2,>=,0,),<EOF>

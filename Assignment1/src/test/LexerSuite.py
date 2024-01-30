@@ -124,6 +124,25 @@ class LexerSuite(unittest.TestCase):
         input = "_myLogic <- _myVar and _myOther"
         expected = "_myLogic,<-,_myVar,and,_myOther,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,127))
+    
+    def test_string_concat(self):
+        '''string concat operator statement'''
+        input = "_myLogic <- \"String number 1\" ... \"String number 2\""
+        expected = "_myLogic,<-,String number 1,...,String number 2,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,128))
+    
+    def test_string_concat_error_token(self):
+        '''string concat operator statement error token (2 dot only)'''
+        input = "_myString <- \"String number 1\" .. \"String number 2\""
+        expected = "_myString,<-,String number 1," + ERROR_CHAR + "."
+        self.assertTrue(TestLexer.test(input,expected,129))
+    
+    def test_multiple_logic(self):
+        '''multiple logic operator'''
+        input = "_myLogic <- a and b or (num1 + num2 >= 0)"
+        expected = "_myLogic,<-,a,and,b,or,(,num1,+,num2,>=,0,),<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,130))
+    
     #*Case 131 -> 140: Keyword recognition#
     def test_simple_keyword(self):
         '''Simple keyword recognition: Case dynamic,var,true'''
@@ -157,7 +176,7 @@ class LexerSuite(unittest.TestCase):
         self.assertTrue(TestLexer.test(input,expected,135))
     
     def test_keyword_with_uppercase(self):
-        '''Keyword with uppercases, expected ids, should look at this with modified ultils for correctness'''
+        '''Keyword with uppercase, expected ids, should look at this with modified ultils for correctness'''
         input = "True vaR faLse"
         expected = "True,vaR,faLse,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,136))
@@ -272,7 +291,75 @@ class LexerSuite(unittest.TestCase):
         expected = "0123.E-1,A,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,160))  
     
-    #*Case 161-170
+    #*Case 161-170:Test separator
+    def test_simple_bracket(self):
+        '''Simple bracket token'''
+        input = "a[1]"
+        expected = "a,[,1,],<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,161))
+    
+    def test_multiple_bracket(self):
+        '''Multiple bracket token'''
+        input = "a[b[1],c[2]]"
+        expected = "a,[,b,[,1,],,,c,[,2,],],<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,162))
+    
+    def test_simple_paren(self):
+        '''Simple bracket token'''
+        input = "(num1 + num2)"
+        expected = "(,num1,+,num2,),<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,163))
+    
+    def test_multiple_paren(self):
+        '''Multiple bracket token'''
+        input = "((num1 + (num2 + num3)))"
+        expected = "(,(,num1,+,(,num2,+,num3,),),),<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,164))
+    
+    def test_multiple_paren_bracket(self):
+        '''Multiple bracket token'''
+        input = "a[b[2,3], (num1+2(num3+num4))]"
+        expected = "a,[,b,[,2,,,3,],,,(,num1,+,2,(,num3,+,num4,),),],<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,165))
+    
+    def test_newline(self):
+        """simple newline token"""
+        input = "\n"
+        expected = "\n,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,165))
+    
+    def test_multiple_newline(self):
+        """multiple newline token"""
+        input = "\n\n\n"
+        expected = "\n,\n,\n,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,166))
+    
+    def test_window_newline(self):
+        """window newline token CRLF and CR -> to LF"""
+        input = """\r"""
+        expected = "\n,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,167))
+        
+    def test_window_multiple_newline(self):
+        """multiple newline token"""
+        input = """\r\n\n
+        """
+        expected = "\n,\n,\n,\n,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,168))
+    
+    def test_paren_error(self):
+        """multiple newline token"""
+        input = """{a + b = 3}"""
+        expected = ERROR_CHAR + "{"
+        self.assertTrue(TestLexer.test(input,expected,169))
+        
+    def test_more_paren_error(self):
+        """multiple newline token"""
+        input = """}{a + b = 3}"""
+        expected = ERROR_CHAR + "}"
+        self.assertTrue(TestLexer.test(input,expected,170))
+    #*Case 171-180: test_error_character
+    
     #*Case 181-190: test case for edge case in forum.
     
     #*Case 191-200: test complex sequence

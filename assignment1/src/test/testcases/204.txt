@@ -1,0 +1,11 @@
+
+        func foo(number a)
+        begin
+            a <- a + 3
+            string b<- "value of a is:" + toString(a)
+        end
+        func main()
+        begin
+            number target <- 5
+            foo(target)
+        end

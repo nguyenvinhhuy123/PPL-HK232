@@ -97,10 +97,10 @@ class TestParser:
         parser.removeErrorListeners()
         parser.addErrorListener(listener)
         try:
-            #parser.program()
+            parser.program()
             #!This 2 line is use for debugging parse tree 
-            tree = parser.program()
-            dest.write(Trees.toStringTree(tree, None, parser))
+            # tree = parser.program()
+            # dest.write(Trees.toStringTree(tree, None, parser))
             #
             dest.write("successful")
         except SyntaxException as f:

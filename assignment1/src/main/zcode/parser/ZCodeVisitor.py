@@ -399,13 +399,13 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#end_line.
-    def visitEnd_line(self, ctx:ZCodeParser.End_lineContext):
+    # Visit a parse tree produced by ZCodeParser#optional_end_line.
+    def visitOptional_end_line(self, ctx:ZCodeParser.Optional_end_lineContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#optional_end_line.
-    def visitOptional_end_line(self, ctx:ZCodeParser.Optional_end_lineContext):
+    # Visit a parse tree produced by ZCodeParser#end_line.
+    def visitEnd_line(self, ctx:ZCodeParser.End_lineContext):
         return self.visitChildren(ctx)
 
 

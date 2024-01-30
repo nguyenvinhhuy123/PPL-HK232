@@ -1,1 +1,1 @@
-dynamic var true
+_myLogic <- a and b or (num1 + num2 >= 0)
