@@ -1,1 +1,4 @@
-Error Token {
+,
+,
+,a,
+,<EOF>

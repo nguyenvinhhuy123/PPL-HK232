@@ -14,7 +14,7 @@ class LexerSuite(unittest.TestCase):
         expected = ",<EOF>"
         self.assertTrue(TestLexer.test(input,expected,test_ID))
     """
-    #*Case 101-110: Simple test for tokens#
+    #*Case 101-110: Simple test for tokens
     def test_simple_string(self):
         """test simple string"""
         self.assertTrue(TestLexer.test("\"Yanxi Palace - 2018\"","Yanxi Palace - 2018,<EOF>",101))
@@ -29,12 +29,25 @@ class LexerSuite(unittest.TestCase):
         
     def test_simple_comment_line(self):
         """Test simple comment"""
-        self.assertTrue(TestLexer.test("##This is a comment\n","\n,<EOF>", 106))
+        self.assertTrue(TestLexer.test("##This is a comment\n","\n,<EOF>", 104))
 
     def test_simple_comment_line_at_EOF(self):
         """Test simple comment at before EOF"""
-        self.assertTrue(TestLexer.test("##This is a comment","<EOF>", 107))
+        self.assertTrue(TestLexer.test("##This is a comment","<EOF>", 105))
     
+    def test_comment_between_line(self):
+        input = """number a <- 3
+        ##This is a comment
+        string b <- "Hello"
+        """
+        expected = "number,a,<-,3,\n,\n,string,b,<-,Hello,\n,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,106))
+    
+    def test_simple_array(self):
+        input = """number _myArray[2,3]"""
+        expected = "number,_myArray,[,2,,,3,],<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,107))
+        
     def test_simple_variable_declare(self):
         """Test simple variable declare"""
         self.assertTrue(TestLexer.test(
@@ -50,7 +63,7 @@ class LexerSuite(unittest.TestCase):
     def test_unclose_string(self):
         """Test unclose string error"""
         self.assertTrue(TestLexer.test("\"This string is not close", UNCLOSED_STRING + "This string is not close", 110))
-        
+    
     #*Case 111-120: Identifier recognition#
     def test_simple_identifier(self):
         """Simple ident token"""
@@ -82,6 +95,29 @@ class LexerSuite(unittest.TestCase):
         expected = "\n,_myIdent1,\n,_myIdent2,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,116))
     
+    def test_identifier_similar_to_keyword(self):
+        '''identifier with newline_token before and after'''
+        input = "dynaMic"
+        expected = "dynaMic,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,117))
+    
+    def test_identifier_with_wrong_char_case_1(self):
+        '''identifier with incorrect character !'''
+        input = "_myVar!"
+        expected = "_myVar," + ERROR_CHAR + "!"
+        self.assertTrue(TestLexer.test(input,expected,118))
+    
+    def test_identifier_similar_wrong_char_case_2(self):
+        '''identifier with incorrect character @'''
+        input = "_myVar@"
+        expected = "_myVar," + ERROR_CHAR + "@"
+        self.assertTrue(TestLexer.test(input,expected,119))
+    
+    def test_identifier_similar_wrong_char_case_3(self):
+        '''identifier with incorrect character ~'''
+        input = "_myVar~"
+        expected = "_myVar," + ERROR_CHAR + "~"
+        self.assertTrue(TestLexer.test(input,expected,120))
     #*Case 121-130: Operation recognition
     def test_simple_assignment(self):
         '''simple assignment'''
@@ -229,6 +265,18 @@ class LexerSuite(unittest.TestCase):
         expected = """This string '"'" is \\t \\b pretty complex tho!!?,<EOF>"""
         self.assertTrue(TestLexer.test(input,expected,148))
     
+    def test_complex_string_illegal_escape(self):
+        """Complex string with multiple complex literals and an error escape"""
+        input = """\"This string '"'" is \\a \\b pretty complex tho!!?\""""
+        expected = ILLEGAL_ESC + """This string '"'" is \\a"""
+        self.assertTrue(TestLexer.test(input,expected,149))
+        
+    def test_complex_string_unclosed_string(self):
+        """Complex string with multiple complex literals and unclose error"""
+        input = """\"This string '"'" is \\t \\b pretty complex tho!!?"""
+        expected = UNCLOSED_STRING + """This string '"'" is \\t \\b pretty complex tho!!?"""
+        self.assertTrue(TestLexer.test(input,expected,150))
+    
     #*Case 151-160: Number recognition
     def test_simple_number(self):
         '''Simple number test'''
@@ -326,43 +374,127 @@ class LexerSuite(unittest.TestCase):
         """simple newline token"""
         input = "\n"
         expected = "\n,<EOF>"
-        self.assertTrue(TestLexer.test(input,expected,165))
+        self.assertTrue(TestLexer.test(input,expected,166))
     
     def test_multiple_newline(self):
         """multiple newline token"""
         input = "\n\n\n"
         expected = "\n,\n,\n,<EOF>"
-        self.assertTrue(TestLexer.test(input,expected,166))
+        self.assertTrue(TestLexer.test(input,expected,167))
     
     def test_window_newline(self):
         """window newline token CRLF and CR -> to LF"""
-        input = """\r"""
-        expected = "\n,<EOF>"
-        self.assertTrue(TestLexer.test(input,expected,167))
+        input = """\ra"""
+        expected = "\n,a,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,168))
         
     def test_window_multiple_newline(self):
         """multiple newline token"""
-        input = """\r\n\n
+        input = """\r\n\na
         """
-        expected = "\n,\n,\n,\n,<EOF>"
-        self.assertTrue(TestLexer.test(input,expected,168))
+        expected = "\n,\n,\n,a,\n,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,169))
     
     def test_paren_error(self):
         """multiple newline token"""
         input = """{a + b = 3}"""
         expected = ERROR_CHAR + "{"
-        self.assertTrue(TestLexer.test(input,expected,169))
-        
-    def test_more_paren_error(self):
-        """multiple newline token"""
-        input = """}{a + b = 3}"""
-        expected = ERROR_CHAR + "}"
         self.assertTrue(TestLexer.test(input,expected,170))
+    
     #*Case 171-180: test_error_character
+    def test_error_character_case_1(self):
+        """case 1: !"""
+        input = """!"""
+        expected = ERROR_CHAR + "!"
+        self.assertTrue(TestLexer.test(input,expected,171))
     
-    #*Case 181-190: test case for edge case in forum.
+    def test_error_character_case_2(self):
+        """case 2: @"""
+        input = """@"""
+        expected = ERROR_CHAR + "@"
+        self.assertTrue(TestLexer.test(input,expected,172))
     
-    #*Case 191-200: test complex sequence
+    def test_error_character_case_3(self):
+        """case 3: #"""
+        input = """#"""
+        expected = ERROR_CHAR + "#"
+        self.assertTrue(TestLexer.test(input,expected,173))
+        
+    def test_error_character_case_4(self):
+        """case 4: $"""
+        input = """$"""
+        expected = ERROR_CHAR + "$"
+        self.assertTrue(TestLexer.test(input,expected,174))
+        
+    def test_error_character_case_5(self):
+        """case 5: |"""
+        input = """|"""
+        expected = ERROR_CHAR + "|"
+        self.assertTrue(TestLexer.test(input,expected,175))
+        
+    def test_error_character_case_6(self):
+        """case 6: `"""
+        input = """`"""
+        expected = ERROR_CHAR + "`"
+        self.assertTrue(TestLexer.test(input,expected,176))
+        
+    def test_error_character_case_7(self):
+        """case 7: ~"""
+        input = """~"""
+        expected = ERROR_CHAR + "~"
+        self.assertTrue(TestLexer.test(input,expected,177))
+        
+    def test_error_character_case_8(self):
+        """case 8: ."""
+        input = """."""
+        expected = ERROR_CHAR + "."
+        self.assertTrue(TestLexer.test(input,expected,178))
+        
+    def test_error_character_case_9(self):
+        """case 9: ?"""
+        input = """?"""
+        expected = ERROR_CHAR + "?"
+        self.assertTrue(TestLexer.test(input,expected,179))
+    
+    def test_error_character_case_10(self):
+        """case 10: &"""
+        input = """&"""
+        expected = ERROR_CHAR + "&"
+        self.assertTrue(TestLexer.test(input,expected,180))
+    
+    def test_error_character_case_11(self):
+        """case 10: ^"""
+        input = """^"""
+        expected = ERROR_CHAR + "^"
+        self.assertTrue(TestLexer.test(input,expected,181))
+        
+    def test_error_character_case_12(self):
+        """case 12: :"""
+        input = """:"""
+        expected = ERROR_CHAR + ":"
+        self.assertTrue(TestLexer.test(input,expected,182))
+        
+    def test_error_character_case_13(self):
+        """case 13: \\"""
+        input = """\\"""
+        expected = ERROR_CHAR + "\\"
+        self.assertTrue(TestLexer.test(input,expected,183))
+        
+    def test_error_character_case_14(self):
+        """case 13: {}"""
+        input = """{}"""
+        expected = ERROR_CHAR + "{"
+        self.assertTrue(TestLexer.test(input,expected,184))
+        
+    def test_error_character_case_15(self):
+        """case 13: \a"""
+        input = """\a"""
+        expected = ERROR_CHAR + "\a"
+        self.assertTrue(TestLexer.test(input,expected,185))
+        
+    #*Case 185-195: test case for edge case in forum.
+    
+    #*Case 195-200: test complex sequence
     def test_program_like_sequence(self):
         """Simple program like stream of sequence"""
         input = """
@@ -389,5 +521,5 @@ class LexerSuite(unittest.TestCase):
 ,foo,(,target,),
 ,end,
 ,<EOF>"""
-        self.assertTrue(TestLexer.test(input,expected,191))
+        self.assertTrue(TestLexer.test(input,expected,195))
     

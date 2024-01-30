@@ -1,1 +1,1 @@
-_myID,<EOF>
+<EOF>

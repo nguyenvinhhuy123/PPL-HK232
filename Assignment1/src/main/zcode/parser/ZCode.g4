@@ -268,10 +268,10 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 //Skip any character not a newline character after comment start fragment end a comment with newline/eof token
 
 //*Whitespace and newline */
-WS : [ \t\b\r\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
+WS : [ \t\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
 
 NEW_LINE:  '\n' | '\r' | WINDOW_NEW_LINE {self.text = '\n'};
-fragment WINDOW_NEW_LINE: ('\r\n');
+fragment WINDOW_NEW_LINE: '\r\n';
 fragment NOT_NEW_LINE: ~[\r\n];
 
 //*error handling
