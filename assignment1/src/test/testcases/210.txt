@@ -1,0 +1,10 @@
+
+        func foo() begin
+        a <- 2
+        return a
+        end
+        func main() 
+        begin
+            a <- foo()
+        end
+        

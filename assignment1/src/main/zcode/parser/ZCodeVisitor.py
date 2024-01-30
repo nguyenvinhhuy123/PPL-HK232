@@ -164,6 +164,16 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ZCodeParser#array_value_init_tail.
+    def visitArray_value_init_tail(self, ctx:ZCodeParser.Array_value_init_tailContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#array_value.
+    def visitArray_value(self, ctx:ZCodeParser.Array_valueContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ZCodeParser#array_value_init.
     def visitArray_value_init(self, ctx:ZCodeParser.Array_value_initContext):
         return self.visitChildren(ctx)
