@@ -23,21 +23,22 @@ inner_scope:
 	| return_statement end_line
 	;
 
-lines: (line|statement)*;
+lines: (line|statement_line)*;
 line: def_line | assign_line | expr_line;
 
 def_line: (var_def | array_def) end_line;
 assign_line: (var_assign | array_assign) end_line;
 expr_line: expression end_line; //? Can expresstion be on 1 line, ie: 1 + 2 \n //valid?
-
+statement_line: statement end_line;
 statement: 
 	(if_statement
 	| for_statement
 	| break_statement
 	| continue_statement
 	| return_statement
-	| block_statement)
-	end_line; //TODO: all statement type together
+	| block_statement
+	| func_call)
+	; //TODO: all statement type together
 
 //*type def */
 type_def: KW_NUMBER | KW_STRING | KW_BOOL;
@@ -134,11 +135,11 @@ term: IDENTIFIER | func_call;
 
 //*Statements */
 //*if stmt */
-if_statement: if_clause elif_clause* (else_clause | );
+if_statement: if_clause (end_line elif_clause)* (end_line else_clause | );
 
 if_clause: KW_IF if_condition optional_end_line statement;
-elif_clause:KW_ELIF if_condition optional_end_line statement;
-else_clause:KW_ELSE statement;
+elif_clause: KW_ELIF if_condition optional_end_line statement;
+else_clause: KW_ELSE optional_end_line statement;
 
 if_condition: SEP_OPEN_PAREN expression SEP_CLOSE_PAREN;
 
