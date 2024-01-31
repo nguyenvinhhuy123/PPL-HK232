@@ -57,17 +57,15 @@ dynamic_var_def:
 var_assign: IDENTIFIER value_init;
 
 //*Array */
-dim_list: expression dim_list_tail |;
+dim_list: NUMBER dim_list_tail;
 dim_list_tail: SEP_COMA NUMBER dim_list_tail |;
 array_dim: SEP_OPEN_BRACK dim_list SEP_CLOSE_BRACK;
 
-array_def: array_static_def | array_implicit_def;
+array_def: array_static_def ;
 array_def_for_param: type_def array_identifier;
 
 array_identifier: IDENTIFIER array_dim;
 array_static_def: type_def array_identifier optional_array_init;
-
-array_implicit_def: KW_VAR array_identifier array_init;
 
 array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
 optional_array_init: array_init |;
