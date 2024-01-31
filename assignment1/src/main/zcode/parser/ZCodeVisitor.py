@@ -59,6 +59,11 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ZCodeParser#statement_line.
+    def visitStatement_line(self, ctx:ZCodeParser.Statement_lineContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ZCodeParser#statement.
     def visitStatement(self, ctx:ZCodeParser.StatementContext):
         return self.visitChildren(ctx)
@@ -141,11 +146,6 @@ class ZCodeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#array_static_def.
     def visitArray_static_def(self, ctx:ZCodeParser.Array_static_defContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by ZCodeParser#array_implicit_def.
-    def visitArray_implicit_def(self, ctx:ZCodeParser.Array_implicit_defContext):
         return self.visitChildren(ctx)
 
 

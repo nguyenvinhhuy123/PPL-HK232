@@ -9,6 +9,8 @@ SUCCESSFUL = "successful"
 def error_msg(error_line, error_col, error_word):
     #*Remember to count all space in that line (1 tab = 4 space)
     return "Error on line %a col %a: %s" % (error_line, error_col, error_word)
+def lexer_err_msg(error_token):
+    return error_token
 
 class ParserSuite(unittest.TestCase):
     
@@ -59,6 +61,47 @@ class ParserSuite(unittest.TestCase):
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,204))
+    
+    def test_spec_source_code_1(self):
+        """Source from spec"""
+        input = """
+        func areDivisors(number num1, number num2)
+            return ((num1 % num2 = 0) or (num2 % num1 = 0))
+        func main()
+        begin
+            var num1 <- readNumber()
+            var num2 <- readNumber()
+            if (areDivisors(num1, num2)) writeString("Yes")
+            else writeString("No")
+        end
+
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,205))
+
+    def test_spec_source_code_2(self):
+        """Source from spec"""
+        input = """
+        func isPrime(number x)
+        func main()
+        begin
+            number x <- readNumber()
+            if (isPrime(x)) writeString("Yes")
+            else writeString("No")
+        end
+        func isPrime(number x)
+        begin
+            if (x <= 1) return false
+            var i <- 2
+            for i until i > x / 2 by 1
+            begin
+                if (x % i = 0) return false
+            end
+            return true
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,206))
         
     #*Case 210-220: test function declaration
     def test_simple_func_del(self):
@@ -269,3 +312,78 @@ class ParserSuite(unittest.TestCase):
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,225))
+    
+    def test_simple_array_declare_dim_error(self):
+        '''Simple array declaration with dimension error'''
+        input = """
+        number a[true,3] <- [[2,3,4],[2,4,5]]
+        func main() 
+        begin
+            number b[3] <- [true,false,false]
+        end
+        """
+        expected = error_msg(2,17,"true")
+        self.assertTrue(TestParser.test(input,expected,226))
+        
+    def test_simple_array_declare_implicit_key_error(self):
+        '''Simple array declaration with implicit keyword error'''
+        '''expected error at '[' because var a -> recognize as variable decl'''
+        input = """
+        var a[2,3] <- [[2,3,4],[2,4,5]]
+        func main() 
+        begin
+            number b[3] <- [true,false,false]
+        end
+        """
+        expected = error_msg(2,13,"[")
+        self.assertTrue(TestParser.test(input,expected,227))
+    
+    def test_simple_array_declare_missing_bracket(self):
+        '''Simple array declaration with missing bracket'''
+        input = """
+        number a[2,3 <- [[2,3,4],[2,4,5]]
+        func main() 
+        begin
+            number b[3] <- [true,false,false]
+        end
+        """
+        expected = error_msg(2,21,"<-")
+        self.assertTrue(TestParser.test(input,expected,228))
+    
+    def test_simple_array_declare_null_dimension(self):
+        '''Simple array declaration with null dimension size list'''
+        input = """
+        number a[]<- [[2,3,4],[2,4,5]]
+        func main() 
+        begin
+            number b[3] <- [true,false,false]
+        end
+        """
+        expected = error_msg(2,17,"]")
+        self.assertTrue(TestParser.test(input,expected,229))
+    
+    def test_simple_array_declare_wrong_bracket(self):
+        '''Simple array declaration with null dimension size list'''
+        '''Lexer error thus expected only the error token'''
+        input = """
+        number a[2}<- [[2,3,4],[2,4,5]]
+        func main() 
+        begin
+            number b[3] <- [true,false,false]
+        end
+        """
+        expected = lexer_err_msg("}")
+        self.assertTrue(TestParser.test(input,expected,230))
+        
+    #*Case:231-240: Expression testing
+    def test_simple_expr(self):
+        '''Simple expr in var declaration'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number b <- (3-4)*5-foo()
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,230))
