@@ -9,14 +9,14 @@ options {
 	language=Python3;
 }
 
-program:optional_end_line forward_func* define* main_def define* EOF;
+program:optional_end_line (forward_func | define)* EOF;
 //? Should main func be the last function tho?
 
 //*PARSER RULES */
 main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line inner_scope;
 
 forward_func: forward_func_def end_line;
-define: func_def | def_line;
+define: func_def | def_line | main_def;
 
 inner_scope: 
 	block_statement end_line
@@ -148,7 +148,7 @@ if_condition: SEP_OPEN_PAREN expression SEP_CLOSE_PAREN;
 //*for stmt */
 for_statement: for_clause condition_clause update_clause optional_end_line statement;
 
-for_clause:KW_FOR IDENTIFIER;
+for_clause:KW_FOR IDENTIFIER | array_identifier;
 condition_clause:KW_UNTIL expression;
 update_clause:KW_BY expression;
 
@@ -240,8 +240,8 @@ COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip;
 //*Whitespace and newline */
 WS : [ \t\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
 
-NEW_LINE: ('\n' | WINDOW_NEW_LINE | '\r') {self.text = '\n'};
-fragment WINDOW_NEW_LINE: '\r\n';
+NEW_LINE: (WINDOW_NEW_LINE | '\n'  | '\r') {self.text = self.text.replace("\r\n", "\n").replace("\r", "\n")};
+fragment WINDOW_NEW_LINE: '\r\n' ;
 fragment NOT_NEW_LINE: ~[\r\n];
 
 //*Identifier */
@@ -274,16 +274,19 @@ fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR
 //*Thus will be helpful for count line for frontend to be able to give the exatc error line
 //*Ex: string: "a\na\na\n" -> should be count as 4 different line in parser, not 1*/
 STRING: ["] (NEW_LINE | STRING_LITTERAL )* ["]
-	{self.text = self.text[1:-1]} ;
+	{self.text = self.text.replace("\r\n", "\n").replace("\r", "\n")
+self.text = self.text[1:-1]} ;
 
 //*error handling
 ERROR_CHAR:. 
  	{raise ErrorToken(self.text)};
 
 UNCLOSE_STRING: ["] (STRING_LITTERAL|NEW_LINE)* EOF 
-	{raise UncloseString(self.text[1:])};
+	{self.text = self.text.replace("\r\n", "\n").replace("\r", "\n")
+raise UncloseString(self.text[1:])};
 
-ILLEGAL_ESCAPE: ["] (STRING_LITTERAL|NEW_LINE)* ILLEGAL_ESCAPE_SEQ 
-	{raise IllegalEscape(self.text[1:])};
+ILLEGAL_ESCAPE: ["] (STRING_LITTERAL|NEW_LINE )* ILLEGAL_ESCAPE_SEQ 
+	{self.text = self.text.replace("\r\n", "\n").replace("\r", "\n")
+raise IllegalEscape(self.text[1:])};
 
 
