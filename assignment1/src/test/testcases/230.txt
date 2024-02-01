@@ -1,7 +1,7 @@
 
-        number a <- 2*5-3
+        number a[2}<- [[2,3,4],[2,4,5]]
         func main() 
         begin
-            number b <- (3-4)*5-foo()
+            number b[3] <- [true,false,false]
         end
         

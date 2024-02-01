@@ -34,15 +34,14 @@ class ParserSuite(unittest.TestCase):
         input = """int main () return 1
         """
         expected = error_msg(1,0,"int")
-        print(expected)
         self.assertTrue(TestParser.test(input,expected,202))
         
     def test_simple_program_no_main(self):
         """Simple program with no main function declare"""
         input = """number a
-        func foo() return 2\n
+        func foo() return 2
         """
-        expected = SUCCESSFUL
+        expected = error_msg(3,8,"<EOF>") #TODO: Change here via spec
         self.assertTrue(TestParser.test(input,expected,203))
     
     def test_long_program(self):
@@ -102,6 +101,59 @@ class ParserSuite(unittest.TestCase):
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,206))
+        
+    def test_spec_source_code_1_modified(self):
+        """Source from spec"""
+        input = """
+        func areDivisors(number num1, number num2)
+            return (num1 % num2 = 0 or num2 % num1 = 0)
+        func main()
+        begin
+            var num1 <- readNumber()
+            var num2 <- readNumber()
+            if (areDivisors(num1, num2)) writeString("Yes")
+            else writeString("No")
+        end
+
+        """
+        expected = error_msg(3,51,"=")
+        self.assertTrue(TestParser.test(input,expected,207))
+    
+    def test_spec_source_code_2_modified(self):
+        """Source from spec"""
+        input = """
+        func isPrime(var a[2])
+        func main()
+        begin
+            number x <- readNumber()
+            if (isPrime(x)) writeString("Yes")
+            else writeString("No")
+        end
+        func isPrime(number x)
+        begin
+            if (x <= 1) return false
+            var i <- 2
+            for i until i > x / 2 by 1
+            begin
+                if (x % i = 0) return false
+            end
+            return true
+        end
+        """
+        expected = error_msg(2,21,"var")
+        self.assertTrue(TestParser.test(input,expected,208))
+    
+    def test_simple_program_hello_world(self):
+        """Simple hello world"""
+        input = """
+        func main()
+        begin
+            string b <- "Hello, World!"
+            printString(b)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,209))
         
     #*Case 210-220: test function declaration
     def test_simple_func_del(self):
@@ -386,4 +438,118 @@ class ParserSuite(unittest.TestCase):
         end
         """
         expected = SUCCESSFUL
-        self.assertTrue(TestParser.test(input,expected,230))
+        self.assertTrue(TestParser.test(input,expected,231))
+    
+    def test_simple_boolean_expr(self):
+        '''Simple expr in var declaration, bool expr'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >=5) and not(a <= 10)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,232))
+        
+    def test_simple_string_expr(self):
+        '''Simple expr in var declaration, string concat expr'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            string b <- toString(a) ... \" is a number\"
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,233))
+        
+    def test_simple_array_expr(self):
+        '''Simple expr in var declaration, array expr and value assignment'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number b[2,3]
+            b[2,0] <- a
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,234))
+    
+    def test_simple_expr_error(self):
+        '''Simple expr in var declaration, error no paren'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number b <- (3-4*5-foo()
+        end
+        """
+        expected = error_msg(5,36,'\n')
+        self.assertTrue(TestParser.test(input,expected,235))
+    
+    def test_simple_boolean_expr_err(self):
+        '''Simple expr in var declaration, bool expr error no operand'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >=5) and (a <= 10) or
+        end
+        """
+        expected = error_msg(5,46,'\n')
+        self.assertTrue(TestParser.test(input,expected,236))
+        
+    def test_simple_string_expr_err(self):
+        '''Simple expr in var declaration, string concat expr error unclose str'''
+        input = """
+number a <- 2*5-3
+func main() 
+begin
+    string b <- toString(a) ... \" is a number\'\"
+end
+"""
+        expected = lexer_err_msg(""" is a number\'\"\n
+end
+""") #!I Cannot print EOF token here? thus this tc is always wrong
+        self.assertTrue(TestParser.test(input,expected,237))
+        
+    def test_simple_array_expr_err(self):
+        '''Simple expr in var declaration, array expr error missing bracket'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number b[2,3]
+            b[2,0 <- a
+        end
+        """
+        expected = error_msg(6,18,'<-')
+        self.assertTrue(TestParser.test(input,expected,238))
+        
+    def test_simple_relation_expr(self):
+        '''Simple expr in var declaration, relational expr'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >= 5 + 5 - 2)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,239))
+        
+    def test_simple_relation_expr_err(self):
+        '''Simple expr in var declaration, rela expr error, relational is none assoc'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >= 5 + 5 - 2 <= b)
+        end
+        """
+        expected = error_msg(5,38,"<=")
+        self.assertTrue(TestParser.test(input,expected,240))
+        
+    #*Case 241-250: statement testing

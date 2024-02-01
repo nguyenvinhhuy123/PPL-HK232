@@ -184,6 +184,16 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ZCodeParser#array_elem_assign.
+    def visitArray_elem_assign(self, ctx:ZCodeParser.Array_elem_assignContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#array_elem_init.
+    def visitArray_elem_init(self, ctx:ZCodeParser.Array_elem_initContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ZCodeParser#param_def_list.
     def visitParam_def_list(self, ctx:ZCodeParser.Param_def_listContext):
         return self.visitChildren(ctx)
@@ -291,6 +301,11 @@ class ZCodeVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#array_expr.
     def visitArray_expr(self, ctx:ZCodeParser.Array_exprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ZCodeParser#array_element_expr.
+    def visitArray_element_expr(self, ctx:ZCodeParser.Array_element_exprContext):
         return self.visitChildren(ctx)
 
 

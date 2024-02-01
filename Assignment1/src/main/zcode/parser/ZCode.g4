@@ -13,7 +13,7 @@ program:optional_end_line forward_func* define* main_def define* EOF;
 //? Should main func be the last function tho?
 
 //*PARSER RULES */
-main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line block_statement optional_end_line;
+main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line inner_scope;
 
 forward_func: forward_func_def end_line;
 define: func_def | def_line;
@@ -27,7 +27,7 @@ lines: (line|statement_line)*;
 line: def_line | assign_line | expr_line;
 
 def_line: (var_def | array_def) end_line;
-assign_line: (var_assign | array_assign) end_line;
+assign_line: (var_assign | array_assign | array_elem_assign) end_line;
 expr_line: expression end_line; //? Can expresstion be on 1 line, ie: 1 + 2 \n //valid?
 statement_line: statement end_line;
 statement: 
@@ -68,7 +68,7 @@ array_def_for_param: type_def array_identifier;
 array_identifier: IDENTIFIER array_dim;
 array_static_def: type_def array_identifier optional_array_init;
 
-array_init: OP_ASSIGN (IDENTIFIER | array_value_init);
+array_init: OP_ASSIGN (expression | array_value_init);
 optional_array_init: array_init |;
 
 array_value_init_list: array_value array_value_init_tail;
@@ -77,7 +77,8 @@ array_value: (array_value_init | expression);
 array_value_init: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
 
 array_assign: IDENTIFIER array_init;
-
+array_elem_assign: array_element_expr array_elem_init;
+array_elem_init: OP_ASSIGN expression;
 //*function */
 param_def_list: param optional_end_line param_def_list_tail |;
 param_def_list_tail: SEP_COMA param param_def_list_tail|;
@@ -121,7 +122,8 @@ negate_op: OP_NOT;
 
 sign_expr: (OP_SUBTRACT) sign_expr | array_expr;
 
-array_expr: term indexer | primary_expression;
+array_expr: array_element_expr | primary_expression;
+array_element_expr: term indexer;
 indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
 index_op: expression (SEP_COMA index_op | );
 
@@ -230,6 +232,17 @@ SEP_OPEN_BRACK: '[';
 SEP_CLOSE_BRACK: ']';
 SEP_COMA: ',';	
 
+//*Comment
+fragment COMMENT_HEAD: '##';
+COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip; 
+//Skip any character not a newline character after comment start fragment end a comment with newline/eof token
+
+//*Whitespace and newline */
+WS : [ \t\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
+
+NEW_LINE: ('\n' | WINDOW_NEW_LINE | '\r') {self.text = '\n'};
+fragment WINDOW_NEW_LINE: '\r\n';
+fragment NOT_NEW_LINE: ~[\r\n];
 
 //*Identifier */
 fragment IDENTIFIER_HEAD: [_a-zA-Z];
@@ -252,38 +265,25 @@ fragment ESCAPE_SEQUENCE: ESCAPE_SIGN ESCAPE_REP;
 fragment ESCAPE_REP: [bfrnt'\\]; //[\bfrnt'] : escape seq representation char 
 fragment NOT_ESCAPE_REP: ~[bfrnt'\\];
 fragment ILLEGAL_ESCAPE_SEQ: ESCAPE_SIGN NOT_ESCAPE_REP;
-fragment STRING_CHAR: ~[\\\n"] ; //*Any character that not a escape seq char and quote*/
+fragment STRING_CHAR: ~[\\\r\n"] ; //*Any character that not a escape seq char and quote*/
 
 fragment DOUBLE_QUOTE_IN_STRING: [']["];
-fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR | NEW_LINE ;
+fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR ;
 //*Why NEW_LINE here: Put NL in stirng_char and tto it like this is nearly the same, 
 //*however, when we do this way, we can count the number of NL even when it in string
 //*Thus will be helpful for count line for frontend to be able to give the exatc error line
 //*Ex: string: "a\na\na\n" -> should be count as 4 different line in parser, not 1*/
-STRING: ["] STRING_LITTERAL* ["]
+STRING: ["] (NEW_LINE | STRING_LITTERAL )* ["]
 	{self.text = self.text[1:-1]} ;
-
-
-//*Comment
-fragment COMMENT_HEAD: '##';
-COMMENT: COMMENT_HEAD NOT_NEW_LINE* -> skip; 
-//Skip any character not a newline character after comment start fragment end a comment with newline/eof token
-
-//*Whitespace and newline */
-WS : [ \t\b\f]+ -> skip ; // skip spaces, tabs, and whitespace tok
-
-NEW_LINE:  '\n' | '\r' | WINDOW_NEW_LINE {self.text = '\n'};
-fragment WINDOW_NEW_LINE: '\r\n';
-fragment NOT_NEW_LINE: ~[\r\n];
 
 //*error handling
 ERROR_CHAR:. 
  	{raise ErrorToken(self.text)};
 
-UNCLOSE_STRING: ["] STRING_LITTERAL* EOF 
+UNCLOSE_STRING: ["] (STRING_LITTERAL|NEW_LINE)* EOF 
 	{raise UncloseString(self.text[1:])};
 
-ILLEGAL_ESCAPE: ["] STRING_LITTERAL* ILLEGAL_ESCAPE_SEQ 
+ILLEGAL_ESCAPE: ["] (STRING_LITTERAL|NEW_LINE)* ILLEGAL_ESCAPE_SEQ 
 	{raise IllegalEscape(self.text[1:])};
 
 
