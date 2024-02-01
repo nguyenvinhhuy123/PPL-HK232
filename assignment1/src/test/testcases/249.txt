@@ -2,6 +2,7 @@
         number a <- 2*5-3
         func main() 
         begin
-            number b <- (3-4)*5- -foo()
+            for i until isPrime(i)
+            printString(i)
         end
         

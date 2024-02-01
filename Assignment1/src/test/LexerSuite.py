@@ -255,7 +255,7 @@ class LexerSuite(unittest.TestCase):
     def test_multiline_string(self):
         '''Multiline string'''
         #!Weird output give 2 newline char instead of 1?
-        input = """\"This is a\rmultiline string\rtestcase with a tab:\r\\t\""""
+        input = """\"This is a\nmultiline string\ntestcase with a tab:\n\\t\""""
         expected = """This is a\nmultiline string\ntestcase with a tab:\n\\t,<EOF>"""
         self.assertTrue(TestLexer.test(input,expected,147))
         

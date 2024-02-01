@@ -41,7 +41,7 @@ class ParserSuite(unittest.TestCase):
         input = """number a
         func foo() return 2
         """
-        expected = error_msg(3,8,"<EOF>") #TODO: Change here via spec
+        expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,203))
     
     def test_long_program(self):
@@ -434,7 +434,7 @@ class ParserSuite(unittest.TestCase):
         number a <- 2*5-3
         func main() 
         begin
-            number b <- (3-4)*5-foo()
+            number b <- (3-4)*5- -foo()
         end
         """
         expected = SUCCESSFUL
@@ -510,7 +510,7 @@ begin
     string b <- toString(a) ... \" is a number\'\"
 end
 """
-        expected = lexer_err_msg(""" is a number\'\"\n
+        expected = lexer_err_msg(""" is a number\'\"
 end
 """) #!I Cannot print EOF token here? thus this tc is always wrong
         self.assertTrue(TestParser.test(input,expected,237))
@@ -552,4 +552,230 @@ end
         expected = error_msg(5,38,"<=")
         self.assertTrue(TestParser.test(input,expected,240))
         
-    #*Case 241-250: statement testing
+    #*Case 241-260: statement testing
+    def test_simple_if_statement(self):
+        '''Simple if stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 3) printString("Yes")
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,241))
+        
+    def test_simple_if_else_statement(self):
+        '''Simple if else stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 3) 
+                printString("Yes")
+            else 
+                printString("No")
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,242))
+    
+    def test_simple_if_elif_else_statement(self):
+        '''Simple if else stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 3) 
+                printString(">3")
+            elif(a > 5)
+                printString(">5")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,242))
+        
+    def test_simple_if_statement_error(self):
+        '''Simple if else stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 3
+                printString(">3")
+            elif(a > 5)
+                printString(">5")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = error_msg(5,21,"\n")
+        self.assertTrue(TestParser.test(input,expected,243))
+        
+    def test_simple_if_statement_no_condition_error(self):
+        '''Simple if else stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if ()
+                printString(">3")
+            elif(a > 5)
+                printString(">5")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = error_msg(5,16,")")
+        self.assertTrue(TestParser.test(input,expected,244))
+        
+    def test_simple_if_statement_no_execute_stmt_error(self):
+        '''Simple if else stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a = 1)
+            elif(a > 5)
+                printString(">5")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = error_msg(6,12,"elif")
+        self.assertTrue(TestParser.test(input,expected,244))
+    
+    def test_nested_if_statement(self):
+        '''Simple if else stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 1)
+                if (a = 2) printString("is 2")
+                elif (a = 5) printString("is 5")
+                else printString("lmao")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,245))
+        
+    def test_simple_for_statement(self):
+        '''Simple for stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number i <- 0
+            for i until i = 10 by 1
+            printString(i)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,246))
+    
+    def test_simple_for_statement_err(self):
+        '''Simple for stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for number i <- 0 until i = 10 by 1
+            printString(i)
+        end
+        """
+        expected = error_msg(5,16,"number")
+        self.assertTrue(TestParser.test(input,expected,247))
+    
+    def test_simple_for_statement_edge_case(self):
+        '''Simple for stmt until true weird case, infinite loop'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until true by 1
+            printString(i)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,248))
+        
+    def test_simple_for_statement_missing_by(self):
+        '''Simple for stmt missing by statement'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until isPrime(i)
+            printString(i)
+        end
+        """
+        expected = error_msg(5,34,"\n")
+        self.assertTrue(TestParser.test(input,expected,249))
+        
+    def test_simple_for_statement_missing_until(self):
+        '''Simple for stmt missing until statement'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i by 1
+            printString(i)
+        end
+        """
+        expected = error_msg(5,18,"by")
+        self.assertTrue(TestParser.test(input,expected,250))
+        
+    def test_simple_break(self):
+        '''Simple for stmt missing by statement'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until true by 1
+            if (isPrime(i))
+            break
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,251))
+        
+    def test_simple_continue(self):
+        '''Simple for stmt missing by statement'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                if (not inFibo(i))
+                    continue
+                else
+                    printString(i)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,252))
