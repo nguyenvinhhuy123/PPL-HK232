@@ -552,21 +552,6 @@ end
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,241))
-        
-    def test_simple_if_else_statement(self):
-        '''Simple if else stmt'''
-        input = """
-        number a <- 2*5-3
-        func main() 
-        begin
-            if (a > 3) 
-                printString("Yes")
-            else 
-                printString("No")
-        end
-        """
-        expected = SUCCESSFUL
-        self.assertTrue(TestParser.test(input,expected,242))
     
     def test_simple_if_elif_else_statement(self):
         '''Simple if else stmt'''
@@ -908,7 +893,178 @@ end
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,262))
+        
+    def test_simple_implicit_param_err(self):
+        '''Simple func with implicit param'''
+        input = """
+        func foo(var a, number b) return a + b
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = error_msg(2,17,"var")
+        self.assertTrue(TestParser.test(input,expected,263))
     
+    def test_simple_implicit_param_err_case_2(self):
+        '''Simple func with implicit param'''
+        input = """
+        func foo(implicit a, number b) return a + b
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = error_msg(2,17,"implicit")
+        self.assertTrue(TestParser.test(input,expected,264))    
+    
+    def test_complex_array_param(self):
+        '''Simple func with array params'''
+        input = """
+        func foo(string a[2,3,4], bool b[2,3]) return
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,265))    
+    
+    def test_multiline_param(self):
+        '''Simple func with array params'''
+        input = """
+        func foo(string a[2,3,4],
+        bool b[2,3]) return
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = error_msg(2,33,'\n')
+        self.assertTrue(TestParser.test(input,expected,266))   
+        
+    def test_forward_decl_param(self):
+        '''Simple forward func with array params'''
+        input = """
+        func foo(string a[2,3,4],bool b[2,3])
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,267))   
+    
+    def test_func_param_missing_coma(self):
+        '''Simple forward func with array params err missing coma'''
+        input = """
+        func foo(string a[2,3,4] bool b[2,3]) return
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = error_msg(2,33,"bool")
+        self.assertTrue(TestParser.test(input,expected,268))  
+    
+    def test_func_param_semi_err(self):
+        '''Simple forward func with array params mistake semicol'''
+        input = """
+        func foo(string a[2,3,4]; bool b[2,3]) return
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = lexer_err_msg(";")
+        self.assertTrue(TestParser.test(input,expected,269))  
+    
+    def test_func_param_missing_paren_err(self):
+        '''Simple forward func with missing param'''
+        input = """
+        func foo(string a[2,3,4], bool b[2,3] return
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = error_msg(2,46,"return")
+        self.assertTrue(TestParser.test(input,expected,270))  
+    
+    #*Case 271- 280: complex var decl and assignment
+    def test_long_var_decl(self):
+        '''Long array, var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,271))
+        
+    def test_long_var_decl_dimension_expr_err(self):
+        '''Long implicit type var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[foo(2),3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        """
+        expected = error_msg(5,21,"foo")
+        self.assertTrue(TestParser.test(input,expected,272))
+    
+    def test_elem_expr_assignment(self):
+        '''Long implicit type var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3]
+            b[a,foo(2)] <- b[foo(2),a]
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,273))
+    
+    def test_long_var_decl_dimension_with_float(self):
+        '''Long implicit type var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2.293E21,3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,274))
+    
+    def test_long_var_decl_dimension_with_string(self):
+        '''Long implicit type var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b["string",3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        """
+        expected = error_msg(5,21,"string")
+        self.assertTrue(TestParser.test(input,expected,275))
+    
+    def test_elem_expr_assignment(self):
+        '''Long implicit type var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3]
+            b["string",2.123E-32] <- b[foo(2),a]
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,276))
     #*Case 291 - 300 : Random test
     def test_simple_implicit_var_declare(self):
         '''Simple implicit type var declare'''
@@ -921,3 +1077,18 @@ end
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,291))
+    
+    def test_simple_if_else_statement(self):
+        '''Simple if else stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 3) 
+                printString("Yes")
+            else 
+                printString("No")
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,292))

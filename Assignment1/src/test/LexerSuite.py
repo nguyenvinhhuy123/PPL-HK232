@@ -401,7 +401,7 @@ class LexerSuite(unittest.TestCase):
         expected = ERROR_CHAR + "{"
         self.assertTrue(TestLexer.test(input,expected,170))
     
-    #*Case 171-180: test_error_character
+    #*Case 171-185: test_error_character
     def test_error_character_case_1(self):
         """case 1: !"""
         input = """!"""
@@ -494,7 +494,7 @@ class LexerSuite(unittest.TestCase):
         
     #*Case 185-195: test case for edge case in forum.
     
-    #*Case 195-200: test complex sequence
+    #*Case 195-200: random test case
     def test_program_like_sequence(self):
         """Simple program like stream of sequence"""
         input = """
