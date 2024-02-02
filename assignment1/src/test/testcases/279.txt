@@ -1,0 +1,7 @@
+
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b <- [2,3]
+        end
+        

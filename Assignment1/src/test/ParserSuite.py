@@ -869,6 +869,7 @@ end
         """
         expected = error_msg(5,19,"break")
         self.assertTrue(TestParser.test(input,expected,260))
+    
     #*Case: 261 - 270: Parameter in function
     def test_simple_param(self):
         '''Simple func with param'''
@@ -1030,7 +1031,7 @@ end
         self.assertTrue(TestParser.test(input,expected,273))
     
     def test_long_var_decl_dimension_with_float(self):
-        '''Long implicit type var declare'''
+        '''floating point dim'''
         input = """
         var a <- 2*3-foo()+b[2,3]
         func main() 
@@ -1042,7 +1043,7 @@ end
         self.assertTrue(TestParser.test(input,expected,274))
     
     def test_long_var_decl_dimension_with_string(self):
-        '''Long implicit type var declare'''
+        '''Long string dim error'''
         input = """
         var a <- 2*3-foo()+b[2,3]
         func main() 
@@ -1054,7 +1055,7 @@ end
         self.assertTrue(TestParser.test(input,expected,275))
     
     def test_elem_expr_assignment(self):
-        '''Long implicit type var declare'''
+        '''element expr assignment'''
         input = """
         var a <- 2*3-foo()+b[2,3]
         func main() 
@@ -1065,6 +1066,177 @@ end
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,276))
+    
+    def test_array_assign_with_id(self):
+        '''Long array assign case 1'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- a
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,277))
+    
+    def test_array_assign_with_function(self):
+        '''Long array assign case 2'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- foo(2)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,278))
+    
+    def test_number_assign_with_array_val(self):
+        '''test number var assign with array value'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b <- [2,3]
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,279))
+    
+    def test_complex_array_value(self):
+        '''Long implicit type var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- [[2,foo(3)], [23.1237E-2,[1237,232]], 123, a[1,foo(3)]]
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,280))
+    
+    #*Case 281-290: Complex expression testing
+    def test_complex_expr_case_1(self):
+        '''Complex expr case 1'''
+        input = """
+        func main() 
+        begin
+            var a <- (num1 - num2 / 2 * 3 = 0) or (num1 - -num2*5/2+3 >= 0)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,281))
+    
+    def test_complex_expr_case_1_err(self):
+        '''Complex expr case 1 err'''
+        input = """
+        func main() 
+        begin
+            var a <- (num1 - num2 / 2 * 3 = 0) or (num1 - +num2*5/2+3 >= 0)
+        end
+        """
+        expected = error_msg(4,58,"+")
+        self.assertTrue(TestParser.test(input,expected,282))
+    
+    def test_complex_expr_case_2(self):
+        '''Complex expr case 2'''
+        input = """
+        func main() 
+        begin
+            var a <- (bool1 or (bool2 and not bool3 )) or (isFoo(a) and not isFoo(b))
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,283))
+    
+    def test_complex_expr_case_2_err(self):
+        '''Complex expr case 2 err'''
+        input = """
+        func main() 
+        begin
+            var a <- (bool1 or (bool2 and and bool3 )) or (isFoo(a) and not isFoo(b))
+        end
+        """
+        expected = error_msg(4,42,"and")
+        self.assertTrue(TestParser.test(input,expected,284))
+    
+    def test_complex_expr_case_3(self):
+        '''Complex expr case 3 '''
+        input = """
+        func main() 
+        begin
+            var a <- (bool1 or (var1 + var2 >= 3 )) + (isFoo(a) and not isFoo(b,a[2]))
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,285))
+    
+    def test_complex_expr_case_3_err(self):
+        '''Complex expr case 3 err '''
+        input = """
+        func main() 
+        begin
+            var a <- (bool1 or (var1 + var2 >= 3 < 5 )) + (isFoo(a) and not isFoo(b,a[2]))
+        end
+        """
+        expected = error_msg(4,49,"<")
+        self.assertTrue(TestParser.test(input,expected,286))
+    
+    def test_complex_expr_case_4(self):
+        '''Complex expr case 4 '''
+        input = """
+        func main() 
+        begin
+            string a <- toString(b) + toString(c) ... d[2,3] == str(123825) + d[23,54]
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,286))
+    
+    def test_complex_expr_case_5(self):
+        '''Complex expr case 5 err '''
+        input = """
+        func main() 
+        begin
+            bool b <- str(a) ... str(b) == (a >= b/c)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,287))
+    
+    def test_complex_expr_case_5_err(self):
+        '''Complex expr case 5 err '''
+        input = """
+        func main() 
+        begin
+            bool b <- str(a) ... str(b) == (a >= b/c]
+        end
+        """
+        expected = error_msg(4,52,"]")
+        self.assertTrue(TestParser.test(input,expected,288))
+    
+    def test_complex_expr_case_6_stmt_in_assign(self):
+        '''Complex expr case 6 err '''
+        input = """
+        func main() 
+        begin
+            bool b <- if a do(b)
+        end
+        """
+        expected = error_msg(4,22,"if")
+        self.assertTrue(TestParser.test(input,expected,289))
+    
+    def test_complex_expr_case_7_empty_array_val(self):
+        '''Complex expr case 7 err '''
+        input = """
+        func main() 
+        begin
+            bool b <- [[[[]]]]
+        end
+        """
+        expected = error_msg(4,26,"]")
+        self.assertTrue(TestParser.test(input,expected,290))
+    
     #*Case 291 - 300 : Random test
     def test_simple_implicit_var_declare(self):
         '''Simple implicit type var declare'''
@@ -1092,3 +1264,84 @@ end
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,292))
+    
+    def test_begin_no_newline(self):
+        '''Simple begin stmt no newline'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin end
+        """
+        expected = error_msg(4,14,"end")
+        self.assertTrue(TestParser.test(input,expected,293))
+    
+    def test_simple_comment(self):
+        '''Simple program with comment'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+        number b <- 2 ##This is a comment
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,294))
+    
+    def test_simple_comment_weird_char(self):
+        '''Simple comment with weird char'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+        number b <- 2 ##This is a comment with weird character \a
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,295))
+    
+    def test_simple_comment_error(self):
+        '''Simple comment program'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+        number b <- 2 ##This is a 
+        comment
+        end
+        """
+        expected = error_msg(6,15,"\n")
+        self.assertTrue(TestParser.test(input,expected,296))
+    
+    def test_simple_program_no_func(self):
+        '''Simple program no function'''
+        input = """
+        number a <- 2*5-3
+        number b <- 2 ##This is a 
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,297))
+    
+    def test_simple_program_no_func_with_outside_stmt(self):
+        '''Simple outside stmt error'''
+        input = """
+        number a <- 2*5-3
+        number b <- 2 ##This is a 
+        if a do(B)
+        """
+        expected = error_msg(4,8,"if")
+        self.assertTrue(TestParser.test(input,expected,298))
+    
+    def test_comment_only_program(self):
+        '''Program with comment only'''
+        input = """
+        ##number b <- 2 ##This is a 
+        ##if a do(B)
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,299))
+    
+    def test_empty_program(self):
+        '''Empty program'''
+        input = """"""
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,300))

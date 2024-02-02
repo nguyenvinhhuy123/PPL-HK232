@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            bool b <- str(a) ... str(b) == (a >= b/c]
+        end
+        
