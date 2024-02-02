@@ -1,0 +1,16 @@
+
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 1)
+                if (a = 2) printString("is 2")
+                elif (a = 5) printString("is 5")
+                else printString("lmao")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        

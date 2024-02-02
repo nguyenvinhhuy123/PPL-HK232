@@ -1,0 +1,1 @@
+This string have keyword: dynamic var true ,<EOF>

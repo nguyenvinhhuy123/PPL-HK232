@@ -1,0 +1,8 @@
+
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until true by 1
+            printString(i)
+        end
+        

@@ -1,0 +1,1 @@
+_myVar >= "This is a compared string"

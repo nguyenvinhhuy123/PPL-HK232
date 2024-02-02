@@ -1,0 +1,6 @@
+
+number a <- 2*5-3
+func main() 
+begin
+    string b <- toString(a) ... " is a number'"
+end

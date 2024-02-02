@@ -1,6 +1,9 @@
 import sys,os
 from antlr4 import *
 from antlr4.error.ErrorListener import ConsoleErrorListener,ErrorListener
+#! Import parser tree function xD
+from antlr4.tree.Trees import Trees
+ 
 if not './main/zcode/parser/' in sys.path:
     sys.path.append('./main/zcode/parser/')
 if os.path.isdir('../target/main/zcode/parser') and not '../target/main/zcode/parser/' in sys.path:
@@ -55,6 +58,8 @@ class TestLexer:
         tok = lexer.nextToken()
         if tok.type != Token.EOF:
             dest.write(tok.text+",")
+            #!Modified line to test token type:
+            #dest.write(lexer.symbolicNames[tok.type] + " : " + tok.text +", ")
             TestLexer.printLexeme(dest,lexer)
         else:
             dest.write("<EOF>")
@@ -93,6 +98,10 @@ class TestParser:
         parser.addErrorListener(listener)
         try:
             parser.program()
+            #!This 2 line is use for debugging parse tree 
+            # tree = parser.program()
+            # dest.write(Trees.toStringTree(tree, None, parser))
+            #
             dest.write("successful")
         except SyntaxException as f:
             dest.write(f.message)
