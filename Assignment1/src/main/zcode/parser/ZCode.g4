@@ -16,7 +16,7 @@ program:optional_end_line (forward_func | define)* EOF;
 main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line inner_scope;
 
 forward_func: forward_func_def end_line;
-define: func_def | def_line | main_def;
+define: func_def | decl end_line | main_def;
 
 inner_scope: 
 	block_statement end_line
@@ -24,11 +24,12 @@ inner_scope:
 	;
 
 lines: (line|statement_line)*;
-line: def_line | assign_line | expr_line;
+line: (decl | assign) end_line ;
 
-def_line: (var_def | array_def) end_line;
-assign_line: (var_assign | array_assign | array_elem_assign) end_line;
-expr_line: expression end_line; //? Can expresstion be on 1 line, ie: 1 + 2 \n //valid?
+decl: (var_def | array_def);
+
+assign: (var_assign | array_assign | array_elem_assign);
+
 statement_line: statement end_line;
 statement: 
 	(if_statement
@@ -37,7 +38,9 @@ statement:
 	| continue_statement
 	| return_statement
 	| block_statement
-	| func_call)
+	| func_call
+	| decl
+	| assign)
 	; //TODO: all statement type together
 
 //*type def */
@@ -68,17 +71,17 @@ array_def_for_param: type_def array_identifier;
 array_identifier: IDENTIFIER array_dim;
 array_static_def: type_def array_identifier optional_array_init;
 
-array_init: OP_ASSIGN (expression | array_value_init);
+array_init: OP_ASSIGN (expression | array_value);
 optional_array_init: array_init |;
 
-array_value_init_list: array_value array_value_init_tail;
+array_value_init_list: array_value_elem array_value_init_tail;
 array_value_init_tail: (SEP_COMA array_value_init_list) | ;
-array_value: (array_value_init | expression);
-array_value_init: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
+array_value_elem: (expression);
+array_value: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
 
 array_assign: IDENTIFIER array_init;
 array_elem_assign: array_element_expr array_elem_init;
-array_elem_init: OP_ASSIGN expression;
+array_elem_init: OP_ASSIGN expression ;
 //*function */
 param_def_list: param optional_end_line param_def_list_tail |;
 param_def_list_tail: SEP_COMA param param_def_list_tail|;
@@ -133,7 +136,7 @@ primary_expression:
 	| term
 	;
 
-term: IDENTIFIER | func_call;
+term: IDENTIFIER | func_call ;
 
 //*Statements */
 //*if stmt */
@@ -169,18 +172,16 @@ passing_list_tail: SEP_COMA expression passing_list_tail | ;
 func_call: IDENTIFIER passing_arg;
 
 //*block stmt */
-block_statement: KW_BEGIN optional_end_line lines optional_end_line KW_END;
+block_statement: KW_BEGIN end_line lines optional_end_line KW_END;
 
 //*Literal */
-literal: NUMBER | STRING | boolean;
+literal: NUMBER | STRING | boolean | array_value;
 //*Boolen */
 boolean: KW_TRUE | KW_FALSE;
 
 optional_end_line: (end_line |);
 end_line: (NEW_LINE)+;
 //*LEXER RULES */
-//*main func */
-MAIN_TOKEN: 'main';
 
 //*Keyword */
 //*Keyword token naming rule: KW_Keyname */
@@ -247,7 +248,10 @@ fragment NOT_NEW_LINE: ~[\r\n];
 //*Identifier */
 fragment IDENTIFIER_HEAD: [_a-zA-Z];
 fragment IDENTIFIER_TAIL: [_a-zA-Z0-9]*;
-IDENTIFIER: IDENTIFIER_HEAD IDENTIFIER_TAIL;
+IDENTIFIER: IDENTIFIER_HEAD IDENTIFIER_TAIL | MAIN_TOKEN;
+
+//*main func */
+MAIN_TOKEN: 'main';
 
 //*Number */
 fragment ZERO: '0';

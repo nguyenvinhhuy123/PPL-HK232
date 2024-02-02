@@ -44,18 +44,13 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#def_line.
-    def visitDef_line(self, ctx:ZCodeParser.Def_lineContext):
+    # Visit a parse tree produced by ZCodeParser#decl.
+    def visitDecl(self, ctx:ZCodeParser.DeclContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#assign_line.
-    def visitAssign_line(self, ctx:ZCodeParser.Assign_lineContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by ZCodeParser#expr_line.
-    def visitExpr_line(self, ctx:ZCodeParser.Expr_lineContext):
+    # Visit a parse tree produced by ZCodeParser#assign.
+    def visitAssign(self, ctx:ZCodeParser.AssignContext):
         return self.visitChildren(ctx)
 
 
@@ -169,13 +164,13 @@ class ZCodeVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#array_value.
-    def visitArray_value(self, ctx:ZCodeParser.Array_valueContext):
+    # Visit a parse tree produced by ZCodeParser#array_value_elem.
+    def visitArray_value_elem(self, ctx:ZCodeParser.Array_value_elemContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by ZCodeParser#array_value_init.
-    def visitArray_value_init(self, ctx:ZCodeParser.Array_value_initContext):
+    # Visit a parse tree produced by ZCodeParser#array_value.
+    def visitArray_value(self, ctx:ZCodeParser.Array_valueContext):
         return self.visitChildren(ctx)
 
 

@@ -25,7 +25,7 @@ class ParserSuite(unittest.TestCase):
     #*Case 201-210: Simple test
     def test_simple_program(self):
         """Simple program: int main() {} """
-        input = """func main() begin end\n"""
+        input = """func main() begin\n end\n"""
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,201))
         
@@ -323,18 +323,6 @@ class ParserSuite(unittest.TestCase):
         func main() 
         begin
             string b
-        end
-        """
-        expected = SUCCESSFUL
-        self.assertTrue(TestParser.test(input,expected,223))
-        
-    def test_simple_implicit_var_declare(self):
-        '''Simple implicit type var declare'''
-        input = """
-        var a <- 2
-        func main() 
-        begin
-            dynamic b <- "String"
         end
         """
         expected = SUCCESSFUL
@@ -749,9 +737,9 @@ end
         """
         expected = error_msg(5,18,"by")
         self.assertTrue(TestParser.test(input,expected,250))
-        
+    
     def test_simple_break(self):
-        '''Simple for stmt missing by statement'''
+        '''Simple break stmt '''
         input = """
         number a <- 2*5-3
         func main() 
@@ -765,7 +753,7 @@ end
         self.assertTrue(TestParser.test(input,expected,251))
         
     def test_simple_continue(self):
-        '''Simple for stmt missing by statement'''
+        '''Simple continue stmt '''
         input = """
         number a <- 2*5-3
         func main() 
@@ -779,3 +767,157 @@ end
         """
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,252))
+    
+    def test_simple_break_err(self):
+        '''Simple break stmt err'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until true by 1
+            if (isPrime(i))
+            Break
+        end
+        """
+        expected = error_msg(7,17,"\n")
+        self.assertTrue(TestParser.test(input,expected,253))
+        
+    def test_simple_continue_err(self):
+        '''Simple continue stmt err'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                if (not inFibo(i))
+                    continue a
+                else
+                    printString(i)
+        end
+        """
+        expected = error_msg(7,29,"a")
+        self.assertTrue(TestParser.test(input,expected,254))
+    
+    def test_simple_block_in_others(self):
+        '''Simple block stmt in others stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin
+                for j until j >= 10 by 1
+                    a[i,j] <- 0
+                printString(j)
+                end    
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,255))
+    
+    def test_simple_block_err(self):
+        '''Simple block stmt in missing end'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin
+                for j until j >= 10 by 1
+                    a[i,j] <- 0
+                printString(j)   
+        end
+        """
+        expected = error_msg(11,8, "<EOF>")
+        self.assertTrue(TestParser.test(input,expected,256))
+    
+    def test_simple_block_empty(self):
+        '''Simple block empty'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin
+                
+                
+                
+                end   
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,257))
+        
+    def test_simple_block_no_begin(self):
+        '''Simple block empty'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                end   
+        end
+        """
+        expected = error_msg(6,16,"end")
+        self.assertTrue(TestParser.test(input,expected,258))
+
+    def test_simple_return(self):
+        '''Simple return stmt'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            return
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,259))
+        
+    def test_simple_return_error(self):
+        '''Simple return stmt err'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            return break
+        end
+        """
+        expected = error_msg(5,19,"break")
+        self.assertTrue(TestParser.test(input,expected,260))
+    #*Case: 261 - 270: Parameter in function
+    def test_simple_param(self):
+        '''Simple func with param'''
+        input = """
+        func foo(number a, number b) return a + b
+        func main() 
+        begin
+            foo(1,2)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,261))
+        
+    def test_simple_array_param(self):
+        '''Simple func with array param'''
+        input = """
+        func foo(number a[2], number b) return a[1] + b
+        func main() 
+        begin
+            foo([1,2],2)
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,262))
+    
+    #*Case 291 - 300 : Random test
+    def test_simple_implicit_var_declare(self):
+        '''Simple implicit type var declare'''
+        input = """
+        var a <- 2
+        func main() 
+        begin
+            dynamic b <- "String"
+        end
+        """
+        expected = SUCCESSFUL
+        self.assertTrue(TestParser.test(input,expected,291))
