@@ -1250,19 +1250,19 @@ end
         expected = SUCCESSFUL
         self.assertTrue(TestParser.test(input,expected,291))
     
-    def test_simple_if_else_statement(self):
+    def test_simple_if_no_paren(self):
         '''Simple if else stmt'''
         input = """
         number a <- 2*5-3
         func main() 
         begin
-            if (a > 3) 
+            if a > 3
                 printString("Yes")
             else 
                 printString("No")
         end
         """
-        expected = SUCCESSFUL
+        expected = error_msg(5,15,"a")
         self.assertTrue(TestParser.test(input,expected,292))
     
     def test_begin_no_newline(self):

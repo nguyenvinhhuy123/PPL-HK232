@@ -217,6 +217,30 @@ class LexerSuite(unittest.TestCase):
         expected = "True,vaR,faLse,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,136))
     
+    def test_more_keyword_case_1(self):
+        '''More keyword recognition'''
+        input = "var a <- true"
+        expected = "var,a,<-,true,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,137))
+    
+    def test_more_keyword_case_2(self):
+        '''More keyword recognition'''
+        input = "if (a) do(B)"
+        expected = "if,(,a,),do,(,B,),<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,138))
+        
+    def test_more_keyword_case_3(self):
+        '''More keyword recognition'''
+        input = "for i until i < 1 by -1"
+        expected = "for,i,until,i,<,1,by,-,1,<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,139))
+    
+    def test_more_keyword_case_4(self):
+        '''More keyword recognition'''
+        input = "dymanic a[2,3]"
+        expected = "dymanic,a,[,2,,,3,],<EOF>"
+        self.assertTrue(TestLexer.test(input,expected,140))
+    
     #*Case 141-150: test for strings 
     def test_string_err(self):
         '''Unclose string cases'''
@@ -234,7 +258,7 @@ class LexerSuite(unittest.TestCase):
         expected = "This string has multiple allowed escape seq: \\t \\b ,\\n ,<EOF>"
         self.assertTrue(TestLexer.test(input,expected,143))
         
-    def test_escape_sequence(self):
+    def test_escape_sequence_err(self):
         '''test illegal escape sequence'''
         input = "\"This string has multiple allowed escape seq: \\a \\b ,\\n \""
         expected =  ILLEGAL_ESC + "This string has multiple allowed escape seq: \\a"
@@ -259,7 +283,7 @@ class LexerSuite(unittest.TestCase):
         expected = """This is a\nmultiline string\ntestcase with a tab:\n\\t,<EOF>"""
         self.assertTrue(TestLexer.test(input,expected,147))
         
-    def test_complex_string(self):
+    def test_complex_long_string(self):
         """Complex string with multiple complex literals"""
         input = """\"This string '"'" is \\t \\b pretty complex tho!!?\""""
         expected = """This string '"'" is \\t \\b pretty complex tho!!?,<EOF>"""
@@ -492,9 +516,30 @@ class LexerSuite(unittest.TestCase):
         expected = ERROR_CHAR + "\a"
         self.assertTrue(TestLexer.test(input,expected,185))
         
-    #*Case 185-195: test case for edge case in forum.
+    #*Case 186-200: random test case
+    def test_more_multiple_newline(self):
+        self.assertTrue(TestLexer.test("a\n\n\n#","a,\n,\n,\n,Error Token #",186))  
     
-    #*Case 195-200: random test case
+    def test_array_value(self):
+        input = """[[1, 2], [4, 5], [3, 5]]"""
+        expected = """[,[,1,,,2,],,,[,4,,,5,],,,[,3,,,5,],],<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,187))
+    
+    def test_more_array(self):
+        input = """a[1,2,foo()]"""
+        expected = """a,[,1,,,2,,,foo,(,),],<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,188))
+    
+    def test_more_identifier_1(self):
+        input = """_aoiwnidqnf08"""
+        expected = """_aoiwnidqnf08,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,189))
+    
+    def test_more_identifier_2(self):
+        input = """_aotrueiwnidqnf08"""
+        expected = """_aotrueiwnidqnf08,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,190))
+        
     def test_program_like_sequence(self):
         """Simple program like stream of sequence"""
         input = """
@@ -521,5 +566,49 @@ class LexerSuite(unittest.TestCase):
 ,foo,(,target,),
 ,end,
 ,<EOF>"""
-        self.assertTrue(TestLexer.test(input,expected,195))
+        self.assertTrue(TestLexer.test(input,expected,191))
     
+    def test_unclosed_string_1(self):
+        input = """\"qwifmoqi\'\'\""""
+        expected = UNCLOSED_STRING + "qwifmoqi\'\'\""
+        self.assertTrue(TestLexer.test(input,expected,192))
+    
+    def test_unclosed_string_2(self):
+        input = """\"qwifmoqi\'\"\'\"\'"""
+        expected = UNCLOSED_STRING + "qwifmoqi\'\"\'\"\'"
+        self.assertTrue(TestLexer.test(input,expected,193))
+    
+    def test_more_comment(self):
+        input = """##Comment iz riel\n"""
+        expected = """\n,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,194))
+    
+    def test_more_comment_weird_char(self):
+        input = """##Comment iz riel\a\b\n"""
+        expected = """\n,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,195))
+        
+    def test_illegal_esc_1(self):
+        input = """\"\\a\""""
+        expected = ILLEGAL_ESC + "\\a"
+        self.assertTrue(TestLexer.test(input,expected,196))
+    
+    def test_illegal_esc_2(self):
+        input = """\"qwnfqwiofnqowif\\ lmao\""""
+        expected = ILLEGAL_ESC + """qwnfqwiofnqowif\\ """
+        self.assertTrue(TestLexer.test(input,expected,197))
+    
+    def test_string_char_edge_case_2(self):
+        input = """\"\' \""""
+        expected = """\' ,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,198))
+    
+    def test_string_char_edge_case_3(self):
+        input = """\"\\\' \""""
+        expected = """\\\' ,<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,199))
+        
+    def test_empty_input(self):
+        input = """"""
+        expected = """<EOF>"""
+        self.assertTrue(TestLexer.test(input,expected,200))
