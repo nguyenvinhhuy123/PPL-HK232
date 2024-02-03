@@ -266,8 +266,8 @@ class LexerSuite(unittest.TestCase):
     
     def test_unclose_string_edge_case(self):
         '''test illegal escape sequence'''
-        input = "\" \\\\'\""
-        expected = UNCLOSED_STRING + " \\\\'\""
+        input = "\" \\\\\'\""
+        expected = UNCLOSED_STRING + """ \\\\\'\""""
         self.assertTrue(TestLexer.test(input,expected,145))
         
     def test_escape_edge_case(self):
@@ -280,7 +280,7 @@ class LexerSuite(unittest.TestCase):
         '''Multiline string'''
         #!Weird output give 2 newline char instead of 1?
         input = """\"This is a\nmultiline string\ntestcase with a tab:\n\\t\""""
-        expected = """This is a\nmultiline string\ntestcase with a tab:\n\\t,<EOF>"""
+        expected = UNCLOSED_STRING + """This is a"""
         self.assertTrue(TestLexer.test(input,expected,147))
         
     def test_complex_long_string(self):
@@ -599,8 +599,8 @@ class LexerSuite(unittest.TestCase):
         self.assertTrue(TestLexer.test(input,expected,197))
     
     def test_string_char_edge_case_2(self):
-        input = """\"\' \""""
-        expected = """\' ,<EOF>"""
+        input = """\"\f\""""
+        expected = """\f,<EOF>"""
         self.assertTrue(TestLexer.test(input,expected,198))
     
     def test_string_char_edge_case_3(self):

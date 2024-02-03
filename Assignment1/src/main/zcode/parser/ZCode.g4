@@ -277,20 +277,18 @@ fragment STRING_LITTERAL: ESCAPE_SEQUENCE | DOUBLE_QUOTE_IN_STRING | STRING_CHAR
 //*however, when we do this way, we can count the number of NL even when it in string
 //*Thus will be helpful for count line for frontend to be able to give the exatc error line
 //*Ex: string: "a\na\na\n" -> should be count as 4 different line in parser, not 1*/
-STRING: ["] (NEW_LINE | STRING_LITTERAL )* ["]
-	{self.text = self.text.replace("\r\n", "\n").replace("\r", "\n")
-self.text = self.text[1:-1]} ;
+STRING: ["] (STRING_LITTERAL)* ["]
+	{self.text = self.text[1:-1]} ;
 
 //*error handling
 ERROR_CHAR:. 
  	{raise ErrorToken(self.text)};
 
-UNCLOSE_STRING: ["] (STRING_LITTERAL|NEW_LINE)* EOF 
-	{self.text = self.text.replace("\r\n", "\n").replace("\r", "\n")
+UNCLOSE_STRING: ["] (STRING_LITTERAL)* (NEW_LINE|EOF)
+	{self.text = self.text.replace("\n", "").replace("\r\n", "").replace("\r", "")
 raise UncloseString(self.text[1:])};
 
-ILLEGAL_ESCAPE: ["] (STRING_LITTERAL|NEW_LINE )* ILLEGAL_ESCAPE_SEQ 
-	{self.text = self.text.replace("\r\n", "\n").replace("\r", "\n")
-raise IllegalEscape(self.text[1:])};
+ILLEGAL_ESCAPE: ["] (STRING_LITTERAL)* ILLEGAL_ESCAPE_SEQ 
+	{raise IllegalEscape(self.text[1:])};
 
 

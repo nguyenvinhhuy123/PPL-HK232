@@ -498,9 +498,7 @@ begin
     string b <- toString(a) ... \" is a number\'\"
 end
 """
-        expected = lexer_err_msg(""" is a number\'\"
-end
-""") #!I Cannot print EOF token here? thus this tc is always wrong
+        expected = lexer_err_msg(""" is a number\'\"""") #!I Cannot print EOF token here? thus this tc is always wrong
         self.assertTrue(TestParser.test(input,expected,237))
         
     def test_simple_array_expr_err(self):
