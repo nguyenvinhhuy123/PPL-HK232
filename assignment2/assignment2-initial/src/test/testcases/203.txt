@@ -1,1 +1,3 @@
-int main( {}
+number a
+        func foo() return 2
+        

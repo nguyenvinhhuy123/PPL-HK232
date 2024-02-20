@@ -1,0 +1,8 @@
+
+        number a <- 2*5-3
+        func main() 
+        begin
+            for i until isPrime(i)
+            printString(i)
+        end
+        

@@ -96,14 +96,7 @@ forward_func_def: KW_FUNC IDENTIFIER param_def;
 //*expression */
 expressions: (expression)*;
 
-expression: string_expr
-	| relation_expr
-	| logic_expr
-	| add_expr
-	| multi_expr
-	| negate_expr
-	| primary_expression
-	| array_expr;
+expression: string_expr;
 
 string_expr: relation_expr string_op relation_expr | relation_expr;
 string_op: OP_STRING_CONCAT;

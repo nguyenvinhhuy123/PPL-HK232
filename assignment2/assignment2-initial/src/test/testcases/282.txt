@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            var a <- (num1 - num2 / 2 * 3 = 0) or (num1 - +num2*5/2+3 >= 0)
+        end
+        
