@@ -5,22 +5,38 @@ from AST import *
 class ASTGeneration(ZCodeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#program.
+    #*Parser rule: program:optional_end_line (forward_func | define)* EOF;
     def visitProgram(self,ctx:ZCodeParser.ProgramContext):
-        return Program([VarDecl(Id(ctx.IDENTIFIER().getText()),NumberType())])
+        #*List of forward func and others define
+        #! EOF is child then childe count should > 2 
+        if ctx.getChildCount() > 2:
+            def_list = []
+            for i in range(1, ctx.getChildCount()-1):
+                def_list += ctx.getChild(i).accept() #* we dont care about if child is forward def or normal def 
+        
+        res = ctx.optional_end_line().accept(self) + Program(def_list)
+        return res
     
     # Visit a parse tree produced by ZCodeParser#forward_func.
+    #*Parser rule: forward_func: forward_func_def end_line; 
     def visitForward_func(self, ctx:ZCodeParser.Forward_funcContext):
         res = ctx.forward_func_def().accept(self) + ctx.end_line().accept(self)
-        return res;
+        return res
 
     # Visit a parse tree produced by ZCodeParser#main_def.
+    #*Parser rule: main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line inner_scope;
     def visitMain_def(self, ctx:ZCodeParser.Main_defContext):
-        return self.visitChildren(ctx)
+        res = FuncDecl(ctx.MAIN_TOKEN.getText(), [], ctx.inner_scope.accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#define.
+    #*Parser rule: define: func_def | decl end_line | main_def;
     def visitDefine(self, ctx:ZCodeParser.DefineContext):
-        return self.visitChildren(ctx)
+        if ctx.getChildCount() == 2: 
+            return ctx.decl().accept(self) + ctx.end_line().accept(self)
+        else:
+            return ctx.getChild(0).accept()
 
 
     # Visit a parse tree produced by ZCodeParser#inner_scope.
