@@ -26,7 +26,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#main_def.
     #*Parser rule: main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line inner_scope;
     def visitMain_def(self, ctx:ZCodeParser.Main_defContext):
-        res = FuncDecl(ctx.MAIN_TOKEN.getText(), [], ctx.inner_scope.accept(self))
+        res = FuncDecl(Id(ctx.MAIN_TOKEN.getText()), [], ctx.inner_scope.accept(self))
         return res
 
 
@@ -82,76 +82,126 @@ class ASTGeneration(ZCodeVisitor):
 
 
     # Visit a parse tree produced by ZCodeParser#statement.
+    #*Parser rule: statement: 
+    '''
+    (if_statement
+	| for_statement
+	| break_statement
+	| continue_statement
+	| return_statement
+	| block_statement
+	| func_call
+	| decl
+	| assign)
+	; '''
     def visitStatement(self, ctx:ZCodeParser.StatementContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).accept(self);
 
 
     # Visit a parse tree produced by ZCodeParser#type_def.
+    #*Parser rule: type_def: KW_NUMBER | KW_STRING | KW_BOOL;
     def visitType_def(self, ctx:ZCodeParser.Type_defContext):
-        return self.visitChildren(ctx)
+        #*Lexer token only rule
+        if (ctx.KW_NUMBER()): return NumberType()
+        if (ctx.KW_STRING()): return StringType()
+        return BoolType()
 
 
     # Visit a parse tree produced by ZCodeParser#implicit_type_def.
+    #* implicit_type_def: KW_VAR | KW_DYNAMIC;
     def visitImplicit_type_def(self, ctx:ZCodeParser.Implicit_type_defContext):
-        return self.visitChildren(ctx)
+        #*Lexer token only rule
+        return ctx.getChild(0).getText()
 
 
     # Visit a parse tree produced by ZCodeParser#var_def.
+    #* Parser rule: var_def: static_var_def | dynamic_var_def ;
     def visitVar_def(self, ctx:ZCodeParser.Var_defContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#var_def_for_param.
+    #* Parser rule: var_def_for_param: type_def IDENTIFIER;
     def visitVar_def_for_param(self, ctx:ZCodeParser.Var_def_for_paramContext):
-        return self.visitChildren(ctx)
+        res = VarDecl(Id(ctx.IDENTIFIER(0).getText()), ctx.type_def().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#value_init.
+    #*Parser rule: value_init: OP_ASSIGN expression;
     def visitValue_init(self, ctx:ZCodeParser.Value_initContext):
-        return self.visitChildren(ctx)
-
+        return ctx.exp().accept(self)
 
     # Visit a parse tree produced by ZCodeParser#optional_val_init.
+    #*Parser rule: optional_val_init: value_init |;
     def visitOptional_val_init(self, ctx:ZCodeParser.Optional_val_initContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 1): return ctx.value_init().accept(self)
+        return []
 
 
     # Visit a parse tree produced by ZCodeParser#static_var_def.
+    #*Parser rule: static_var_def: (type_def IDENTIFIER optional_val_init);
     def visitStatic_var_def(self, ctx:ZCodeParser.Static_var_defContext):
-        return self.visitChildren(ctx)
+        res = [ctx.type_def().accept(self), Id(ctx.IDENTIFIER().getText()), ctx.optional_value_init().accept(self)]
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#dynamic_var_def.
+    #*Parser rule:
+    '''
+    dynamic_var_def:
+	(KW_VAR IDENTIFIER value_init)
+	| (KW_DYNAMIC IDENTIFIER optional_val_init)
+    ;'''
     def visitDynamic_var_def(self, ctx:ZCodeParser.Dynamic_var_defContext):
-        return self.visitChildren(ctx)
-
+        if (ctx.KW_VAR() == "var"):
+            res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.KW_VAR().getText(),ctx.value_init().accept(self))
+        else:
+            res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.KW_DYNAMIC().getText(),ctx.optional_val_init().accept(self))
+        return res
 
     # Visit a parse tree produced by ZCodeParser#var_assign.
+    #* Parser rule: var_assign: IDENTIFIER value_init;
     def visitVar_assign(self, ctx:ZCodeParser.Var_assignContext):
-        return self.visitChildren(ctx)
+        res = [ctx.IDENTIFIER().getText(), ctx.value_init().accept(self)]
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#dim_list.
+    #* Parser rule: dim_list: NUMBER dim_list_tail;
     def visitDim_list(self, ctx:ZCodeParser.Dim_listContext):
-        return self.visitChildren(ctx)
+        '''
+        return a list of integer 
+        dim list tail should return a number list as well
+        '''
+        num = int(ctx.NUMBER().getText())
+        dimension = [num] + ctx.dim_list_tail().accept(self)
+        return dimension
 
 
     # Visit a parse tree produced by ZCodeParser#dim_list_tail.
+    #*Parser rule: dim_list_tail: SEP_COMA NUMBER dim_list_tail |;
     def visitDim_list_tail(self, ctx:ZCodeParser.Dim_list_tailContext):
-        return self.visitChildren(ctx)
+        if (not ctx.dim_list_tail()): return []
+        num = int(ctx.NUMBER().getText())
+        dimension = [num] + ctx.dim_list_tail().accept(self)
+        return dimension
 
 
     # Visit a parse tree produced by ZCodeParser#array_dim.
+    #* Parser rule: array_dim: SEP_OPEN_BRACK dim_list SEP_CLOSE_BRACK;
     def visitArray_dim(self, ctx:ZCodeParser.Array_dimContext):
-        return self.visitChildren(ctx)
+        return ctx.dim_list().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#array_def.
+    #*Parser rule: array_def: array_static_def;
     def visitArray_def(self, ctx:ZCodeParser.Array_defContext):
-        return self.visitChildren(ctx)
+        return ctx.array_static_def().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#array_def_for_param.
+    #*Parser rule: array_def_for_param: type_def array_identifier;
     def visitArray_def_for_param(self, ctx:ZCodeParser.Array_def_for_paramContext):
         return self.visitChildren(ctx)
 
