@@ -1,7 +1,0 @@
-
-        func foo(string a[2,3,4], bool b[2,3] return
-        func main() 
-        begin
-            foo(2,2)
-        end
-        

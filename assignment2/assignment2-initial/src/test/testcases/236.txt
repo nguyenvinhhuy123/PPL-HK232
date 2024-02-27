@@ -1,7 +1,0 @@
-
-        number a <- 2*5-3
-        func main() 
-        begin
-            bool b <- (a >=5) and (a <= 10) or
-        end
-        

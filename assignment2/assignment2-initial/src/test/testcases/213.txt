@@ -1,7 +1,0 @@
-
-        number foo() return 2
-        func main() 
-        begin
-            a <- foo()
-        end
-        

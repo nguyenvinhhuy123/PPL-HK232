@@ -1,7 +1,0 @@
-
-        func foo(var a, number b) return a + b
-        func main() 
-        begin
-            foo(2,2)
-        end
-        

@@ -1,7 +1,0 @@
-
-        func foo(number a[2], number b) return a[1] + b
-        func main() 
-        begin
-            foo([1,2],2)
-        end
-        

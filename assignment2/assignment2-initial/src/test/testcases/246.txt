@@ -1,9 +1,0 @@
-
-        number a <- 2*5-3
-        func main() 
-        begin
-            number i <- 0
-            for i until i = 10 by 1
-            printString(i)
-        end
-        

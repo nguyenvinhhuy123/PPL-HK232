@@ -1,7 +1,0 @@
-
-        func foo(number a, number b) return (a >= b)
-        func main() 
-        begin
-            bool a <- foo()
-        end
-        

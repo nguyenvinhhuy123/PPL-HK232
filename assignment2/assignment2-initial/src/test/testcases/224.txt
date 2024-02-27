@@ -1,7 +1,0 @@
-
-        var a
-        func main() 
-        begin
-            dynamic b
-        end
-        

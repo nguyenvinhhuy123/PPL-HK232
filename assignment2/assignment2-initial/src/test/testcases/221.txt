@@ -1,7 +1,0 @@
-
-        number a <- 2
-        func main() 
-        begin
-            string b <- "Hello, World!"
-        end
-        

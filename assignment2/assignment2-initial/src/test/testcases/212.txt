@@ -1,7 +1,0 @@
-
-        func foo() a <- 2
-        func main() 
-        begin
-            a <- foo()
-        end
-        

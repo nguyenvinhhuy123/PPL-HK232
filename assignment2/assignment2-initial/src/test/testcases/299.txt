@@ -1,4 +1,0 @@
-
-        ##number b <- 2 ##This is a 
-        ##if a do(B)
-        

@@ -1,7 +1,0 @@
-
-        var a <- 2
-        func main() 
-        begin
-            dynamic b <- "String"
-        end
-        

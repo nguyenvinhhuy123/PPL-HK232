@@ -1,8 +1,0 @@
-
-        number a <- 2*5-3
-        func main() 
-        begin
-            number b[2,3]
-            b[2,0 <- a
-        end
-        

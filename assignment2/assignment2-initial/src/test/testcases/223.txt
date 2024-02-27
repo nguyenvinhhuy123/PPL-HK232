@@ -1,7 +1,0 @@
-
-        number a
-        func main() 
-        begin
-            string b
-        end
-        

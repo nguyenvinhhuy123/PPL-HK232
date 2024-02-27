@@ -1,6 +1,0 @@
-
-        func main() 
-        begin
-            string a <- toString(b) + toString(c) ... d[2,3] == str(123825) + d[23,54]
-        end
-        

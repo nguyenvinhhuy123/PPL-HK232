@@ -1,7 +1,0 @@
-
-        var a <- 2*3-foo()+b[2,3]
-        func main() 
-        begin
-            number b[2,3] <- [[2,foo(3)], [23.1237E-2,[1237,232]], 123, a[1,foo(3)]]
-        end
-        
