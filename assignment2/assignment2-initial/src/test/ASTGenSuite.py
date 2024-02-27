@@ -6,6 +6,6 @@ class ASTGenSuite(unittest.TestCase):
     def test_simple_program(self):
         input = """number a"""
         expect = str(Program([VarDecl(Id("a"),NumberType())]))
+        print(expect)
         self.assertTrue(TestAST.test(input,expect,300))
 
-   

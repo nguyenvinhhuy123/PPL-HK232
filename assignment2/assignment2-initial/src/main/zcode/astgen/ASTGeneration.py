@@ -12,15 +12,15 @@ class ASTGeneration(ZCodeVisitor):
         if ctx.getChildCount() > 2:
             def_list = []
             for i in range(1, ctx.getChildCount()-1):
-                def_list += ctx.getChild(i).accept() #* we dont care about if child is forward def or normal def 
+                def_list.append(ctx.getChild(i).accept(self)) #* we dont care about if child is forward def or normal def 
         
-        res = [ctx.optional_end_line().accept(self),Program(def_list)]
+        res = Program(def_list)
         return res
     
     # Visit a parse tree produced by ZCodeParser#forward_func.
     #*Parser rule: forward_func: forward_func_def end_line; 
     def visitForward_func(self, ctx:ZCodeParser.Forward_funcContext):
-        res = [ctx.forward_func_def().accept(self),ctx.end_line().accept(self)]
+        res = ctx.forward_func_def().accept(self)
         return res
 
     # Visit a parse tree produced by ZCodeParser#main_def.
@@ -34,7 +34,7 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: define: func_def | decl end_line | main_def;
     def visitDefine(self, ctx:ZCodeParser.DefineContext):
         if ctx.getChildCount() == 2: 
-            return [ctx.decl().accept(self),ctx.end_line().accept(self)]
+            return ctx.decl().accept(self)
         else:
             return ctx.getChild(0).accept()
 
@@ -42,7 +42,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#inner_scope.
     #* Parser rule: inner_scope: block_statement end_line | return_statement end_line;
     def visitInner_scope(self, ctx:ZCodeParser.Inner_scopeContext):
-        return [ctx.getChild(0).accept(self),ctx.end_line().accept(self)]
+        return ctx.getChild(0).accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#lines.
@@ -51,14 +51,14 @@ class ASTGeneration(ZCodeVisitor):
         #list of line/stmt to visit
         res = []
         for i in range(0, ctx.getChildCount()-1):
-            res += ctx.getChild(i).accept(self)
+            res.append(ctx.getChild(i).accept(self))
         return res
 
 
     # Visit a parse tree produced by ZCodeParser#line.
     #*Parser rule: line: (decl | assign) end_line ;
     def visitLine(self, ctx:ZCodeParser.LineContext):
-        res = [ctx.getChild(0).accept(self), ctx.end_line().accept(self)]
+        res = ctx.getChild(0).accept(self)
         return res
 
 
@@ -77,7 +77,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#statement_line.
     #*Parser rule: statement_line: statement end_line;
     def visitStatement_line(self, ctx:ZCodeParser.Statement_lineContext):
-        res = [ctx.statement().accept(self), ctx.end_line().accept(self)]
+        res = ctx.statement().accept(self)
         return res
 
 
@@ -142,7 +142,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#static_var_def.
     #*Parser rule: static_var_def: (type_def IDENTIFIER optional_val_init);
     def visitStatic_var_def(self, ctx:ZCodeParser.Static_var_defContext):
-        res = [ctx.type_def().accept(self), Id(ctx.IDENTIFIER().getText()), ctx.optional_value_init().accept(self)]
+        res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.type_def().accept(self), ctx.optional_val_init().accept(self))
         return res
 
 
@@ -163,7 +163,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#var_assign.
     #* Parser rule: var_assign: IDENTIFIER value_init;
     def visitVar_assign(self, ctx:ZCodeParser.Var_assignContext):
-        res = [ctx.IDENTIFIER().getText(), ctx.value_init().accept(self)]
+        res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.value_init().accept(self))
         return res
 
 
