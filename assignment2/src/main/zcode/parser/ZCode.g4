@@ -71,7 +71,7 @@ array_def_for_param: type_def array_identifier;
 array_identifier: IDENTIFIER array_dim;
 array_static_def: type_def array_identifier optional_array_init;
 
-array_init: OP_ASSIGN (expression | array_value);
+array_init: OP_ASSIGN expression;
 optional_array_init: array_init |;
 
 array_value_init_list: array_value_elem array_value_init_tail;
@@ -81,7 +81,7 @@ array_value: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
 
 array_assign: IDENTIFIER array_init;
 array_elem_assign: array_element_expr array_elem_init;
-array_elem_init: OP_ASSIGN expression ;
+array_elem_init: OP_ASSIGN expression;
 //*function */
 param_def_list: param optional_end_line param_def_list_tail |;
 param_def_list_tail: SEP_COMA param param_def_list_tail|;
