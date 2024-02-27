@@ -29,7 +29,6 @@ class ASTGeneration(ZCodeVisitor):
         res = FuncDecl(Id(ctx.MAIN_TOKEN.getText()), [], ctx.inner_scope.accept(self))
         return res
 
-
     # Visit a parse tree produced by ZCodeParser#define.
     #*Parser rule: define: func_def | decl end_line | main_def;
     def visitDefine(self, ctx:ZCodeParser.DefineContext):
@@ -155,15 +154,15 @@ class ASTGeneration(ZCodeVisitor):
     ;'''
     def visitDynamic_var_def(self, ctx:ZCodeParser.Dynamic_var_defContext):
         if (ctx.KW_VAR() == "var"):
-            res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.KW_VAR().getText(),ctx.value_init().accept(self))
+            res = VarDecl(Id(ctx.IDENTIFIER().getText()) , None, ctx.KW_VAR().getText(),ctx.value_init().accept(self))
         else:
-            res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.KW_DYNAMIC().getText(),ctx.optional_val_init().accept(self))
+            res = VarDecl(Id(ctx.IDENTIFIER().getText()), None, ctx.KW_DYNAMIC().getText(),ctx.optional_val_init().accept(self))
         return res
 
     # Visit a parse tree produced by ZCodeParser#var_assign.
     #* Parser rule: var_assign: IDENTIFIER value_init;
     def visitVar_assign(self, ctx:ZCodeParser.Var_assignContext):
-        res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.value_init().accept(self))
+        res = Assign(Id(ctx.IDENTIFIER().getText()), ctx.value_init().accept(self))
         return res
 
 
@@ -210,7 +209,7 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: array_def_for_param: type_def array_identifier;
     def visitArray_def_for_param(self, ctx:ZCodeParser.Array_def_for_paramContext):
         (array_id, dimension) = ctx.array_identifier().accept(self)
-        res = VarDecl(array_id, ArrayType(dimension, ctx.type_def().accept(self)))
+        res = VarDecl(array_id, ArrayType(dimension, ctx.type_def().accept(self)), None, None)
         return res
 
     # Visit a parse tree produced by ZCodeParser#array_identifier.
@@ -227,14 +226,14 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: array_static_def: type_def array_identifier optional_array_init;
     def visitArray_static_def(self, ctx:ZCodeParser.Array_static_defContext):
         (array_id, dimension) = ctx.array_identifier().accept(self)
-        res = VarDecl(array_id, ArrayType(dimension, ctx.type_def().accept(self)), ctx.optional_array_init().accept(self))
+        res = VarDecl(array_id, ArrayType(dimension, ctx.type_def().accept(self)), None, ctx.optional_array_init().accept(self))
         return res
 
 
     # Visit a parse tree produced by ZCodeParser#array_init.
-    #*Parser rule: array_init: OP_ASSIGN (expression | array_value);
+    #*Parser rule: array_init: OP_ASSIGN (expression);
     def visitArray_init(self, ctx:ZCodeParser.Array_initContext):
-        res = ctx.getChild(1).accept(self)
+        res = ctx.expression().accept(self)
         return res
 
 
@@ -248,41 +247,60 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#array_value_init_list.
     #*Parser rule: array_value_init_list: array_value_elem array_value_init_tail;
     def visitArray_value_init_list(self, ctx:ZCodeParser.Array_value_init_listContext):
-        return self.visitChildren(ctx)
+        "Return list of elements"
+        elem_list = [ctx.array_value_elem().accept(self)] + ctx.array_value_init_tail().accept(self)
+        return elem_list
 
 
     # Visit a parse tree produced by ZCodeParser#array_value_init_tail.
+    #*Parser rule: array_value_init_tail: (SEP_COMA array_value_init_list) | ;
     def visitArray_value_init_tail(self, ctx:ZCodeParser.Array_value_init_tailContext):
-        return self.visitChildren(ctx)
+        "Return list of elements if no child return null list"
+        if (ctx.getChildCount() == 0 ): return []
+        elem_list = [ctx.array_value_elem().accept(self)] + ctx.array_value_init_tail().accept(self)
+        return elem_list
 
 
     # Visit a parse tree produced by ZCodeParser#array_value_elem.
+    #*Parser rule: array_value_elem: (expression);
     def visitArray_value_elem(self, ctx:ZCodeParser.Array_value_elemContext):
-        return self.visitChildren(ctx)
+        return ctx.expression().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#array_value.
+    #*Parser rule: array_value: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
     def visitArray_value(self, ctx:ZCodeParser.Array_valueContext):
-        return self.visitChildren(ctx)
+        res = ArrayLiteral(ctx.array_value_init_list().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#array_assign.
+    #*Parser rule: array_assign: IDENTIFIER array_init;
     def visitArray_assign(self, ctx:ZCodeParser.Array_assignContext):
-        return self.visitChildren(ctx)
+        res = Assign(Id(ctx.IDENTIFIER().getText()), ctx.array_init().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#array_elem_assign.
+    #Parser rule: array_elem_assign: array_element_expr array_elem_init;
     def visitArray_elem_assign(self, ctx:ZCodeParser.Array_elem_assignContext):
-        return self.visitChildren(ctx)
+        res = Assign(ctx.array_element_expr().accept(self), ctx.array_init().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#array_elem_init.
+    #*Parser rule: array_elem_init: OP_ASSIGN expression;
     def visitArray_elem_init(self, ctx:ZCodeParser.Array_elem_initContext):
-        return self.visitChildren(ctx)
+        return ctx.expression().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#param_def_list.
+    #*Parser rule: param_def_list: param optional_end_line param_def_list_tail |;
     def visitParam_def_list(self, ctx:ZCodeParser.Param_def_listContext):
+        '''
+        Return list of param def
+        '''
+        res = [ctx.param().accpet(self)] + ctx.param_def_list_tail().accept(self)
         return self.visitChildren(ctx)
 
 
