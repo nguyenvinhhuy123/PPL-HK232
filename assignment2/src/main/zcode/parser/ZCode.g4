@@ -94,7 +94,7 @@ func_def: KW_FUNC IDENTIFIER param_def optional_end_line inner_scope;
 forward_func_def: KW_FUNC IDENTIFIER param_def;
 
 //*expression */
-expressions: (expression)*;
+expressions: (expression)*; 
 
 expression: string_expr;
 
@@ -119,7 +119,7 @@ negate_op: OP_NOT;
 sign_expr: (OP_SUBTRACT) sign_expr | array_expr;
 
 array_expr: array_element_expr | primary_expression;
-array_element_expr: term indexer;
+array_element_expr: primary_expression indexer;
 indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
 index_op: expression (SEP_COMA index_op | );
 

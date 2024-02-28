@@ -1,7 +1,10 @@
 from ZCodeVisitor import ZCodeVisitor
 from ZCodeParser import ZCodeParser
 from AST import *
-
+#!!new import for convention:
+from parser.ZCodeVisitor import ZCodeVisitor
+from parser.ZCodeParser import ZCodeParser
+from utils.AST import *
 class ASTGeneration(ZCodeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#program.
@@ -35,7 +38,7 @@ class ASTGeneration(ZCodeVisitor):
         if ctx.getChildCount() == 2: 
             return ctx.decl().accept(self)
         else:
-            return ctx.getChild(0).accept()
+            return ctx.getChild(0).accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#inner_scope.
@@ -129,7 +132,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#value_init.
     #*Parser rule: value_init: OP_ASSIGN expression;
     def visitValue_init(self, ctx:ZCodeParser.Value_initContext):
-        return ctx.exp().accept(self)
+        return ctx.expression().accept(self)
 
     # Visit a parse tree produced by ZCodeParser#optional_val_init.
     #*Parser rule: optional_val_init: value_init |;
@@ -153,7 +156,7 @@ class ASTGeneration(ZCodeVisitor):
 	| (KW_DYNAMIC IDENTIFIER optional_val_init)
     ;'''
     def visitDynamic_var_def(self, ctx:ZCodeParser.Dynamic_var_defContext):
-        if (ctx.KW_VAR() == "var"):
+        if (ctx.KW_VAR):
             res = VarDecl(Id(ctx.IDENTIFIER().getText()) , None, ctx.KW_VAR().getText(),ctx.value_init().accept(self))
         else:
             res = VarDecl(Id(ctx.IDENTIFIER().getText()), None, ctx.KW_DYNAMIC().getText(),ctx.optional_val_init().accept(self))
@@ -300,138 +303,193 @@ class ASTGeneration(ZCodeVisitor):
         '''
         Return list of param def
         '''
-        res = [ctx.param().accpet(self)] + ctx.param_def_list_tail().accept(self)
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 0): return [] 
+        res = [ctx.param().accept(self)] + ctx.param_def_list_tail().accept(self)
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#param_def_list_tail.
+    #*Parser rule: param_def_list_tail: SEP_COMA param param_def_list_tail|; 
     def visitParam_def_list_tail(self, ctx:ZCodeParser.Param_def_list_tailContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 0): return [] 
+        res = [ctx.param().accept(self)] + ctx.param_def_list_tail().accept(self)
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#param.
+    #* Parser rule: param: array_def_for_param | var_def_for_param;
     def visitParam(self, ctx:ZCodeParser.ParamContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#param_def.
+    #*Parser rule: param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
     def visitParam_def(self, ctx:ZCodeParser.Param_defContext):
-        return self.visitChildren(ctx)
+        return ctx.param_def_list().accept()
 
 
     # Visit a parse tree produced by ZCodeParser#func_def.
+    #*Parser rule: func_def: KW_FUNC IDENTIFIER param_def optional_end_line inner_scope;
     def visitFunc_def(self, ctx:ZCodeParser.Func_defContext):
-        return self.visitChildren(ctx)
+        res = FuncDecl(ctx.IDENTIFIER().getText(), ctx.param_def().accept(self), ctx.inner_scope().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#forward_func_def.
+    #*Parser rule: forward_func_def: KW_FUNC IDENTIFIER param_def;
     def visitForward_func_def(self, ctx:ZCodeParser.Forward_func_defContext):
-        return self.visitChildren(ctx)
+        res = FuncDecl(ctx.IDENTIFIER().getText(), ctx.param_def().accept(self), None)
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#expressions.
-    def visitExpressions(self, ctx:ZCodeParser.ExpressionsContext):
-        return self.visitChildren(ctx)
+    #!remove?
+    # #*Parser rule: expressions: (expression)*;
+    # def visitExpressions(self, ctx:ZCodeParser.ExpressionsContext):
+    #     return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by ZCodeParser#expression.
+    #*Parser rule: expression: string_expr;
     def visitExpression(self, ctx:ZCodeParser.ExpressionContext):
-        return self.visitChildren(ctx)
+        return ctx.string_expr().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#string_expr.
+    #*Parser rule: string_expr: relation_expr string_op relation_expr | relation_expr;
     def visitString_expr(self, ctx:ZCodeParser.String_exprContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 1): return ctx.relation_expr(0).accept(self)
+        res = BinaryOp(ctx.string_op().accept(self), ctx.relation_expr(0).accept(self), ctx.relation_expr(1).accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#string_op.
+    #*Parser rule: string_op: OP_STRING_CONCAT;
     def visitString_op(self, ctx:ZCodeParser.String_opContext):
-        return self.visitChildren(ctx)
+        return ctx.OP_STRING_CONCAT().getText()
 
 
     # Visit a parse tree produced by ZCodeParser#relation_expr.
+    #*Parser rule: relation_expr: logic_expr relational_op logic_expr | logic_expr;
     def visitRelation_expr(self, ctx:ZCodeParser.Relation_exprContext):
-        return self.visitChildren(ctx)
-
+        if (ctx.getChildCount() == 1): return ctx.logic_expr(0).accept(self)
+        res = BinaryOp(ctx.relational_op().accept(self), ctx.logic_expr(0).accept(self), ctx.logic_expr(1).accept(self))
+        return res
 
     # Visit a parse tree produced by ZCodeParser#relational_op.
+    #*Parser rule: relational_op: (OP_GREATER | OP_GREATER_EQUAL | OP_EQUAL | OP_NOT_EQUAL | OP_SMALLER | OP_SMALLER_EQUAL | OP_STRING_EQUAL);
     def visitRelational_op(self, ctx:ZCodeParser.Relational_opContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).getText()
 
 
     # Visit a parse tree produced by ZCodeParser#logic_expr.
+    #*Parser rule: logic_expr: logic_expr logic_op add_expr | add_expr;
     def visitLogic_expr(self, ctx:ZCodeParser.Logic_exprContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 1): return ctx.add_expr().accept(self)
+        res = BinaryOp(ctx.logic_op().accept(self), ctx.logic_expr().accept(self), ctx.add_expr().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#logic_op.
+    #*Parser rule: logic_op: (OP_AND | OP_OR);
     def visitLogic_op(self, ctx:ZCodeParser.Logic_opContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).getText()
 
 
     # Visit a parse tree produced by ZCodeParser#add_expr.
+    #*Parser rule: add_expr: add_expr add_op multi_expr | multi_expr;
     def visitAdd_expr(self, ctx:ZCodeParser.Add_exprContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 1): return ctx.multi_expr().accept(self)
+        res = BinaryOp(ctx.add_op().accept(self), ctx.add_expr().accept(self), ctx.multi_expr().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#add_op.
+    #*Parser rule: add_op: (OP_ADD | OP_SUBTRACT);
     def visitAdd_op(self, ctx:ZCodeParser.Add_opContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).getText()
 
 
     # Visit a parse tree produced by ZCodeParser#multi_expr.
+    #*Parser rule: multi_expr: multi_expr multi_op negate_expr | negate_expr;
     def visitMulti_expr(self, ctx:ZCodeParser.Multi_exprContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 1): return ctx.negate_expr().accept(self)
+        res = BinaryOp(ctx.multi_op().accept(self), ctx.multi_expr().accept(self), ctx.negate_expr().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#multi_op.
+    #*Parser rule: multi_op: (OP_MULTI | OP_DIVIDE | OP_REMAINDER);
     def visitMulti_op(self, ctx:ZCodeParser.Multi_opContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).getText()
 
 
     # Visit a parse tree produced by ZCodeParser#negate_expr.
+    #*Parser rule: negate_expr: negate_op negate_expr | sign_expr;
     def visitNegate_expr(self, ctx:ZCodeParser.Negate_exprContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 1): return ctx.sign_expr().accept(self)
+        res = UnaryOp(ctx.negate_op().accept(self), ctx.negate_expr().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#negate_op.
+    #*Parser rule: negate_op: OP_NOT;
     def visitNegate_op(self, ctx:ZCodeParser.Negate_opContext):
-        return self.visitChildren(ctx)
+        return ctx.OP_NOT().getText()
 
 
     # Visit a parse tree produced by ZCodeParser#sign_expr.
+    #*Parser rule: sign_expr: (OP_SUBTRACT) sign_expr | array_expr;
     def visitSign_expr(self, ctx:ZCodeParser.Sign_exprContext):
-        return self.visitChildren(ctx)
+        if (ctx.getChildCount() == 1): return ctx.array_expr().accept(self)
+        res = UnaryOp(ctx.OP_SUBTRACT().getText(), ctx.sign_expr().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#array_expr.
+    #*Parser rule: array_expr: array_element_expr | primary_expression;
     def visitArray_expr(self, ctx:ZCodeParser.Array_exprContext):
-        return self.visitChildren(ctx)
+        return ctx.getChild(0).accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#array_element_expr.
+    #*Parser rule: array_element_expr: primary_expression indexer;
     def visitArray_element_expr(self, ctx:ZCodeParser.Array_element_exprContext):
-        return self.visitChildren(ctx)
+        res = ArrayCell(ctx.primary_expression().accept(self), ctx.indexer().accept(self))
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#indexer.
+    #*Parser rule: indexer: SEP_OPEN_BRACK index_op SEP_CLOSE_BRACK;
     def visitIndexer(self, ctx:ZCodeParser.IndexerContext):
-        return self.visitChildren(ctx)
+        return ctx.index_op().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#index_op.
+    #*Parser rule: index_op: expression (SEP_COMA index_op | );
     def visitIndex_op(self, ctx:ZCodeParser.Index_opContext):
-        return self.visitChildren(ctx)
-
+        '''
+        Return a list of expression
+        '''
+        res = [ctx.expression().accept(self)]
+        if (ctx.getChildCount() == 3): res = res + ctx.index_op().accept(self)
+        return res
 
     # Visit a parse tree produced by ZCodeParser#primary_expression.
+    #*Parser rule: 
+    '''primary_expression:
+	SEP_OPEN_PAREN expression SEP_CLOSE_PAREN
+	| literal
+	| term
+	;'''
     def visitPrimary_expression(self, ctx:ZCodeParser.Primary_expressionContext):
-        return self.visitChildren(ctx)
+        return ctx.expression().accept(self) if (ctx.expression()) else ctx.getChild(0).accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#term.
+    #*Parser rule: term: IDENTIFIER | func_call ;
     def visitTerm(self, ctx:ZCodeParser.TermContext):
-        return self.visitChildren(ctx)
+        return Id(ctx.IDENTIFIER().getText()) if (ctx.IDENTIFIER()) else ctx.func_call().acceptt(self)
 
 
     # Visit a parse tree produced by ZCodeParser#if_statement.

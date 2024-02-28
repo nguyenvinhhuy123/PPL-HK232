@@ -199,7 +199,7 @@ def serializedATN():
         buf.write("\u01b9\5r:\2\u01b7\u01b9\5t;\2\u01b8\u01b5\3\2\2\2\u01b8")
         buf.write("\u01b7\3\2\2\2\u01b9s\3\2\2\2\u01ba\u01bd\5v<\2\u01bb")
         buf.write("\u01bd\5|?\2\u01bc\u01ba\3\2\2\2\u01bc\u01bb\3\2\2\2\u01bd")
-        buf.write("u\3\2\2\2\u01be\u01bf\5~@\2\u01bf\u01c0\5x=\2\u01c0w\3")
+        buf.write("u\3\2\2\2\u01be\u01bf\5|?\2\u01bf\u01c0\5x=\2\u01c0w\3")
         buf.write("\2\2\2\u01c1\u01c2\7)\2\2\u01c2\u01c3\5z>\2\u01c3\u01c4")
         buf.write("\7*\2\2\u01c4y\3\2\2\2\u01c5\u01c9\5X-\2\u01c6\u01c7\7")
         buf.write("+\2\2\u01c7\u01ca\5z>\2\u01c8\u01ca\3\2\2\2\u01c9\u01c6")
@@ -837,7 +837,7 @@ class ZCodeParser ( Parser ):
             self.state = 207
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << ZCodeParser.KW_NUMBER) | (1 << ZCodeParser.KW_BOOL) | (1 << ZCodeParser.KW_STRING) | (1 << ZCodeParser.KW_RETURN) | (1 << ZCodeParser.KW_VAR) | (1 << ZCodeParser.KW_DYNAMIC) | (1 << ZCodeParser.KW_FOR) | (1 << ZCodeParser.KW_BREAK) | (1 << ZCodeParser.KW_CONTINUE) | (1 << ZCodeParser.KW_IF) | (1 << ZCodeParser.KW_BEGIN) | (1 << ZCodeParser.IDENTIFIER))) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << ZCodeParser.KW_TRUE) | (1 << ZCodeParser.KW_FALSE) | (1 << ZCodeParser.KW_NUMBER) | (1 << ZCodeParser.KW_BOOL) | (1 << ZCodeParser.KW_STRING) | (1 << ZCodeParser.KW_RETURN) | (1 << ZCodeParser.KW_VAR) | (1 << ZCodeParser.KW_DYNAMIC) | (1 << ZCodeParser.KW_FOR) | (1 << ZCodeParser.KW_BREAK) | (1 << ZCodeParser.KW_CONTINUE) | (1 << ZCodeParser.KW_IF) | (1 << ZCodeParser.KW_BEGIN) | (1 << ZCodeParser.SEP_OPEN_PAREN) | (1 << ZCodeParser.SEP_OPEN_BRACK) | (1 << ZCodeParser.IDENTIFIER) | (1 << ZCodeParser.NUMBER) | (1 << ZCodeParser.STRING))) != 0):
                 self.state = 205
                 self._errHandler.sync(self)
                 la_ = self._interp.adaptivePredict(self._input,4,self._ctx)
@@ -909,7 +909,7 @@ class ZCodeParser ( Parser ):
                 self.state = 210
                 self.decl()
                 pass
-            elif token in [ZCodeParser.IDENTIFIER]:
+            elif token in [ZCodeParser.KW_TRUE, ZCodeParser.KW_FALSE, ZCodeParser.SEP_OPEN_PAREN, ZCodeParser.SEP_OPEN_BRACK, ZCodeParser.IDENTIFIER, ZCodeParser.NUMBER, ZCodeParser.STRING]:
                 self.state = 211
                 self.assign()
                 pass
@@ -2055,7 +2055,6 @@ class ZCodeParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 297
             self.match(ZCodeParser.OP_ASSIGN)
-
             self.state = 298
             self.expression()
         except RecognitionException as re:
@@ -3710,8 +3709,8 @@ class ZCodeParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def term(self):
-            return self.getTypedRuleContext(ZCodeParser.TermContext,0)
+        def primary_expression(self):
+            return self.getTypedRuleContext(ZCodeParser.Primary_expressionContext,0)
 
 
         def indexer(self):
@@ -3737,7 +3736,7 @@ class ZCodeParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 444
-            self.term()
+            self.primary_expression()
             self.state = 445
             self.indexer()
         except RecognitionException as re:
@@ -5075,7 +5074,7 @@ class ZCodeParser ( Parser ):
                 self.state = 562
                 self.end_line()
                 pass
-            elif token in [ZCodeParser.EOF, ZCodeParser.KW_NUMBER, ZCodeParser.KW_BOOL, ZCodeParser.KW_STRING, ZCodeParser.KW_RETURN, ZCodeParser.KW_VAR, ZCodeParser.KW_DYNAMIC, ZCodeParser.KW_FUNC, ZCodeParser.KW_FOR, ZCodeParser.KW_BREAK, ZCodeParser.KW_CONTINUE, ZCodeParser.KW_IF, ZCodeParser.KW_BEGIN, ZCodeParser.KW_END, ZCodeParser.SEP_CLOSE_PAREN, ZCodeParser.SEP_COMA, ZCodeParser.IDENTIFIER]:
+            elif token in [ZCodeParser.EOF, ZCodeParser.KW_TRUE, ZCodeParser.KW_FALSE, ZCodeParser.KW_NUMBER, ZCodeParser.KW_BOOL, ZCodeParser.KW_STRING, ZCodeParser.KW_RETURN, ZCodeParser.KW_VAR, ZCodeParser.KW_DYNAMIC, ZCodeParser.KW_FUNC, ZCodeParser.KW_FOR, ZCodeParser.KW_BREAK, ZCodeParser.KW_CONTINUE, ZCodeParser.KW_IF, ZCodeParser.KW_BEGIN, ZCodeParser.KW_END, ZCodeParser.SEP_OPEN_PAREN, ZCodeParser.SEP_CLOSE_PAREN, ZCodeParser.SEP_OPEN_BRACK, ZCodeParser.SEP_COMA, ZCodeParser.IDENTIFIER, ZCodeParser.NUMBER, ZCodeParser.STRING]:
                 pass
             else:
                 raise NoViableAltException(self)

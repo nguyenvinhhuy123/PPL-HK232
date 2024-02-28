@@ -162,7 +162,7 @@ def serializedATN():
         434,5,25,0,0,434,111,1,0,0,0,435,436,5,21,0,0,436,439,3,112,56,0,
         437,439,3,114,57,0,438,435,1,0,0,0,438,437,1,0,0,0,439,113,1,0,0,
         0,440,443,3,116,58,0,441,443,3,122,61,0,442,440,1,0,0,0,442,441,
-        1,0,0,0,443,115,1,0,0,0,444,445,3,124,62,0,445,446,3,118,59,0,446,
+        1,0,0,0,443,115,1,0,0,0,444,445,3,122,61,0,445,446,3,118,59,0,446,
         117,1,0,0,0,447,448,5,39,0,0,448,449,3,120,60,0,449,450,5,40,0,0,
         450,119,1,0,0,0,451,455,3,86,43,0,452,453,5,41,0,0,453,456,3,120,
         60,0,454,456,1,0,0,0,455,452,1,0,0,0,455,454,1,0,0,0,456,121,1,0,
@@ -746,7 +746,7 @@ class ZCodeParser ( Parser ):
             self.state = 207
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 35184372409848) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 458084032243198) != 0):
                 self.state = 205
                 self._errHandler.sync(self)
                 la_ = self._interp.adaptivePredict(self._input,4,self._ctx)
@@ -812,7 +812,7 @@ class ZCodeParser ( Parser ):
                 self.state = 210
                 self.decl()
                 pass
-            elif token in [45]:
+            elif token in [1, 2, 37, 39, 45, 47, 48]:
                 self.state = 211
                 self.assign()
                 pass
@@ -3306,8 +3306,8 @@ class ZCodeParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def term(self):
-            return self.getTypedRuleContext(ZCodeParser.TermContext,0)
+        def primary_expression(self):
+            return self.getTypedRuleContext(ZCodeParser.Primary_expressionContext,0)
 
 
         def indexer(self):
@@ -3327,7 +3327,7 @@ class ZCodeParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 444
-            self.term()
+            self.primary_expression()
             self.state = 445
             self.indexer()
         except RecognitionException as re:
@@ -4521,7 +4521,7 @@ class ZCodeParser ( Parser ):
                 self.state = 562
                 self.end_line()
                 pass
-            elif token in [-1, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 18, 19, 38, 41, 45]:
+            elif token in [-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 18, 19, 37, 38, 39, 41, 45, 47, 48]:
                 pass
             else:
                 raise NoViableAltException(self)
