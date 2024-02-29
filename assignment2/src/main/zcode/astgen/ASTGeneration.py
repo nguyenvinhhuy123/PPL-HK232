@@ -493,28 +493,46 @@ class ASTGeneration(ZCodeVisitor):
 
 
     # Visit a parse tree produced by ZCodeParser#if_statement.
+    #*Parser rule: if_statement: 
+    #*if_clause (end_line elif_clause)* (end_line else_clause | );
     def visitIf_statement(self, ctx:ZCodeParser.If_statementContext):
-        return self.visitChildren(ctx)
+        (if_expr, if_stmt) = ctx.if_clause().accept(self)
+        elif_cls = list(map(lambda x: x.accept(self), ctx.elif_clause()))
+        else_stmt = ctx.else_clause().accept(self) if ctx.else_clause() else None
+        res = If(if_expr, if_stmt, elif_cls, else_stmt)
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#if_clause.
+    # *Parser rule: if_clause: KW_IF if_condition optional_end_line statement;
     def visitIf_clause(self, ctx:ZCodeParser.If_clauseContext):
-        return self.visitChildren(ctx)
-
+        '''
+        Return a tuple (Expression, Stmt)
+        '''
+        return (ctx.if_condition().accept(self), ctx.statement.accept(self))
 
     # Visit a parse tree produced by ZCodeParser#elif_clause.
+    #* Parser rule: elif_clause: KW_ELIF if_condition optional_end_line statement;
     def visitElif_clause(self, ctx:ZCodeParser.Elif_clauseContext):
-        return self.visitChildren(ctx)
+        '''
+        Return a tuple (Expression, Stmt)
+        '''
+        return (ctx.if_condition().accept(self), ctx.statement.accept(self))
 
 
     # Visit a parse tree produced by ZCodeParser#else_clause.
+    #*Parser rule: else_clause: KW_ELSE optional_end_line statement;
     def visitElse_clause(self, ctx:ZCodeParser.Else_clauseContext):
-        return self.visitChildren(ctx)
+        '''
+        Return an expression
+        '''
+        return ctx.if_condition().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#if_condition.
+    #*Parser rule: if_condition: SEP_OPEN_PAREN expression SEP_CLOSE_PAREN;
     def visitIf_condition(self, ctx:ZCodeParser.If_conditionContext):
-        return self.visitChildren(ctx)
+        return ctx.expression().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#for_statement.
