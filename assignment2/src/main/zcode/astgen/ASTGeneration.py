@@ -2,9 +2,9 @@ from ZCodeVisitor import ZCodeVisitor
 from ZCodeParser import ZCodeParser
 from AST import *
 #!!new import for convention:
-from parser.ZCodeVisitor import ZCodeVisitor
-from parser.ZCodeParser import ZCodeParser
-from utils.AST import *
+# from parser.ZCodeVisitor import ZCodeVisitor
+# from parser.ZCodeParser import ZCodeParser
+# from utils.AST import *
 class ASTGeneration(ZCodeVisitor):
 
     # Visit a parse tree produced by ZCodeParser#program.
@@ -52,7 +52,7 @@ class ASTGeneration(ZCodeVisitor):
     def visitLines(self, ctx:ZCodeParser.LinesContext):
         #list of line/stmt to visit
         res = []
-        for i in range(0, ctx.getChildCount()-1):
+        for i in range(ctx.getChildCount()):
             res.append(ctx.getChild(i).accept(self))
         return res
 
@@ -125,7 +125,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#var_def_for_param.
     #* Parser rule: var_def_for_param: type_def IDENTIFIER;
     def visitVar_def_for_param(self, ctx:ZCodeParser.Var_def_for_paramContext):
-        res = VarDecl(Id(ctx.IDENTIFIER(0).getText()), ctx.type_def().accept(self))
+        res = VarDecl(name=Id(ctx.IDENTIFIER().getText()), varType=ctx.type_def().accept(self))
         return res
 
 
@@ -144,7 +144,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#static_var_def.
     #*Parser rule: static_var_def: (type_def IDENTIFIER optional_val_init);
     def visitStatic_var_def(self, ctx:ZCodeParser.Static_var_defContext):
-        res = VarDecl(Id(ctx.IDENTIFIER().getText()), ctx.type_def().accept(self), ctx.optional_val_init().accept(self))
+        res = VarDecl(name=Id(ctx.IDENTIFIER().getText()), varType=ctx.type_def().accept(self), varInit=ctx.optional_val_init().accept(self))
         return res
 
 
@@ -156,7 +156,7 @@ class ASTGeneration(ZCodeVisitor):
 	| (KW_DYNAMIC IDENTIFIER optional_val_init)
     ;'''
     def visitDynamic_var_def(self, ctx:ZCodeParser.Dynamic_var_defContext):
-        if (ctx.KW_VAR):
+        if (ctx.KW_VAR()):
             res = VarDecl(Id(ctx.IDENTIFIER().getText()) , None, ctx.KW_VAR().getText(),ctx.value_init().accept(self))
         else:
             res = VarDecl(Id(ctx.IDENTIFIER().getText()), None, ctx.KW_DYNAMIC().getText(),ctx.optional_val_init().accept(self))
@@ -173,10 +173,10 @@ class ASTGeneration(ZCodeVisitor):
     #* Parser rule: dim_list: NUMBER dim_list_tail;
     def visitDim_list(self, ctx:ZCodeParser.Dim_listContext):
         '''
-        return a list of integer 
+        return a list of float 
         dim list tail should return a number list as well
         '''
-        num = int(ctx.NUMBER().getText())
+        num = float(ctx.NUMBER().getText())
         dimension = [num] + ctx.dim_list_tail().accept(self) 
         # concat with dim_list_tail
         return dimension
@@ -190,7 +190,7 @@ class ASTGeneration(ZCodeVisitor):
         dim list tail should return a number list as well
         '''
         if (not ctx.dim_list_tail()): return []
-        num = int(ctx.NUMBER().getText())
+        num = float(ctx.NUMBER().getText())
         dimension = [num] + ctx.dim_list_tail().accept(self)
         # concat with dim_list_tail
         return dimension
@@ -287,7 +287,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#array_elem_assign.
     #Parser rule: array_elem_assign: array_element_expr array_elem_init;
     def visitArray_elem_assign(self, ctx:ZCodeParser.Array_elem_assignContext):
-        res = Assign(ctx.array_element_expr().accept(self), ctx.array_init().accept(self))
+        res = Assign(ctx.array_element_expr().accept(self), ctx.array_elem_init().accept(self))
         return res
 
 
@@ -325,20 +325,20 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#param_def.
     #*Parser rule: param_def: SEP_OPEN_PAREN param_def_list SEP_CLOSE_PAREN;
     def visitParam_def(self, ctx:ZCodeParser.Param_defContext):
-        return ctx.param_def_list().accept()
+        return ctx.param_def_list().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#func_def.
     #*Parser rule: func_def: KW_FUNC IDENTIFIER param_def optional_end_line inner_scope;
     def visitFunc_def(self, ctx:ZCodeParser.Func_defContext):
-        res = FuncDecl(ctx.IDENTIFIER().getText(), ctx.param_def().accept(self), ctx.inner_scope().accept(self))
+        res = FuncDecl(Id(ctx.IDENTIFIER().getText()), ctx.param_def().accept(self), ctx.inner_scope().accept(self))
         return res
 
 
     # Visit a parse tree produced by ZCodeParser#forward_func_def.
     #*Parser rule: forward_func_def: KW_FUNC IDENTIFIER param_def;
     def visitForward_func_def(self, ctx:ZCodeParser.Forward_func_defContext):
-        res = FuncDecl(ctx.IDENTIFIER().getText(), ctx.param_def().accept(self), None)
+        res = FuncDecl(Id(ctx.IDENTIFIER().getText()), ctx.param_def().accept(self), None)
         return res
 
 
@@ -489,7 +489,14 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#term.
     #*Parser rule: term: IDENTIFIER | func_call ;
     def visitTerm(self, ctx:ZCodeParser.TermContext):
-        return Id(ctx.IDENTIFIER().getText()) if (ctx.IDENTIFIER()) else ctx.func_call().acceptt(self)
+        if (ctx.IDENTIFIER()): return Id(ctx.IDENTIFIER().getText())
+        #*if appear in term (or in expression overall)
+        #* func call should be defined by class CallExpr
+        #*however parser rule func_call visitor return CallStmt
+        #*thus this should be modified by term visitor 
+        func_result = ctx.func_call().accept(self)
+        func_expr = CallExpr(func_result.name, func_result.args)
+        return func_expr
 
 
     # Visit a parse tree produced by ZCodeParser#if_statement.
@@ -509,7 +516,7 @@ class ASTGeneration(ZCodeVisitor):
         '''
         Return a tuple (Expression, Stmt)
         '''
-        return (ctx.if_condition().accept(self), ctx.statement.accept(self))
+        return (ctx.if_condition().accept(self), ctx.statement().accept(self))
 
     # Visit a parse tree produced by ZCodeParser#elif_clause.
     #* Parser rule: elif_clause: KW_ELIF if_condition optional_end_line statement;
@@ -517,7 +524,7 @@ class ASTGeneration(ZCodeVisitor):
         '''
         Return a tuple (Expression, Stmt)
         '''
-        return (ctx.if_condition().accept(self), ctx.statement.accept(self))
+        return (ctx.if_condition().accept(self), ctx.statement().accept(self))
 
 
     # Visit a parse tree produced by ZCodeParser#else_clause.
@@ -526,7 +533,7 @@ class ASTGeneration(ZCodeVisitor):
         '''
         Return an expression
         '''
-        return ctx.if_condition().accept(self)
+        return ctx.statement().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#if_condition.
@@ -536,83 +543,117 @@ class ASTGeneration(ZCodeVisitor):
 
 
     # Visit a parse tree produced by ZCodeParser#for_statement.
+    #*Parser rule: for_statement: for_clause condition_clause update_clause optional_end_line statement;
     def visitFor_statement(self, ctx:ZCodeParser.For_statementContext):
-        return self.visitChildren(ctx)
+        for_var = ctx.for_clause().accept(self)
+        condition_expr = ctx.condition_clause().accept(self)
+        update_expr =ctx.update_clause().accept(self)
+        body = ctx.statement().accept(self)
+        res = For(for_var, condition_expr, update_expr, body)
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#for_clause.
+    #*Parser rule: for_clause:KW_FOR IDENTIFIER;
     def visitFor_clause(self, ctx:ZCodeParser.For_clauseContext):
-        return self.visitChildren(ctx)
+        '''Return an Id'''
+        return Id(ctx.IDENTIFIER().getText())
 
 
     # Visit a parse tree produced by ZCodeParser#condition_clause.
+    #*Parser rule: condition_clause:KW_UNTIL expression;
     def visitCondition_clause(self, ctx:ZCodeParser.Condition_clauseContext):
-        return self.visitChildren(ctx)
+        '''Return an expression'''
+        return ctx.expression().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#update_clause.
+    #*Parser rule: update_clause:KW_BY expression;
     def visitUpdate_clause(self, ctx:ZCodeParser.Update_clauseContext):
-        return self.visitChildren(ctx)
-
+        '''return an expression'''
+        return ctx.expression().accept(self)
 
     # Visit a parse tree produced by ZCodeParser#break_statement.
+    #*Parser rule: break_statement: KW_BREAK;
     def visitBreak_statement(self, ctx:ZCodeParser.Break_statementContext):
-        return self.visitChildren(ctx)
+        return Break()
 
 
     # Visit a parse tree produced by ZCodeParser#continue_statement.
+    #*Parser rule: continue_statement:KW_CONTINUE;
     def visitContinue_statement(self, ctx:ZCodeParser.Continue_statementContext):
-        return self.visitChildren(ctx)
+        return Continue()
 
 
     # Visit a parse tree produced by ZCodeParser#return_statement.
+    #*Parser rule: return_statement: KW_RETURN (expression| );
     def visitReturn_statement(self, ctx:ZCodeParser.Return_statementContext):
-        return self.visitChildren(ctx)
+        return Return(ctx.expression().accept(self)) if ctx.expression() else Return(None)
 
 
     # Visit a parse tree produced by ZCodeParser#passing_arg.
+    #*Parser rule: passing_arg: SEP_OPEN_PAREN passing_list SEP_CLOSE_PAREN;
     def visitPassing_arg(self, ctx:ZCodeParser.Passing_argContext):
-        return self.visitChildren(ctx)
+        '''Return a list of argument'''
+        return ctx.passing_list().accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#passing_list.
+    #*Parser rule: passing_list: expression passing_list_tail | 
     def visitPassing_list(self, ctx:ZCodeParser.Passing_listContext):
-        return self.visitChildren(ctx)
+        '''Return a list of argument'''
+        if ( ctx.getChildCount() == 0 ): return []
+        arg_list = [ctx.expression().accept(self)] + ctx.passing_list_tail().accept(self)
+        return arg_list
 
 
     # Visit a parse tree produced by ZCodeParser#passing_list_tail.
+    # *Parser rule: passing_list_tail: SEP_COMA expression passing_list_tail | ;
     def visitPassing_list_tail(self, ctx:ZCodeParser.Passing_list_tailContext):
-        return self.visitChildren(ctx)
+        if ( ctx.getChildCount() == 0 ): return []
+        arg_list = [ctx.expression().accept(self)] + ctx.passing_list_tail().accept(self)
+        return arg_list
 
 
     # Visit a parse tree produced by ZCodeParser#func_call.
+    #*Parser rule: func_call: IDENTIFIER passing_arg;
     def visitFunc_call(self, ctx:ZCodeParser.Func_callContext):
-        return self.visitChildren(ctx)
+        func_id = Id(ctx.IDENTIFIER().getText())
+        arguments = ctx.passing_arg().accept(self)
+        res = CallStmt(func_id, arguments)
+        return res
 
 
     # Visit a parse tree produced by ZCodeParser#block_statement.
+    #*Parser rule: block_statement: KW_BEGIN end_line lines optional_end_line KW_END;
     def visitBlock_statement(self, ctx:ZCodeParser.Block_statementContext):
-        return self.visitChildren(ctx)
+        return Block(ctx.lines().accept(self))
 
 
     # Visit a parse tree produced by ZCodeParser#literal.
+    #*Parser rule: literal: NUMBER | STRING | boolean | array_value;
     def visitLiteral(self, ctx:ZCodeParser.LiteralContext):
-        return self.visitChildren(ctx)
+        if (ctx.NUMBER()): return NumberLiteral(float(ctx.NUMBER().getText()))
+        if (ctx.STRING()): return StringLiteral(ctx.STRING().getText())
+        return ctx.getChild(0).accept(self)
 
 
     # Visit a parse tree produced by ZCodeParser#boolean.
+    #*Parser rule: boolean: KW_TRUE | KW_FALSE;
     def visitBoolean(self, ctx:ZCodeParser.BooleanContext):
-        return self.visitChildren(ctx)
+        return BooleanLiteral(True) if ctx.KW_TRUE() else BooleanLiteral(False)
 
 
     # Visit a parse tree produced by ZCodeParser#optional_end_line.
     def visitOptional_end_line(self, ctx:ZCodeParser.Optional_end_lineContext):
-        return self.visitChildren(ctx)
+        '''Not use'''
+        pass
 
 
     # Visit a parse tree produced by ZCodeParser#end_line.
     def visitEnd_line(self, ctx:ZCodeParser.End_lineContext):
-        return self.visitChildren(ctx)
+        '''Not use'''
+        pass
 
         
 

@@ -75,7 +75,7 @@ array_init: OP_ASSIGN expression;
 optional_array_init: array_init |;
 
 array_value_init_list: array_value_elem array_value_init_tail;
-array_value_init_tail: (SEP_COMA array_value_init_list) | ;
+array_value_init_tail: (SEP_COMA array_value_elem array_value_init_tail) | ;
 array_value_elem: (expression);
 array_value: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
 
@@ -144,7 +144,7 @@ if_condition: SEP_OPEN_PAREN expression SEP_CLOSE_PAREN;
 //*for stmt */
 for_statement: for_clause condition_clause update_clause optional_end_line statement;
 
-for_clause:KW_FOR IDENTIFIER | array_identifier;
+for_clause:KW_FOR IDENTIFIER;
 condition_clause:KW_UNTIL expression;
 update_clause:KW_BY expression;
 
