@@ -1,1 +1,1 @@
-Program([VarDecl(Id(c), None, dynamic, None), VarDecl(Id(d), None, var, ArrayLit(NumLit(1.0), NumLit(2.0), NumLit(3.0)))])
+Program([FuncDecl(Id(foo), [VarDecl(Id(a), NumberType, None, None)], Block([AssignStmt(Id(a), BinaryOp(+, Id(a), NumLit(3.0))), VarDecl(Id(b), StringType, None, BinaryOp(..., StringLit(value of a is:), CallExpr(Id(toString), [Id(a)])))])), FuncDecl(Id(main), [], Block([VarDecl(Id(target), NumberType, None, NumLit(5.0)), CallStmt(Id(foo), [Id(target)])]))])

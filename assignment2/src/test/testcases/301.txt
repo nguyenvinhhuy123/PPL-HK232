@@ -1,6 +1,2 @@
-number a
-bool b
-string c
-number a1[1, 2]
-bool _[0]
-string s[1, 2]
+number a <- myfunc()
+        

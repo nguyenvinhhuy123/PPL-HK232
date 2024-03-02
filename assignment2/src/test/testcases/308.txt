@@ -1,6 +1,7 @@
-func main()
-begin
-    a <- [[1,2,3], funcall("wrong")]
-    a[2] <- "cell"
-    a[2, cellfun()] <- [funcell(), ["str", true]]
-end
+func inc(number a) return a + 1
+        func main() begin
+        var a <- 1
+        inc(a)
+        writeNumber(a)
+        end
+        

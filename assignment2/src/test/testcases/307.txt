@@ -1,4 +1,2 @@
-func main()
-begin
-    a <- [[1,2,3], funcall("wrong")]
-end
+number a
+        

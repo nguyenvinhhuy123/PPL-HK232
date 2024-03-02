@@ -1,1 +1,1 @@
-Error on line 1 col 0: int
+Program([None, None, None, None, None, None])

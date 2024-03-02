@@ -1,1 +1,1 @@
-successful
+Program([VarDecl(Id(a), NumberType, None, None), FuncDecl(Id(foo), [], Return(NumLit(2.0)))])
