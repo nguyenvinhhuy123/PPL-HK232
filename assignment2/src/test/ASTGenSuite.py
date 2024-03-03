@@ -393,96 +393,295 @@ class ASTGenSuite(unittest.TestCase):
         self.assertTrue(TestAST.test(input,expected,309))
         
 #     #*Case 210-220: test function declaration
-#     def test_simple_func_del(self):
-#         '''Simple function declaration and call in main'''
-#         input = """
-#         func foo() begin
-#         a <- 2
-#         return a
-#         end
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,210))
+    def test_simple_func_del(self):
+        '''Simple function declaration and call in main'''
+        input = """
+        func foo() begin
+        number a <- 2
+        return a
+        end
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("a"),
+                                varType=NumberType(),
+                                varInit=NumberLiteral(2.0)
+                            ),
+                            Return(Id("a"))
+                        ]
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"),args=[])
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,310))
         
-#         def test_simple_func_del_return(self):
-#         '''Small description here'''
-#         input = """
-#         func foo() return 2
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,211))
+    def test_simple_func_del_return(self):
+        '''Simple func decl 1 liner'''
+        input = """
+        func foo() return 2
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[],
+                    body=Return(NumberLiteral(2.0))
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                )
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,311))
         
-#     def test_simple_func_del_error(self):
-#         '''Function without return or block -> expect error at character a'''
-#         input = """
-#         func foo() a <- 2
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         """
-#         expected = error_msg(2,19,"a")
-#         self.assertTrue(TestAST.test(input,expected,212))
+    def test_simple_func_del_block(self):
+        '''Function without return or block -> expect error at character a'''
+        input = """
+        func foo() begin 
+        a <- 2 
+        end
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=NumberLiteral(2.0)
+                            )
+                        ]
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                )
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,312))
         
-#     def test_simple_func_del_wrong_keyword_case_1(self):
-#         '''Function with wrong declare keyword -> expect Number var declare -> wrong char ('''
-#         input = """
-#         number foo() return 2
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         """
-#         expected = error_msg(2,18,"(")
-#         self.assertTrue(TestAST.test(input,expected,213))
+    def test_simple_func_del_param_case_1(self):
+        '''Function with 1 param
+        '''
+        input = """
+        func foo(number a) return 2
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=NumberType()
+                        )    
+                    ],
+                    body=Return(NumberLiteral(2.0))
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                )
+                
+            ]
+        ))
         
-#     def test_func_del_wrong_keyword_case_1(self):
-#         '''Function with wrong declare keyword -> expect error char true'''
-#         input = """
-#         true foo() return 2
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         """
-#         expected = error_msg(2,8,"true")
-#         self.assertTrue(TestAST.test(input,expected,214))
+        self.assertTrue(TestAST.test(input,expected,313))
+        
+    def test_simple_func_del_del_param_case_2(self):
+        '''Function with wrong declare keyword -> expect error char true'''
+        input = """
+        func foo(string a) return a ... a
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=StringType()
+                        )    
+                    ],
+                    body=Return(BinaryOp(
+                        op="...",
+                        left=Id("a"),
+                        right=Id("a")
+                    ))
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                )
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,314))
     
-#     def test_func_del_with_param(self):
-#         '''Function with wrong declare keyword -> expect error char true'''
-#         input = """
-#         func foo(number a, number b) return (a >= b)
-#         func main() 
-#         begin
-#             bool a <- foo()
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,215))
+    def test_func_del_with_multiple_param(self):
+        '''Function with multiple param'''
+        input = """
+        func foo(number a, number b) return (a >= b)
+        func main() 
+        begin
+            bool a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=NumberType()
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=NumberType()
+                        )    
+                    ],
+                    body=Return(BinaryOp(
+                        op=">=",
+                        left=Id("a"),
+                        right=Id("b")
+                    ))
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("a"),
+                                varType=BoolType(),
+                                varInit=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                )
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,315))
         
-#     def test_forward_declare(self):
-#         '''Function with wrong declare keyword -> expect error char true'''
-#         input = """
-#         func foo()
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         func foo()
-#         begin
-#         return 2 
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,216))
+    def test_forward_declare(self):
+        '''Function forward decl'''
+        input = """
+        func foo()
+        func main() 
+        begin
+            a <- foo()
+        end
+        func foo()
+        begin
+        return 2 
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                    ],
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                ),
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                    ],
+                    body=Block([Return(NumberLiteral(2.0))])
+                )
+            ]
+        ))        
+        self.assertTrue(TestAST.test(input,expected,316))
     
 #     def test_error_missing_paren(self):
 #         '''Forward function without 1 paren'''

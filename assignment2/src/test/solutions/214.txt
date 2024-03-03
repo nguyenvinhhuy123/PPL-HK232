@@ -1,1 +1,1 @@
-Error on line 2 col 8: true
+Program([FuncDecl(Id(foo), [VarDecl(Id(a), StringType, None, None)], Return(BinaryOp(..., Id(a), Id(a)))), FuncDecl(Id(main), [], Block([AssignStmt(Id(a), CallExpr(Id(foo), []))]))])

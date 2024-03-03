@@ -1,7 +1,11 @@
-func main()
-begin
-    begin
-    begin
-    end
-    end
-end
+
+        func foo()
+        func main() 
+        begin
+            a <- foo()
+        end
+        func foo()
+        begin
+        return 2 
+        end
+        

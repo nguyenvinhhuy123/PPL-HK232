@@ -1,5 +1,5 @@
 
-        func foo() a <- 2
+        func foo() begin a <- 2 end
         func main() 
         begin
             a <- foo()

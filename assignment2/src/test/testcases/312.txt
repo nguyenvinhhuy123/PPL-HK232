@@ -1,4 +1,9 @@
-func main()
-begin
-    a[2] <- [a[0 + 1, b], funcall(not 12)]
-end
+
+        func foo() begin 
+        a <- 2 
+        end
+        func main() 
+        begin
+            a <- foo()
+        end
+        

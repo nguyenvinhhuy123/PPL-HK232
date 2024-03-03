@@ -1,1 +1,1 @@
-Error on line 2 col 19: a
+Program([FuncDecl(Id(foo), [], Block([None, None, None])), FuncDecl(Id(main), [], Block([AssignStmt(Id(a), CallExpr(Id(foo), []))]))])
