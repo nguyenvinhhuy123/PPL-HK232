@@ -1,11 +1,8 @@
-func main()
-begin
-    if (Qdeptrai() == true)
-        if (above() == true) return true
-        elif (c) begin
-            break
+
+        number a <- "Hello"
+        func main() 
+        begin
+            string b <- 2
+            bool c <- true
         end
-    elif (d) return false
-    else break
-    else continue
-end
+        

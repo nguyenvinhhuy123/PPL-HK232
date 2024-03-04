@@ -1,12 +1,7 @@
-func main()
-begin
-    if (Qdeptrai() == true)
-        if (above() == true) return true
-        elif (c) begin
-            break
+
+        number a
+        func main() 
+        begin
+            string b
         end
-    elif (d) return false
-    else break
-    elif (e) return main(quan)
-    else continue
-end
+        

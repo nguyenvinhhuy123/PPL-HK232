@@ -641,7 +641,7 @@ class ASTGenSuite(unittest.TestCase):
         ))
         self.assertTrue(TestAST.test(input,expected,315))
         
-    def test_forward_declare(self):
+    def test_forward_declare_case_1(self):
         '''Function forward decl'''
         input = """
         func foo()
@@ -683,123 +683,377 @@ class ASTGenSuite(unittest.TestCase):
         ))        
         self.assertTrue(TestAST.test(input,expected,316))
     
-#     def test_error_missing_paren(self):
-#         '''Forward function without 1 paren'''
-#         input = """
-#         func foo)
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         func foo()
-#         begin
-#         return 2 
-#         end
-#         """
-#         expected = error_msg(2,16,")")
-#         self.assertTrue(TestAST.test(input,expected,217))
+    def test_forward_declare_case_2(self):
+        '''Forward function without 1 paren'''
+        input = """
+        func foo(number a)
+        func main() 
+        begin
+            a <- foo()
+        end
+        func foo(number a)
+        begin
+        return 2 
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=NumberType()                            
+                        )
+                    ],
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                ),
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=NumberType()                            
+                        )
+                    ],
+                    body=Block([Return(NumberLiteral(2.0))])
+                )
+            ]
+        ))        
+        self.assertTrue(TestAST.test(input,expected,317))
         
-#     def test_error_statement_after_return(self):
-#         '''Function with statement after return'''
-#         input = """
-#         func foo()
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         func foo()
-#         return a
-#         a <- 2
-#         """
-#         expected = error_msg(9,8,"a")
-#         self.assertTrue(TestAST.test(input,expected,218))
+    def test_forward_declare_case_3(self):
+        '''Function with statement after return'''
+        input = """
+        func foo()
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                    ],
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                ),
+            ]
+        ))   
+        self.assertTrue(TestAST.test(input,expected,318))
     
-#     def test_function_1_liner(self):
-#         '''Function with 1 liner return'''
-#         input = """
-#         func foo() return 2
-#         func main() 
-#         begin
-#             a <- foo()
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,220))
+    def test_function_1_liner_case_1(self):
+        '''Function with 1 liner return'''
+        input = """
+        func foo() return a
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                    ],
+                    body=Return(Id("a"))
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                ),
+            ]
+        ))   
+        self.assertTrue(TestAST.test(input,expected,219))
+        
+    def test_function_1_liner_case_2(self):
+        '''Function with 1 liner block'''
+        input = """
+        func foo() begin
+        end
+        func main() 
+        begin
+            a <- foo()
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                    ],
+                    body=Block([])
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=Id("a"),
+                                rhs=CallExpr(name=Id("foo"), args=[])
+                            )
+                        ]
+                    )
+                ),
+            ]
+        ))   
+        self.assertTrue(TestAST.test(input,expected,219))
     
 #     #*Case 221-230: Var declare
-#     def test_simple_var_declare(self):
-#         '''Simple string and number declare'''
-#         input = """
-#         number a <- 2
-#         func main() 
-#         begin
-#             string b <- "Hello, World!"
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,221))
+    def test_simple_var_declare(self):
+        '''Simple string and number declare'''
+        input = """
+        number a <- 2
+        func main() 
+        begin
+            string b <- "Hello, World!"
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=NumberLiteral(2.0)
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=StringType(),
+                                varInit=StringLiteral("Hello, World!")
+                            )
+                        ]
+                    )
+                ),
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,321))
         
-#     def test_simple_var_declare_wrong_type(self):
-#         '''Simple string and number declare wrong type -> still expected success'''
-#         input = """
-#         number a <- "Hello"
-#         func main() 
-#         begin
-#             string b <- 2
-#             bool c <- true
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,222))
+    def test_simple_var_declare_wrong_type(self):
+        '''Simple string and number declare wrong type -> still expected success'''
+        input = """
+        number a <- "Hello"
+        func main() 
+        begin
+            string b <- 2
+            bool c <- true
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=StringLiteral("Hello")
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=StringType(),
+                                varInit=NumberLiteral(2.0)
+                            ),
+                            VarDecl(
+                                name=Id("c"),
+                                varType=BoolType(),
+                                varInit=BooleanLiteral(True)
+                            )
+                        ]
+                    )
+                ),
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,322))
         
-#     def test_simple_var_declare_no_init(self):
-#         '''Simple string and number var declaration with no value init'''
-#         input = """
-#         number a
-#         func main() 
-#         begin
-#             string b
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,223))
+    def test_simple_var_declare_no_init(self):
+        '''Simple string and number var declaration with no value init'''
+        input = """
+        number a
+        func main() 
+        begin
+            string b
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=StringType(),
+                            ),
+                        ]
+                    )
+                ),
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,323))
         
-#     def test_simple_implicit_var_declare_no_init(self):
-#         '''Simple implicit type var declare'''
-#         '''Error at line var a -> end_line token bc var a must have declaration'''
-#         input = """
-#         var a
-#         func main() 
-#         begin
-#             dynamic b
-#         end
-#         """
-#         expected = error_msg(2,13,'\n')
-#         self.assertTrue(TestAST.test(input,expected,224))
+    def test_simple_implicit_var_declare(self):
+        '''Simple implicit type var declare'''
+        '''Error at line var a -> end_line token bc var a must have declaration'''
+        input = """
+        var a <- 2
+        func main() 
+        begin
+            dynamic b <- a
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=NumberLiteral(2.0)
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                modifier="dynamic",
+                                varInit=Id("a")
+                            ),
+                        ]
+                    )
+                ),
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,324))
     
-#     def test_simple_array_declare(self):
-#         '''Simple array declaration'''
-#         input = """
-#         number a[2,3] <- [[2,3,4],[2,4,5]]
-#         func main() 
-#         begin
-#             number b[3] <- [true,false,false]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,225))
+    def test_simple_array_declare(self):
+        '''Simple array declaration'''
+        input = """
+        number a[2,3] <- [[2,3,4],[2,4,5]]
+        func main() 
+        begin
+            number b[3] <- [true,false,false]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=ArrayType([2.0,3.0], NumberType()),
+                    varInit=ArrayLiteral([
+                        ArrayLiteral([
+                            NumberLiteral(2.0),
+                            NumberLiteral(3.0),
+                            NumberLiteral(4.0)
+                        ]),
+                        ArrayLiteral([
+                            NumberLiteral(2.0),
+                            NumberLiteral(4.0),
+                            NumberLiteral(5.0)
+                        ])
+                    ])
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType([3.0], NumberType()),
+                                varInit=ArrayLiteral([
+                                    BooleanLiteral(True),
+                                    BooleanLiteral(False),
+                                    BooleanLiteral(False)
+                                ])
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,325))
     
-#     def test_simple_array_declare_dim_error(self):
-#         '''Simple array declaration with dimension error'''
-#         input = """
-#         number a[true,3] <- [[2,3,4],[2,4,5]]
-#         func main() 
-#         begin
-#             number b[3] <- [true,false,false]
-#         end
-#         """
-#         expected = error_msg(2,17,"true")
-#         self.assertTrue(TestAST.test(input,expected,226))
+    def test_simple_array_declare_case_2(self):
+        '''Simple array declaration Case 2'''
+        input = """
+        string a[3] <- ["Im", "a", "dev"]
+        func main() 
+        begin
+            number b[3] <- a
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=ArrayType([3.0], StringType()),
+                    varInit=ArrayLiteral([ 
+                            StringLiteral("Im"),
+                            StringLiteral("a"),
+                            StringLiteral("dev")
+                    ])
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType([3.0], NumberType()),
+                                varInit=Id("a")
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,326))
         
 #     def test_simple_array_declare_implicit_key_error(self):
 #         '''Simple array declaration with implicit keyword error'''

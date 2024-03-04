@@ -1,10 +1,7 @@
-func main()
-begin
-    for i until i > Q() by Q() - i begin
-        j <- i
-        if (j > 10) break
-        else 
-        continue
-        wee()
-    end
-end
+
+        number a[2,3] <- [[2,3,4],[2,4,5]]
+        func main() 
+        begin
+            number b[3] <- [true,false,false]
+        end
+        

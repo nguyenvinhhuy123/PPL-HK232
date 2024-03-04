@@ -1,4 +1,7 @@
-func main()
-begin
-    for i until i > Q() by Q() - i simple()
-end
+
+        var a <- 2
+        func main() 
+        begin
+            dynamic b <- a
+        end
+        

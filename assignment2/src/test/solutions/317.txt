@@ -1,1 +1,1 @@
-Program([FuncDecl(Id(main), [], Block([Block([Block([AssignStmt(Id(a), NumLit(3.0)), CallStmt(Id(call), []), Return()])])]))])
+Program([FuncDecl(Id(foo), [VarDecl(Id(a), NumberType, None, None)], None), FuncDecl(Id(main), [], Block([AssignStmt(Id(a), CallExpr(Id(foo), []))])), FuncDecl(Id(foo), [VarDecl(Id(a), NumberType, None, None)], Block([Return(NumLit(2.0))]))])

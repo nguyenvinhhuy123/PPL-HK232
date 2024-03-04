@@ -1,1 +1,1 @@
-successful
+Program([VarDecl(Id(a), NumberType, None, StringLit(Hello)), FuncDecl(Id(main), [], Block([VarDecl(Id(b), StringType, None, NumLit(2.0)), VarDecl(Id(c), BoolType, None, BooleanLit(True))]))])
