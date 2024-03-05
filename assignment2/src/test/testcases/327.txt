@@ -1,4 +1,7 @@
-func main()
-begin
-    var a <- foo() + sys[1, 2] == -50e-12
-end
+
+        number a[2,3]
+        func main() 
+        begin
+            number b[3] <- a[1]
+        end
+        

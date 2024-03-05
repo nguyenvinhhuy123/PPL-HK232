@@ -1,11 +1,7 @@
-func main()
-begin
-    for i until i + (sheesh / siuu) by siuu
-        if (siuu != i) 
-        for j until (a[1, siuuu()] != true) by i if (i == j) if (j != 0) break
-        elif (j == 1) continue
-        else break
-        else begin
-        end
 
-end
+        number a[2]<- [a ... b, true and false]
+        func main() 
+        begin
+            return 1
+        end
+        

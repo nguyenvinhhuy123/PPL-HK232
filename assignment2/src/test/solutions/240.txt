@@ -1,1 +1,1 @@
-Error on line 5 col 38: <=
+Program([VarDecl(Id(a), NumberType, None, BinaryOp(-, BinaryOp(*, NumLit(2.0), NumLit(5.0)), NumLit(3.0))), FuncDecl(Id(main), [], Block([VarDecl(Id(b), BoolType, None, BinaryOp(and, BinaryOp(>=, Id(a), NumLit(5.0)), UnaryOp(not, BinaryOp(<=, BinaryOp(-, NumLit(5.0), NumLit(2.0)), Id(b)))))]))])

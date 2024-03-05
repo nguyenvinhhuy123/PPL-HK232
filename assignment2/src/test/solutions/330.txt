@@ -1,1 +1,1 @@
-Program([VarDecl(Id(a), ArrayType([2.0, 2.0], NumberType), None, ArrayLit(ArrayLit(NumLit(1.0), NumLit(2.0)), ArrayLit(NumLit(3.0), NumLit(4.0))))])
+Program([VarDecl(Id(a), ArrayType([2.0, 3.0], NumberType), None, ArrayLit(ArrayLit(BinaryOp(..., Id(a), Id(b)), BooleanLit(True)), ArrayLit(NumLit(2.0), BinaryOp(*, NumLit(4.0), NumLit(3.0)), BinaryOp(>=, NumLit(5.0), Id(c))))), FuncDecl(Id(main), [], Block([Return(NumLit(1.0))]))])

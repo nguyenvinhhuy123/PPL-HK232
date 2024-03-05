@@ -1055,178 +1055,672 @@ class ASTGenSuite(unittest.TestCase):
         ))
         self.assertTrue(TestAST.test(input,expected,326))
         
-#     def test_simple_array_declare_implicit_key_error(self):
-#         '''Simple array declaration with implicit keyword error'''
-#         '''expected error at '[' because var a -> recognize as variable decl'''
-#         input = """
-#         var a[2,3] <- [[2,3,4],[2,4,5]]
-#         func main() 
-#         begin
-#             number b[3] <- [true,false,false]
-#         end
-#         """
-#         expected = error_msg(2,13,"[")
-#         self.assertTrue(TestAST.test(input,expected,227))
+    def test_simple_array_declare_with_array_cell_expr(self):
+        '''Simple array declaration with array cell expr'''
+        input = """
+        number a[2,3]
+        func main() 
+        begin
+            number b[3] <- a[1]
+        end
+        """
+        expected = expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=ArrayType([2.0, 3.0], NumberType()),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType([3.0], NumberType()),
+                                varInit=ArrayCell(
+                                    arr=Id("a"),
+                                    idx=[NumberLiteral(1.0)]
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,327))
     
-#     def test_simple_array_declare_missing_bracket(self):
-#         '''Simple array declaration with missing bracket'''
-#         input = """
-#         number a[2,3 <- [[2,3,4],[2,4,5]]
-#         func main() 
-#         begin
-#             number b[3] <- [true,false,false]
-#         end
-#         """
-#         expected = error_msg(2,21,"<-")
-#         self.assertTrue(TestAST.test(input,expected,228))
+    def test_array_declare_with_complex_arr_cell(self):
+        '''Simple array declaration with missing bracket'''
+        input = """
+        number a[2,3]
+        func main() 
+        begin
+            number b[3] <- a[foo(2), 3+5*2,1]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=ArrayType([2.0, 3.0], NumberType()),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType([3.0], NumberType()),
+                                varInit=ArrayCell(
+                                    arr=Id("a"),
+                                    idx=[
+                                        CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)]),
+                                        BinaryOp(
+                                            op="+",
+                                            left=NumberLiteral(3.0),
+                                            right=BinaryOp(
+                                                op="*",
+                                                left=NumberLiteral(5.0),
+                                                right=NumberLiteral(2.0),
+                                            )
+                                        ),
+                                        NumberLiteral(1.0)
+                                    ]
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,328))
     
-#     def test_simple_array_declare_null_dimension(self):
-#         '''Simple array declaration with null dimension size list'''
-#         input = """
-#         number a[]<- [[2,3,4],[2,4,5]]
-#         func main() 
-#         begin
-#             number b[3] <- [true,false,false]
-#         end
-#         """
-#         expected = error_msg(2,17,"]")
-#         self.assertTrue(TestAST.test(input,expected,229))
+    def test_simple_array_declare_complex_arr_cell_case_2(self):
+        '''Simple array declaration with complex arr cell'''
+        input = """
+        number a[2]<- [a ... b, true and false]
+        func main() 
+        begin
+            return 1
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=ArrayType([2.0], NumberType()),
+                    varInit=ArrayLiteral(
+                        [
+                            BinaryOp(
+                                op="...",
+                                left=Id("a"),
+                                right=Id("b")
+                            ),
+                            BinaryOp(
+                                op="and",
+                                left=BooleanLiteral(True),
+                                right=BooleanLiteral(False)
+                            )
+                        ]
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([Return(NumberLiteral(1.0))])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,329))
     
-#     def test_simple_array_declare_wrong_bracket(self):
-#         '''Simple array declaration with null dimension size list'''
-#         '''Lexer error thus expected only the error token'''
-#         input = """
-#         number a[2}<- [[2,3,4],[2,4,5]]
-#         func main() 
-#         begin
-#             number b[3] <- [true,false,false]
-#         end
-#         """
-#         expected = lexer_err_msg("}")
-#         self.assertTrue(TestAST.test(input,expected,230))
+    def test_simple_array_declare_complex_arr_cell_case_3(self):
+        '''Simple array declaration with complex arr cell'''
+        input = """
+        number a[2,3]<- [[a ... b, true],[2,4*3,5 >= c]]
+        func main() 
+        begin
+            return 1
+        end
+        """
+        expected = expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=ArrayType([2.0, 3.0], NumberType()),
+                    varInit=ArrayLiteral(
+                        [
+                            ArrayLiteral([
+                                BinaryOp(
+                                    op="...",
+                                    left=Id("a"),
+                                    right=Id("b")
+                                ),
+                                BooleanLiteral(True)
+                            ]),
+                            ArrayLiteral([
+                                NumberLiteral(2.0),
+                                BinaryOp(
+                                    op="*",
+                                    left=NumberLiteral(4.0),
+                                    right=NumberLiteral(3.0)
+                                ),
+                                BinaryOp(
+                                    op=">=",
+                                    left=NumberLiteral(5.0),
+                                    right=Id("c")
+                                ),
+                            ])
+                        ]
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([Return(NumberLiteral(1.0))])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,330))
         
 #     #*Case:231-240: Expression testing
-#     def test_simple_expr(self):
-#         '''Simple expr in var declaration'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             number b <- (3-4)*5- -foo()
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,231))
+    def test_simple_expr(self):
+        '''Simple expr in var declaration'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number b <- (3-4)*5- -foo()
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=NumberType(),
+                                varInit=BinaryOp(
+                                    op="-",
+                                    left=BinaryOp(
+                                        op="*",
+                                        left=BinaryOp(
+                                            op="-",
+                                            left=NumberLiteral(3.0),
+                                            right=NumberLiteral(4.0)
+                                        ),
+                                        right=NumberLiteral(5.0)
+                                    ),
+                                    right=UnaryOp(
+                                        op="-",
+                                        operand=CallExpr(name=Id("foo"), args=[])
+                                    )
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,331))
     
-#     def test_simple_boolean_expr(self):
-#         '''Simple expr in var declaration, bool expr'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             bool b <- (a >=5) and not(a <= 10)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,232))
+    def test_simple_boolean_expr(self):
+        '''Simple expr in var declaration, bool expr'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >=5) and not(a <= 10)
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=BoolType(),
+                                varInit=BinaryOp(
+                                    op="and",
+                                    left=BinaryOp(
+                                        op=">=",
+                                        left=Id("a"),
+                                        right=NumberLiteral(5.0)
+                                    ),
+                                    right=UnaryOp(
+                                        op="not",
+                                        operand=BinaryOp(
+                                        op="<=",
+                                        left=Id("a"),
+                                        right=NumberLiteral(10.0)
+                                    )   
+                                    )
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,332))
         
-#     def test_simple_string_expr(self):
-#         '''Simple expr in var declaration, string concat expr'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             string b <- toString(a) ... \" is a number\"
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,233))
+    def test_simple_string_expr(self):
+        '''Simple expr in var declaration, string concat expr'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            string b <- toString(a) ... \" is a number\"
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=StringType(),
+                                varInit=BinaryOp(
+                                    op="...",
+                                    left=CallExpr(name=Id("toString"), args=[Id("a")]),
+                                    right=StringLiteral(" is a number")
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,333))
         
-#     def test_simple_array_expr(self):
-#         '''Simple expr in var declaration, array expr and value assignment'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             number b[2,3]
-#             b[2,0] <- a
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,234))
+    def test_simple_array_expr(self):
+        '''Simple expr in var declaration, array expr and value assignment'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number b[2,3]
+            b[2,0] <- a
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType([2.0, 3.0], NumberType()),
+                            ),
+                            Assign(
+                                lhs=ArrayCell(
+                                    arr=Id("b"),
+                                    idx=[NumberLiteral(2.0), NumberLiteral(0.0)]
+                                ),
+                                rhs=Id("a")
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,334))
     
-#     def test_simple_expr_error(self):
-#         '''Simple expr in var declaration, error no paren'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             number b <- (3-4*5-foo()
-#         end
-#         """
-#         expected = error_msg(5,36,'\n')
-#         self.assertTrue(TestAST.test(input,expected,235))
+    def test_simple_expr_case_2(self):
+        '''Simple expr in var declaration case 2'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            number b <- (3-4*5-foo())
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=NumberType(),
+                                varInit=BinaryOp(
+                                    op="-",
+                                    left=BinaryOp(
+                                        op="-",
+                                        left=NumberLiteral(3.0),
+                                        right=BinaryOp(
+                                            op="*",
+                                            left=NumberLiteral(4.0),
+                                            right=NumberLiteral(5.0)
+                                        )
+                                    ),
+                                    right=CallExpr(name=Id("foo"), args=[])
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,335))
     
-#     def test_simple_boolean_expr_err(self):
-#         '''Simple expr in var declaration, bool expr error no operand'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             bool b <- (a >=5) and (a <= 10) or
-#         end
-#         """
-#         expected = error_msg(5,46,'\n')
-#         self.assertTrue(TestAST.test(input,expected,236))
+    def test_simple_boolean_expr_case_2(self):
+        '''Simple expr in var declaration, bool expr case 2'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >=5) and (a <= 10) or c
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=BoolType(),
+                                varInit=BinaryOp(
+                                    op="or",
+                                    left=BinaryOp(
+                                        op="and",
+                                        left=BinaryOp(
+                                            op=">=",
+                                            left=Id("a"),
+                                            right=NumberLiteral(5.0)
+                                        ),
+                                        right=BinaryOp(
+                                            op="<=",
+                                            left=Id("a"),
+                                            right=NumberLiteral(10.0)
+                                        ),
+                                    ),
+                                    right=Id("c")
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,336))
         
-#     def test_simple_string_expr_err(self):
-#         '''Simple expr in var declaration, string concat expr error unclose str'''
-#         input = """
-# number a <- 2*5-3
-# func main() 
-# begin
-#     string b <- toString(a) ... \" is a number\'\"
-# end
-# """
-#         expected = lexer_err_msg(""" is a number\'\"""") #!I Cannot print EOF token here? thus this tc is always wrong
-#         self.assertTrue(TestAST.test(input,expected,237))
+    def test_simple_string_expr_case_2(self):
+        '''Simple expr in var declaration'''
+        input = """
+        func main() 
+        begin
+            string b <- (toString(a) ... \" \'\"is a number\'\" \") ... toString(b)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=StringType(),
+                                varInit=BinaryOp(
+                                    op="...",
+                                    left=BinaryOp(
+                                        op="...",
+                                        left=CallExpr(name=Id("toString"), args=[Id("a")]),
+                                        right=StringLiteral(" \'\"is a number\'\" ")
+                                    ),
+                                    right=CallExpr(name=Id("toString"), args=[Id("b")])
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,337))
         
-#     def test_simple_array_expr_err(self):
-#         '''Simple expr in var declaration, array expr error missing bracket'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             number b[2,3]
-#             b[2,0 <- a
-#         end
-#         """
-#         expected = error_msg(6,18,'<-')
-#         self.assertTrue(TestAST.test(input,expected,238))
+    def test_simple_array_expr_case_2(self):
+        '''Simple expr in var declaration, array expr case 2'''
+        input = """
+        func main() 
+        begin
+            number b[2,3]
+            foo()[2,0] <- a
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType([2.0, 3.0], NumberType()),
+                            ),
+                            Assign(
+                                lhs=ArrayCell(
+                                    arr=CallExpr(name=Id("foo"), args=[]),
+                                    idx=[NumberLiteral(2.0), NumberLiteral(0.0)]
+                                ),
+                                rhs=Id("a")
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,338))
         
-#     def test_simple_relation_expr(self):
-#         '''Simple expr in var declaration, relational expr'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             bool b <- (a >= 5 + 5 - 2)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,239))
+    def test_simple_relation_expr(self):
+        '''Simple expr in var declaration, relational expr'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >= 5 + 5 - 2)
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=BoolType(),
+                                varInit=BinaryOp(
+                                    op=">=",
+                                    left=Id("a"),
+                                    right=BinaryOp(
+                                        op="-",
+                                        left=BinaryOp(
+                                            op="+",
+                                            left=NumberLiteral(5.0),
+                                            right=NumberLiteral(5.0)
+                                        ),
+                                        right=NumberLiteral(2.0)
+                                    )
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,339))
         
-#     def test_simple_relation_expr_err(self):
-#         '''Simple expr in var declaration, rela expr error, relational is none assoc'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             bool b <- (a >= 5 + 5 - 2 <= b)
-#         end
-#         """
-#         expected = error_msg(5,38,"<=")
-#         self.assertTrue(TestAST.test(input,expected,240))
+    def test_simple_relation_expr_case_2(self):
+        '''Simple expr in var declaration, rela expr case 2'''
+        input = """
+        number a <- 2*5-3
+        func main() 
+        begin
+            bool b <- (a >= 5) and not (5 - 2 <= b)
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    varType=NumberType(),
+                    varInit=BinaryOp(
+                        op="-",
+                        left=BinaryOp(
+                            op="*",
+                            left=NumberLiteral(2.0),
+                            right=NumberLiteral(5.0),
+                        ),
+                        right=NumberLiteral(3.0)
+                    )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=BoolType(),
+                                varInit=BinaryOp(
+                                    op="and",
+                                    left=BinaryOp(
+                                            op=">=",
+                                            left=Id("a"),
+                                            right=NumberLiteral(5.0)
+                                        ),
+                                    right=UnaryOp(
+                                        op="not",
+                                        operand=BinaryOp(
+                                            op="<=",
+                                            left=BinaryOp(
+                                                op="-",
+                                                left=NumberLiteral(5.0),
+                                                right=NumberLiteral(2.0)
+                                            ),
+                                            right=Id("b")
+                                        )
+                                    )
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,240))
         
 #     #*Case 241-260: statement testing
 #     def test_simple_if_statement(self):

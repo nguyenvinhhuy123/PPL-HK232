@@ -1,10 +1,7 @@
-func main()
-begin
-    for i until i + (sheesh / siuu) by siuu
-        for j until (a[1, siuuu()] != true) by i if (i == j) if (j != 0) break
-        elif (j == 1) continue
-        else break
-        else begin
+
+        number a[2,3]
+        func main() 
+        begin
+            number b[3] <- a[foo(2), 3+5*2,1]
         end
         
-end
