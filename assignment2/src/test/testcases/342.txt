@@ -1,7 +1,15 @@
-func main()
-begin
-    string str <- "HelloWorld"..."!"
-    if (not len(str) > 10)
-    print("long string")
-    else print("short string")
-end 
+
+        func main() 
+        begin
+            if (a > 3) 
+                printString(">3")
+            elif(a > 5)
+                printString(">5")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        

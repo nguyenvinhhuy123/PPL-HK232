@@ -1,7 +1,7 @@
-var x <- 1.2e12
-func main()
-begin
-    number a
-    a[1, main()] <- 1 + foo()
-end
+
+        func main() 
+        begin
+            for i until isPrime(i) by adjust(i)
+            printString(i)
+        end
         

@@ -1,8 +1,7 @@
-func main()
-begin
-    number a <- (1 + 2 - 3 / 4 % 5) <= not ((-"bruh" * ((2)...(3.2))) != (foo() == bar()))
-    number b[1,2]
-    a <- b[foo((1 + 2.2)... "bar"), (a + b) <= ((c / d) != 2)]
-    a <- foo()[1, 2, 3]
-end
+
+        func main() 
+        begin
+            for i until true by 1
+            printString(i)
+        end
         

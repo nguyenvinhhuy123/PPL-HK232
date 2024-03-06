@@ -1,16 +1,10 @@
-func random(number a)
 
-begin
-    if (a = 0) return 1 + a /3
-    return random(a-1)
-end
-
-number a <- 16 / random(a)
-
-func main()
-begin
-    for i until random(i) != "a"...a by random(a)
-    begin
-        writeString(i)
-    end
-end
+        func main() 
+        begin
+            for i until i >= 10 by 1
+            begin
+                if (i = 3) break
+                else return a
+            end
+        end
+        

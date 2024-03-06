@@ -1,5 +1,9 @@
-func main() begin
-    if (failed) if (chained) print("nuh uh")
-    else print("")
-    else failed <- not true
-end 
+
+        func main() 
+        begin
+            if (2*4)
+                printString(">3")
+            else
+                printString("lmao")
+        end
+        

@@ -1,12 +1,12 @@
-func random(number a)
 
-begin
-    if (a = 0) return 1 + a /3
-    return random(a-1)
-end
-func main()
-begin
-    if (random()) begin
-        writeString("What's good" + 1.23e-12)
-    end
-end
+        func main() 
+        begin
+            if (a > 1)
+                if (a = 2) printString("is 2")
+                elif (a = 5) printString("is 5")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        

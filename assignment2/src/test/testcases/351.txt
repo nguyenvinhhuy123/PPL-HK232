@@ -1,16 +1,8 @@
-func main()
-begin
-    var a <- "lmao"
-    for i until not (lmao + 4 > foo(i) / bar(i)) by print("lmao")...print("lmao2") 
-    begin
-        if (a = 1) continue
-        else begin
-            for j until j < main() by -1 begin
-                lmao[foo(i), j] <- [i, j]
-            end
+
+        func main() 
+        begin
+            for i until true by 1
+            if (isPrime(i))
+            break
         end
-        
-    end
-    return
-end
         

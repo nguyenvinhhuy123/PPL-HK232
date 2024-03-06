@@ -1720,300 +1720,761 @@ class ASTGenSuite(unittest.TestCase):
                 )
             ]
         ))
-        self.assertTrue(TestAST.test(input,expected,240))
+        self.assertTrue(TestAST.test(input,expected,340))
         
 #     #*Case 241-260: statement testing
-#     def test_simple_if_statement(self):
-#         '''Simple if stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             if (a > 3) printString("Yes")
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,241))
+    def test_simple_if_statement(self):
+        '''Simple if stmt'''
+        input = """
+        func main() 
+        begin
+            if (a > 3) printString("Yes")
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            If(
+                                expr=BinaryOp(
+                                    op=">",
+                                    left=Id("a"),
+                                    right=NumberLiteral(3.0)
+                                ),
+                                thenStmt=CallStmt(name=Id("printString"), args=[StringLiteral("Yes")])
+                                
+                            )
+                        ]
+                    )
+                )
+            ]
+        )) 
+        self.assertTrue(TestAST.test(input,expected,341))
     
-#     def test_simple_if_elif_else_statement(self):
-#         '''Simple if else stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             if (a > 3) 
-#                 printString(">3")
-#             elif(a > 5)
-#                 printString(">5")
-#             elif(a > 7)
-#                 printString(">7")
-#             elif(a)
-#                 printString("a")
-#             else
-#                 printString("lmao")
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,242))
+    def test_simple_if_elif_else_statement(self):
+        '''Simple if else stmt'''
+        input = """
+        func main() 
+        begin
+            if (a > 3) 
+                printString(">3")
+            elif(a > 5)
+                printString(">5")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            If(
+                                expr=BinaryOp(
+                                    op=">",
+                                    left=Id("a"),
+                                    right=NumberLiteral(3.0)
+                                ),
+                                thenStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral(">3")]),
+                                elifStmt=
+                                [
+                                    (   
+                                        BinaryOp(
+                                            op=">",
+                                            left=Id("a"),
+                                            right=NumberLiteral(5.0)
+                                        ),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral(">5")])
+                                    ),
+                                    (   
+                                        BinaryOp(
+                                            op=">",
+                                            left=Id("a"),
+                                            right=NumberLiteral(7.0)
+                                        ),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral(">7")])
+                                    ),
+                                    (   
+                                        Id("a"),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("a")])
+                                    )
+                                ],
+                                elseStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("lmao")])
+                            )
+                        ]
+                    )
+                )
+            ]
+        )) 
+        self.assertTrue(TestAST.test(input,expected,342))
         
-#     def test_simple_if_statement_error(self):
-#         '''Simple if else stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             if (a > 3
-#                 printString(">3")
-#             elif(a > 5)
-#                 printString(">5")
-#             elif(a > 7)
-#                 printString(">7")
-#             elif(a)
-#                 printString("a")
-#             else
-#                 printString("lmao")
-#         end
-#         """
-#         expected = error_msg(5,21,"\n")
-#         self.assertTrue(TestAST.test(input,expected,243))
+    def test_simple_if_statement_no_else(self):
+        '''Simple if else stmt'''
+        input = """
+        func main() 
+        begin
+            if (a > 3)
+                printString(">3")
+            elif(a > 5)
+                printString(">5")
+            elif(a > 7)
+                printString(">7")
+            elif(a)
+                printString("a")
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            If(
+                                expr=BinaryOp(
+                                    op=">",
+                                    left=Id("a"),
+                                    right=NumberLiteral(3.0)
+                                ),
+                                thenStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral(">3")]),
+                                elifStmt=
+                                [
+                                    (   
+                                        BinaryOp(
+                                            op=">",
+                                            left=Id("a"),
+                                            right=NumberLiteral(5.0)
+                                        ),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral(">5")])
+                                    ),
+                                    (   
+                                        BinaryOp(
+                                            op=">",
+                                            left=Id("a"),
+                                            right=NumberLiteral(7.0)
+                                        ),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral(">7")])
+                                    ),
+                                    (   
+                                        Id("a"),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("a")])
+                                    )
+                                ],
+                            )
+                        ]
+                    )
+                )
+            ]
+        )) 
+        self.assertTrue(TestAST.test(input,expected,343))
         
-#     def test_simple_if_statement_no_condition_error(self):
-#         '''Simple if else stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             if ()
-#                 printString(">3")
-#             elif(a > 5)
-#                 printString(">5")
-#             elif(a > 7)
-#                 printString(">7")
-#             elif(a)
-#                 printString("a")
-#             else
-#                 printString("lmao")
-#         end
-#         """
-#         expected = error_msg(5,16,")")
-#         self.assertTrue(TestAST.test(input,expected,244))
+    def test_simple_if_statement_no_elif(self):
+        '''Simple if else stmt'''
+        input = """
+        func main() 
+        begin
+            if (2*4)
+                printString(">3")
+            else
+                printString("lmao")
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            If(
+                                expr=BinaryOp(
+                                    op="*",
+                                    left=NumberLiteral(2.0),
+                                    right=NumberLiteral(4.0)
+                                ),
+                                thenStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral(">3")]),
+                                elseStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("lmao")])
+                            )
+                        ]
+                    )
+                )
+            ]
+        )) 
+        self.assertTrue(TestAST.test(input,expected,344))
+    
+    def test_nested_if_statement(self):
+        '''Simple if else stmt nested'''
+        input = """
+        func main() 
+        begin
+            if (a > 1)
+                if (a = 2) printString("is 2")
+                elif (a = 5) printString("is 5")
+                else printString("lmao")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            If(
+                                expr=BinaryOp(
+                                    op=">",
+                                    left=Id("a"),
+                                    right=NumberLiteral(1.0)
+                                ),
+                                thenStmt=If(
+                                    expr=BinaryOp(
+                                        op="=",
+                                        left=Id("a"),
+                                        right=NumberLiteral(2.0)
+                                    ),
+                                    thenStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("is 2")]), 
+                                    elifStmt=[
+                                        (
+                                            BinaryOp(
+                                                op="=",
+                                                left=Id("a"),
+                                                right=NumberLiteral(5.0)
+                                            ),
+                                            CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("is 5")]), 
+                                        )
+                                    ],
+                                    elseStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("lmao")]),
+                                ),
+                                elifStmt=
+                                [
+                                    (   
+                                        Id("a"),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("a")])
+                                    ),
+                                ],
+                                elseStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("lmao")])
+                            )
+                        ]
+                    )
+                )
+            ]
+        )) 
+        self.assertTrue(TestAST.test(input,expected,345))
         
-#     def test_simple_if_statement_no_execute_stmt_error(self):
-#         '''Simple if else stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             if (a = 1)
-#             elif(a > 5)
-#                 printString(">5")
-#             elif(a > 7)
-#                 printString(">7")
-#             elif(a)
-#                 printString("a")
-#             else
-#                 printString("lmao")
-#         end
-#         """
-#         expected = error_msg(6,12,"elif")
-#         self.assertTrue(TestAST.test(input,expected,244))
+    def test_simple_for_statement(self):
+        '''Simple for stmt'''
+        input = """
+        func main() 
+        begin
+            number i <- 0
+            for i until i = 10 by 1
+            printString(i)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("i"),
+                                varType=NumberType(),
+                                varInit=NumberLiteral(0.0)
+                            ),
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op="=",
+                                    left=Id("i"),
+                                    right=NumberLiteral(10.0)
+                                ),
+                                updExpr=NumberLiteral(1.0),
+                                body=CallStmt(name=Id("printString"), args=[Id("i")])
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,346))
     
-#     def test_nested_if_statement(self):
-#         '''Simple if else stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             if (a > 1)
-#                 if (a = 2) printString("is 2")
-#                 elif (a = 5) printString("is 5")
-#                 else printString("lmao")
-#             elif(a > 7)
-#                 printString(">7")
-#             elif(a)
-#                 printString("a")
-#             else
-#                 printString("lmao")
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,245))
+    def test_simple_for_statement_case_2(self):
+        '''Simple for stmt'''
+        input = """
+        func main() 
+        begin
+            for i until (i < -10*(i-2)) by i*i
+            printString(i)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op="<",
+                                    left=Id("i"),
+                                    right=BinaryOp(
+                                        op="*",
+                                        left=UnaryOp(
+                                            op="-",
+                                            operand=NumberLiteral(10.0)
+                                        ),
+                                        right=BinaryOp(
+                                            op="-",
+                                            left=Id("i"),
+                                            right=NumberLiteral(2.0)
+                                        )
+                                    )
+                                ),
+                                updExpr=BinaryOp(
+                                    op="*",
+                                    left=Id("i"),
+                                    right=Id("i")
+                                ),
+                                body=CallStmt(name=Id("printString"), args=[Id("i")])
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,347))
+    
+    def test_simple_for_statement_edge_case(self):
+        '''Simple for stmt until true weird case, infinite loop'''
+        input = """
+        func main() 
+        begin
+            for i until true by 1
+            printString(i)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BooleanLiteral(True),
+                                updExpr=NumberLiteral(1.0),
+                                body=CallStmt(name=Id("printString"), args=[Id("i")])
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,348))
         
-#     def test_simple_for_statement(self):
-#         '''Simple for stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             number i <- 0
-#             for i until i = 10 by 1
-#             printString(i)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,246))
-    
-#     def test_simple_for_statement_err(self):
-#         '''Simple for stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for number i <- 0 until i = 10 by 1
-#             printString(i)
-#         end
-#         """
-#         expected = error_msg(5,16,"number")
-#         self.assertTrue(TestAST.test(input,expected,247))
-    
-#     def test_simple_for_statement_edge_case(self):
-#         '''Simple for stmt until true weird case, infinite loop'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until true by 1
-#             printString(i)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,248))
+    def test_simple_for_statement_case_3(self):
+        '''Simple for stmt statement case 2'''
+        input = """
+        func main() 
+        begin
+            for i until isPrime(i) by adjust(i)
+            printString(i)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=CallExpr(name=Id("isPrime"), args=[Id("i")]),
+                                updExpr=CallExpr(name=Id("adjust"), args=[Id("i")]),
+                                body=CallStmt(name=Id("printString"), args=[Id("i")])
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,349))
         
-#     def test_simple_for_statement_missing_by(self):
-#         '''Simple for stmt missing by statement'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until isPrime(i)
-#             printString(i)
-#         end
-#         """
-#         expected = error_msg(5,34,"\n")
-#         self.assertTrue(TestAST.test(input,expected,249))
+    def test_simple_for_statement_nested(self):
+        '''Simple for stmt statement nested'''
+        input = """
+        func main() 
+        begin
+            for i until i > 10 by 1 
+            for j until j > 10 by 2
+            printString(i, j)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op=">",  
+                                    left=Id("i"),
+                                    right=NumberLiteral(10.0)
+                                ),
+                                updExpr=NumberLiteral(1.0),
+                                body=For(
+                                    name=Id("j"),
+                                    condExpr=BinaryOp(
+                                        op=">",  
+                                        left=Id("j"),
+                                        right=NumberLiteral(10.0)
+                                    ),
+                                    updExpr=NumberLiteral(2.0),
+                                    body=CallStmt(name=Id("printString"), args=[Id("i"), Id("j")])
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,350))
+    
+    def test_simple_break(self):
+        '''Simple break stmt '''
+        input = """
+        func main() 
+        begin
+            for i until true by 1
+            if (isPrime(i))
+            break
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BooleanLiteral(True),
+                                updExpr=NumberLiteral(1.0),
+                                body=If(
+                                    expr=CallExpr(name=Id("isPrime"), args=[Id("i")]),
+                                    thenStmt=Break()
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,351))
         
-#     def test_simple_for_statement_missing_until(self):
-#         '''Simple for stmt missing until statement'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i by 1
-#             printString(i)
-#         end
-#         """
-#         expected = error_msg(5,18,"by")
-#         self.assertTrue(TestAST.test(input,expected,250))
+    def test_simple_continue(self):
+        '''Simple continue stmt '''
+        input = """
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                if (not inFibo(i))
+                    continue
+                else
+                    printString(i)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op=">=",  
+                                    left=Id("i"),
+                                    right=NumberLiteral(10.0)
+                                ),
+                                updExpr=NumberLiteral(1.0),
+                                body=If(
+                                    expr=UnaryOp(
+                                        op="not",
+                                        operand=CallExpr(name=Id("inFibo"), args=[Id("i")]),
+                                    ),
+                                    thenStmt=Continue(),
+                                    elseStmt=CallStmt(name=Id("printString"), args=[Id("i")])
+                                )
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,352))
     
-#     def test_simple_break(self):
-#         '''Simple break stmt '''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until true by 1
-#             if (isPrime(i))
-#             break
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,251))
-        
-#     def test_simple_continue(self):
-#         '''Simple continue stmt '''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until i >= 10 by 1
-#                 if (not inFibo(i))
-#                     continue
-#                 else
-#                     printString(i)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,252))
+    def test_nested_if_statement_case_2(self):
+        '''Simple if else stmt nested'''
+        input = """
+        func main() 
+        begin
+            if (a > 1)
+                if (a = 2) printString("is 2")
+                elif (a = 5) printString("is 5")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            If(
+                                expr=BinaryOp(
+                                    op=">",
+                                    left=Id("a"),
+                                    right=NumberLiteral(1.0)
+                                ),
+                                thenStmt=If(
+                                    expr=BinaryOp(
+                                        op="=",
+                                        left=Id("a"),
+                                        right=NumberLiteral(2.0)
+                                    ),
+                                    thenStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("is 2")]), 
+                                    elifStmt=[
+                                        (
+                                            BinaryOp(
+                                                op="=",
+                                                left=Id("a"),
+                                                right=NumberLiteral(5.0)
+                                            ),
+                                            CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("is 5")]), 
+                                        ),
+                                        (   
+                                        Id("a"),
+                                        CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("a")])
+                                        ),
+                                    ],
+                                    elseStmt=CallStmt(name=Id("printString"),
+                                                args=[StringLiteral("lmao")]),
+                                ),
+                                elifStmt=
+                                [
+                                    
+                                ],
+                            )
+                        ]
+                    )
+                )
+            ]
+        )) 
+        self.assertTrue(TestAST.test(input,expected,353))
     
-#     def test_simple_break_err(self):
-#         '''Simple break stmt err'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until true by 1
-#             if (isPrime(i))
-#             Break
-#         end
-#         """
-#         expected = error_msg(7,17,"\n")
-#         self.assertTrue(TestAST.test(input,expected,253))
-        
-#     def test_simple_continue_err(self):
-#         '''Simple continue stmt err'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until i >= 10 by 1
-#                 if (not inFibo(i))
-#                     continue a
-#                 else
-#                     printString(i)
-#         end
-#         """
-#         expected = error_msg(7,29,"a")
-#         self.assertTrue(TestAST.test(input,expected,254))
+    def test_simple_block_in_for(self):
+        '''Simple continue stmt err'''
+        input = """
+        func main() 
+        begin
+            for i until i >= 10 by 1
+            begin
+                if (i = 3) break
+                else return a
+            end
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op=">=",  
+                                    left=Id("i"),
+                                    right=NumberLiteral(10.0)
+                                ),
+                                updExpr=NumberLiteral(1.0),
+                                body=Block([
+                                    If(
+                                        expr= BinaryOp(
+                                            op="=",
+                                            left=Id("i"),
+                                            right=NumberLiteral(3.0)
+                                        ),
+                                        thenStmt=Break(),
+                                        elseStmt=Return(Id("a"))
+                                        
+                                    )
+                                ])
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,354))
     
-#     def test_simple_block_in_others(self):
-#         '''Simple block stmt in others stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until i >= 10 by 1
-#                 begin
-#                 for j until j >= 10 by 1
-#                     a[i,j] <- 0
-#                 printString(j)
-#                 end    
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,255))
+    def test_simple_block_in_if(self):
+        '''Simple block stmt in others stmt'''
+        input = """
+        func main() 
+        begin
+            if (a = 3)
+            begin
+            printString("hahaha")
+            return 1
+            end    
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            If(
+                                expr=BinaryOp(
+                                    op="=",
+                                    left=Id("a"),
+                                    right=NumberLiteral(3.0),
+                                ),
+                                thenStmt=Block(
+                                    [
+                                        CallStmt(name=Id("printString"), args=[StringLiteral("hahaha")]),
+                                        Return(NumberLiteral(1.0))
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,355))
     
-#     def test_simple_block_err(self):
-#         '''Simple block stmt in missing end'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until i >= 10 by 1
-#                 begin
-#                 for j until j >= 10 by 1
-#                     a[i,j] <- 0
-#                 printString(j)   
-#         end
-#         """
-#         expected = error_msg(11,8, "<EOF>")
-#         self.assertTrue(TestAST.test(input,expected,256))
+    def test_simple_block_empty(self):
+        '''Simple block stmt in missing end'''
+        input = """
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin 
+                end
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op=">=",
+                                    left=Id("i"),
+                                    right=NumberLiteral(10.0)
+                                ),
+                                updExpr=NumberLiteral(1.0),
+                                body=Block([])
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,356))
     
-#     def test_simple_block_empty(self):
-#         '''Simple block empty'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until i >= 10 by 1
-#                 begin
-                
-                
-                
-#                 end   
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,257))
+    def test_simple_block_empty_nested(self):
+        '''Simple nested block empty'''
+        input = """
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin
+                    begin
+                    end
+                end   
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op=">=",
+                                    left=Id("i"),
+                                    right=NumberLiteral(10.0)
+                                ),
+                                updExpr=NumberLiteral(1.0),
+                                body=Block([Block([])])
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,357))
         
 #     def test_simple_block_no_begin(self):
 #         '''Simple block empty'''

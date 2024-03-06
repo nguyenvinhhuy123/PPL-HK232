@@ -1,8 +1,13 @@
-func main(number abc[1,2]) begin
-  break  
-end
-func chinbay()
-begin
-if (main[1] == "95")
-return
-end
+
+        func main() 
+        begin
+            if (a > 1)
+                if (a = 2) printString("is 2")
+                elif (a = 5) printString("is 5")
+                else printString("lmao")
+            elif(a)
+                printString("a")
+            else
+                printString("lmao")
+        end
+        

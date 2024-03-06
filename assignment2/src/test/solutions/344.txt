@@ -1,1 +1,1 @@
-Program([FuncDecl(Id(main), [], Block([If((Id(failed), If((Id(chained), CallStmt(Id(print), [StringLit(nuh uh)])), [], CallStmt(Id(print), [StringLit()]))), [], AssignStmt(Id(failed), UnaryOp(not, BooleanLit(True))))]))])
+Program([FuncDecl(Id(main), [], Block([If((BinaryOp(*, NumLit(2.0), NumLit(4.0)), CallStmt(Id(printString), [StringLit(>3)])), [], CallStmt(Id(printString), [StringLit(lmao)]))]))])
