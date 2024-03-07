@@ -2476,103 +2476,346 @@ class ASTGenSuite(unittest.TestCase):
         ))
         self.assertTrue(TestAST.test(input,expected,357))
         
-#     def test_simple_block_no_begin(self):
-#         '''Simple block empty'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             for i until i >= 10 by 1
-#                 end   
-#         end
-#         """
-#         expected = error_msg(6,16,"end")
-#         self.assertTrue(TestAST.test(input,expected,258))
+    def test_simple_block_case_2(self):
+        '''Simple block stmt case 2'''
+        input = """
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin
+                    a <- 3
+                    return a
+                end   
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            For(
+                                name=Id("i"),
+                                condExpr=BinaryOp(
+                                    op=">=",  
+                                    left=Id("i"),
+                                    right=NumberLiteral(10.0)
+                                ),
+                                updExpr=NumberLiteral(1.0),
+                                body=Block([
+                                    Assign(lhs=Id("a"), rhs=NumberLiteral(3.0)),
+                                    Return(Id("a"))
+                                ])
+                            ),
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,358))
 
-#     def test_simple_return(self):
-#         '''Simple return stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             return
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,259))
+    def test_simple_return(self):
+        '''Simple return stmt'''
+        input = """
+        func main() 
+        begin
+            return
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Return()
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,359))
         
-#     def test_simple_return_error(self):
-#         '''Simple return stmt err'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             return break
-#         end
-#         """
-#         expected = error_msg(5,19,"break")
-#         self.assertTrue(TestAST.test(input,expected,260))
+    def test_simple_return_with_expr(self):
+        '''Simple return stmt err'''
+        input = """
+        func main() 
+        begin
+            return 2*3
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Return(BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)
+                            ))
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,360))
     
 #     #*Case: 261 - 270: Parameter in function
-#     def test_simple_param(self):
-#         '''Simple func with param'''
-#         input = """
-#         func foo(number a, number b) return a + b
-#         func main() 
-#         begin
-#             foo(1,2)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,261))
+    def test_simple_param(self):
+        '''Simple func with param'''
+        input = """
+        func foo(number a, number b) return a + b
+        func main() 
+        begin
+            foo(1,2)
+        end
+        """
+        expected =  str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=NumberType()    
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=NumberType()        
+                        ),
+                    ],
+                    body= Return(
+                                BinaryOp(
+                                    op="+",
+                                    left=Id("a"),
+                                    right=Id("b")
+                                )
+                            )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(name=Id("foo"), 
+                                    args=
+                                    [
+                                        NumberLiteral(1.0), 
+                                        NumberLiteral(2.0)
+                                    ])
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,361))
         
-#     def test_simple_array_param(self):
-#         '''Simple func with array param'''
-#         input = """
-#         func foo(number a[2], number b) return a[1] + b
-#         func main() 
-#         begin
-#             foo([1,2],2)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,262))
+    def test_simple_array_param(self):
+        '''Simple func with array param'''
+        input = """
+        func foo(number a[2], number b) return a[1] + b
+        func main() 
+        begin
+            foo([1,2],2)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=ArrayType(
+                                size=[2.0],
+                                eleType=NumberType()
+                            )    
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=NumberType()        
+                        ),
+                    ],
+                    body= Return(
+                                BinaryOp(
+                                    op="+",
+                                    left=ArrayCell(arr=Id("a"),
+                                                idx=[NumberLiteral(1.0)]),
+                                    right=Id("b")
+                                )
+                            )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(name=Id("foo"), 
+                                    args=
+                                    [
+                                        ArrayLiteral([
+                                            NumberLiteral(1.0),
+                                            NumberLiteral(2.0)    
+                                        ]), 
+                                        NumberLiteral(2.0)
+                                    ])
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,362))
         
-#     def test_simple_implicit_param_err(self):
-#         '''Simple func with implicit param'''
-#         input = """
-#         func foo(var a, number b) return a + b
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = error_msg(2,17,"var")
-#         self.assertTrue(TestAST.test(input,expected,263))
+    def test_simple_param_case_2(self):
+        '''Simple func with implicit param'''
+        input = """
+        func foo(bool a, number b) return a + b
+        func main() 
+        begin
+            foo(true,2)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=BoolType()
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=NumberType()        
+                        ),
+                    ],
+                    body= Return(
+                                BinaryOp(
+                                    op="+",
+                                    left=Id("a"),
+                                    right=Id("b")
+                                )
+                            )
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(name=Id("foo"), 
+                                    args=
+                                    [
+                                        BooleanLiteral(True), 
+                                        NumberLiteral(2.0)
+                                    ])
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,363))
     
-#     def test_simple_implicit_param_err_case_2(self):
-#         '''Simple func with implicit param'''
-#         input = """
-#         func foo(implicit a, number b) return a + b
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = error_msg(2,17,"implicit")
-#         self.assertTrue(TestAST.test(input,expected,264))    
+    def test_simple_array_param_case_2(self):
+        '''Simple func with implicit param'''
+        input = """
+        func foo(string a[3,2], number b)
+        func main() 
+        begin
+            foo([2,3],2)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=ArrayType(
+                                size=[3.0, 2.0],
+                                eleType=StringType()
+                            )    
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=NumberType()        
+                        ),
+                    ],
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(name=Id("foo"), 
+                                    args=
+                                    [
+                                        ArrayLiteral([
+                                            NumberLiteral(2.0),
+                                            NumberLiteral(3.0)    
+                                        ]), 
+                                        NumberLiteral(2.0)
+                                    ])
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,364))    
     
-#     def test_complex_array_param(self):
-#         '''Simple func with array params'''
-#         input = """
-#         func foo(string a[2,3,4], bool b[2,3]) return
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,265))    
+    def test_complex_array_param(self):
+        '''Simple func with array params'''
+        input = """
+        func foo(string a[2,3,4], bool b[2,3]) return
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=ArrayType(
+                                size=[2.0,3.0,4.0],
+                                eleType=StringType()
+                            )    
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=ArrayType(
+                                size=[2.0,3.0],
+                                eleType=BooleanLiteral()
+                            )
+                        ),
+                    ],
+                    body=Return()
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(name=Id("foo"), 
+                                    args=
+                                    [
+                                        NumberLiteral(2.0), 
+                                        NumberLiteral(2.0)
+                                    ])
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,365))    
     
 #     def test_multiline_param(self):
 #         '''Simple func with array params'''
@@ -2980,11 +3223,12 @@ class ASTGenSuite(unittest.TestCase):
 #         ##number b <- 2 ##This is a 
 #         ##if a do(B)
 #         """
-#         expected = SUCCESSFUL
+#         expected = str(Program([]))
 #         self.assertTrue(TestAST.test(input,expected,299))
     
-#     def test_empty_program(self):
-#         '''Empty program'''
-#         input = """"""
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,300))
+    # def test_empty_program(self):
+    #     '''Empty program'''
+    #     input = """"""
+    #     expected = str(Program([]))
+    #     self.assertTrue(TestAST.test(input,expected,400))
+    

@@ -1,15 +1,3 @@
-func main()
-begin
-    if (Qdeptrai() == true)
-    begin
-        if (above() == true) return true
-        elif (c) begin
-            break
-        end
-        else
-            continue
-    end
-    elif (d) return false
-    else 
-        return d
-end
+
+            var x <- fun(1+1, "a")
+        

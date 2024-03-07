@@ -1,10 +1,10 @@
-func main()
-## begin
-##     var bruh <- true
-##    number arr[3, 4] <- foo(arr[5, 6])
-##    if (arr) ## comment
-##    begin
-##        foo()
-##    end
-##   else arr <- foo(arr[foo(arr)])
-## end
+
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin
+                    a <- 3
+                    return a
+                end   
+        end
+        

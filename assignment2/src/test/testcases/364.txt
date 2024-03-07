@@ -1,8 +1,7 @@
-func main()
-begin
-    number a <- 10
-    number b <- 20
-    number c <- a + b
-    return c
-end
-    
+
+        func foo(string a[3,2], number b)
+        func main() 
+        begin
+            foo([2,3],2)
+        end
+        
