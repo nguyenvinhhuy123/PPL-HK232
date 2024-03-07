@@ -1,4 +1,7 @@
-func main()
-begin
-    number result <- -10 + not true
-end
+
+        func main() 
+        begin
+            dynamic a <- 2
+            foo(a)
+        end
+        

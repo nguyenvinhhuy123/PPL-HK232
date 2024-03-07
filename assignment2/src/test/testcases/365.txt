@@ -1,8 +1,7 @@
-func main()
-begin
-    string name <- "John"
-    number age <- 25
-    bool isStudent <- true
-    return name + " is " + age + " years old. Is student? " + isStudent
-end
-    
+
+        func foo(string a[2,3,4], bool b[2,3]) return
+        func main() 
+        begin
+            foo(2,2)
+        end
+        

@@ -17,7 +17,7 @@ class ASTGeneration(ZCodeVisitor):
             for i in range(1, ctx.getChildCount()-1):
                 def_list.append(ctx.getChild(i).accept(self)) #* we dont care about if child is forward def or normal def 
         
-        res = Program(def_list)
+        res = Program(decl=def_list)
         return res
     
     # Visit a parse tree produced by ZCodeParser#forward_func.
@@ -29,7 +29,9 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#main_def.
     #*Parser rule: main_def: KW_FUNC MAIN_TOKEN SEP_OPEN_PAREN SEP_CLOSE_PAREN optional_end_line inner_scope;
     def visitMain_def(self, ctx:ZCodeParser.Main_defContext):
-        res = FuncDecl(Id(ctx.MAIN_TOKEN.getText()), [], ctx.inner_scope.accept(self))
+        res = FuncDecl(name=Id(ctx.MAIN_TOKEN.getText()), 
+                       param=[], 
+                       body=ctx.inner_scope.accept(self))
         return res
 
     # Visit a parse tree produced by ZCodeParser#define.
@@ -165,7 +167,7 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#var_assign.
     #* Parser rule: var_assign: IDENTIFIER value_init;
     def visitVar_assign(self, ctx:ZCodeParser.Var_assignContext):
-        res = Assign(Id(ctx.IDENTIFIER().getText()), ctx.value_init().accept(self))
+        res = Assign(lhs=Id(ctx.IDENTIFIER().getText()), rhs=ctx.value_init().accept(self))
         return res
 
 
@@ -212,7 +214,8 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: array_def_for_param: type_def array_identifier;
     def visitArray_def_for_param(self, ctx:ZCodeParser.Array_def_for_paramContext):
         (array_id, dimension) = ctx.array_identifier().accept(self)
-        res = VarDecl(array_id, ArrayType(dimension, ctx.type_def().accept(self)), None, None)
+        res = VarDecl(name=array_id, 
+                    varType=ArrayType(dimension, ctx.type_def().accept(self)))
         return res
 
     # Visit a parse tree produced by ZCodeParser#array_identifier.
@@ -229,7 +232,9 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: array_static_def: type_def array_identifier optional_array_init;
     def visitArray_static_def(self, ctx:ZCodeParser.Array_static_defContext):
         (array_id, dimension) = ctx.array_identifier().accept(self)
-        res = VarDecl(array_id, ArrayType(dimension, ctx.type_def().accept(self)), None, ctx.optional_array_init().accept(self))
+        res = VarDecl(name=array_id, 
+                    varType=ArrayType(dimension, ctx.type_def().accept(self)),
+                    varInit=ctx.optional_array_init().accept(self))
         return res
 
 
@@ -273,21 +278,23 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#array_value.
     #*Parser rule: array_value: SEP_OPEN_BRACK array_value_init_list SEP_CLOSE_BRACK;
     def visitArray_value(self, ctx:ZCodeParser.Array_valueContext):
-        res = ArrayLiteral(ctx.array_value_init_list().accept(self))
+        res = ArrayLiteral(value=ctx.array_value_init_list().accept(self))
         return res
 
 
     # Visit a parse tree produced by ZCodeParser#array_assign.
     #*Parser rule: array_assign: IDENTIFIER array_init;
     def visitArray_assign(self, ctx:ZCodeParser.Array_assignContext):
-        res = Assign(Id(ctx.IDENTIFIER().getText()), ctx.array_init().accept(self))
+        res = Assign(lhs=Id(ctx.IDENTIFIER().getText()),
+                    rhs=ctx.array_init().accept(self))
         return res
 
 
     # Visit a parse tree produced by ZCodeParser#array_elem_assign.
     #Parser rule: array_elem_assign: array_element_expr array_elem_init;
     def visitArray_elem_assign(self, ctx:ZCodeParser.Array_elem_assignContext):
-        res = Assign(ctx.array_element_expr().accept(self), ctx.array_elem_init().accept(self))
+        res = Assign(lhs=ctx.array_element_expr().accept(self),
+                    rhs=ctx.array_elem_init().accept(self))
         return res
 
 
@@ -331,14 +338,17 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#func_def.
     #*Parser rule: func_def: KW_FUNC IDENTIFIER param_def optional_end_line inner_scope;
     def visitFunc_def(self, ctx:ZCodeParser.Func_defContext):
-        res = FuncDecl(Id(ctx.IDENTIFIER().getText()), ctx.param_def().accept(self), ctx.inner_scope().accept(self))
+        res = FuncDecl(name=Id(ctx.IDENTIFIER().getText()),
+                    param=ctx.param_def().accept(self),
+                    body=ctx.inner_scope().accept(self))
         return res
 
 
     # Visit a parse tree produced by ZCodeParser#forward_func_def.
     #*Parser rule: forward_func_def: KW_FUNC IDENTIFIER param_def;
     def visitForward_func_def(self, ctx:ZCodeParser.Forward_func_defContext):
-        res = FuncDecl(Id(ctx.IDENTIFIER().getText()), ctx.param_def().accept(self), None)
+        res = FuncDecl(name=Id(ctx.IDENTIFIER().getText()),
+                    param=ctx.param_def().accept(self))
         return res
 
 
@@ -359,7 +369,9 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: string_expr: relation_expr string_op relation_expr | relation_expr;
     def visitString_expr(self, ctx:ZCodeParser.String_exprContext):
         if (ctx.getChildCount() == 1): return ctx.relation_expr(0).accept(self)
-        res = BinaryOp(ctx.string_op().accept(self), ctx.relation_expr(0).accept(self), ctx.relation_expr(1).accept(self))
+        res = BinaryOp(op=ctx.string_op().accept(self),
+                    left=ctx.relation_expr(0).accept(self),
+                    right=ctx.relation_expr(1).accept(self))
         return res
 
 
@@ -373,7 +385,9 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: relation_expr: logic_expr relational_op logic_expr | logic_expr;
     def visitRelation_expr(self, ctx:ZCodeParser.Relation_exprContext):
         if (ctx.getChildCount() == 1): return ctx.logic_expr(0).accept(self)
-        res = BinaryOp(ctx.relational_op().accept(self), ctx.logic_expr(0).accept(self), ctx.logic_expr(1).accept(self))
+        res = BinaryOp(op=ctx.relational_op().accept(self),
+                    left=ctx.logic_expr(0).accept(self),
+                    right= ctx.logic_expr(1).accept(self))
         return res
 
     # Visit a parse tree produced by ZCodeParser#relational_op.
@@ -386,7 +400,9 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: logic_expr: logic_expr logic_op add_expr | add_expr;
     def visitLogic_expr(self, ctx:ZCodeParser.Logic_exprContext):
         if (ctx.getChildCount() == 1): return ctx.add_expr().accept(self)
-        res = BinaryOp(ctx.logic_op().accept(self), ctx.logic_expr().accept(self), ctx.add_expr().accept(self))
+        res = BinaryOp(op=ctx.logic_op().accept(self),
+                    left=ctx.logic_expr().accept(self),
+                    right=ctx.add_expr().accept(self))
         return res
 
 
@@ -400,7 +416,9 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: add_expr: add_expr add_op multi_expr | multi_expr;
     def visitAdd_expr(self, ctx:ZCodeParser.Add_exprContext):
         if (ctx.getChildCount() == 1): return ctx.multi_expr().accept(self)
-        res = BinaryOp(ctx.add_op().accept(self), ctx.add_expr().accept(self), ctx.multi_expr().accept(self))
+        res = BinaryOp(op=ctx.add_op().accept(self),
+                    left=ctx.add_expr().accept(self),
+                    right=ctx.multi_expr().accept(self))
         return res
 
 
@@ -414,7 +432,9 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: multi_expr: multi_expr multi_op negate_expr | negate_expr;
     def visitMulti_expr(self, ctx:ZCodeParser.Multi_exprContext):
         if (ctx.getChildCount() == 1): return ctx.negate_expr().accept(self)
-        res = BinaryOp(ctx.multi_op().accept(self), ctx.multi_expr().accept(self), ctx.negate_expr().accept(self))
+        res = BinaryOp(op=ctx.multi_op().accept(self),
+                       left=ctx.multi_expr().accept(self),
+                       right=ctx.negate_expr().accept(self))
         return res
 
 
@@ -428,7 +448,8 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: negate_expr: negate_op negate_expr | sign_expr;
     def visitNegate_expr(self, ctx:ZCodeParser.Negate_exprContext):
         if (ctx.getChildCount() == 1): return ctx.sign_expr().accept(self)
-        res = UnaryOp(ctx.negate_op().accept(self), ctx.negate_expr().accept(self))
+        res = UnaryOp(op=ctx.negate_op().accept(self),
+                    operand=ctx.negate_expr().accept(self))
         return res
 
 
@@ -442,7 +463,8 @@ class ASTGeneration(ZCodeVisitor):
     #*Parser rule: sign_expr: (OP_SUBTRACT) sign_expr | array_expr;
     def visitSign_expr(self, ctx:ZCodeParser.Sign_exprContext):
         if (ctx.getChildCount() == 1): return ctx.array_expr().accept(self)
-        res = UnaryOp(ctx.OP_SUBTRACT().getText(), ctx.sign_expr().accept(self))
+        res = UnaryOp(op=ctx.OP_SUBTRACT().getText(),
+                    operand=ctx.sign_expr().accept(self))
         return res
 
 
@@ -455,7 +477,8 @@ class ASTGeneration(ZCodeVisitor):
     # Visit a parse tree produced by ZCodeParser#array_element_expr.
     #*Parser rule: array_element_expr: primary_expression indexer;
     def visitArray_element_expr(self, ctx:ZCodeParser.Array_element_exprContext):
-        res = ArrayCell(ctx.primary_expression().accept(self), ctx.indexer().accept(self))
+        res = ArrayCell(arr=ctx.primary_expression().accept(self),
+                        idx=ctx.indexer().accept(self))
         return res
 
 
@@ -495,7 +518,7 @@ class ASTGeneration(ZCodeVisitor):
         #*however parser rule func_call visitor return CallStmt
         #*thus this should be modified by term visitor 
         func_result = ctx.func_call().accept(self)
-        func_expr = CallExpr(func_result.name, func_result.args)
+        func_expr = CallExpr(name=func_result.name, args=func_result.args)
         return func_expr
 
 
@@ -506,7 +529,7 @@ class ASTGeneration(ZCodeVisitor):
         (if_expr, if_stmt) = ctx.if_clause().accept(self)
         elif_cls = list(map(lambda x: x.accept(self), ctx.elif_clause()))
         else_stmt = ctx.else_clause().accept(self) if ctx.else_clause() else None
-        res = If(if_expr, if_stmt, elif_cls, else_stmt)
+        res = If(expr=if_expr,thenStmt=if_stmt, elifStmt=elif_cls,elseStmt= else_stmt)
         return res
 
 
@@ -549,7 +572,7 @@ class ASTGeneration(ZCodeVisitor):
         condition_expr = ctx.condition_clause().accept(self)
         update_expr =ctx.update_clause().accept(self)
         body = ctx.statement().accept(self)
-        res = For(for_var, condition_expr, update_expr, body)
+        res = For(name=for_var,condExpr= condition_expr,updExpr= update_expr,body= body)
         return res
 
 
@@ -620,14 +643,14 @@ class ASTGeneration(ZCodeVisitor):
     def visitFunc_call(self, ctx:ZCodeParser.Func_callContext):
         func_id = Id(ctx.IDENTIFIER().getText())
         arguments = ctx.passing_arg().accept(self)
-        res = CallStmt(func_id, arguments)
+        res = CallStmt(name=func_id, args=arguments)
         return res
 
 
     # Visit a parse tree produced by ZCodeParser#block_statement.
     #*Parser rule: block_statement: KW_BEGIN end_line lines optional_end_line KW_END;
     def visitBlock_statement(self, ctx:ZCodeParser.Block_statementContext):
-        return Block(ctx.lines().accept(self))
+        return Block(stmt=ctx.lines().accept(self))
 
 
     # Visit a parse tree produced by ZCodeParser#literal.

@@ -2793,7 +2793,7 @@ class ASTGenSuite(unittest.TestCase):
                             name=Id("b"),
                             varType=ArrayType(
                                 size=[2.0,3.0],
-                                eleType=BooleanLiteral()
+                                eleType=BoolType()
                             )
                         ),
                     ],
@@ -2817,104 +2817,318 @@ class ASTGenSuite(unittest.TestCase):
         ))
         self.assertTrue(TestAST.test(input,expected,365))    
     
-#     def test_multiline_param(self):
-#         '''Simple func with array params'''
-#         input = """
-#         func foo(string a[2,3,4],
-#         bool b[2,3]) return
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = error_msg(2,33,'\n')
-#         self.assertTrue(TestAST.test(input,expected,266))   
+    def test_forward_decl_after_main(self):
+        '''Simple func with array params'''
+        input = """
+        func main() 
+        begin
+            foo(2,2)
+        end
+        func foo(string a[2,3,4],bool b[2,3]) return
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(name=Id("foo"), 
+                                    args=
+                                    [
+                                        NumberLiteral(2.0), 
+                                        NumberLiteral(2.0)
+                                    ])
+                        ]
+                    )
+                ),
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=ArrayType(
+                                size=[2.0,3.0,4.0],
+                                eleType=StringType()
+                            )    
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=ArrayType(
+                                size=[2.0,3.0],
+                                eleType=BoolType()
+                            )
+                        ),
+                    ],
+                    body=Return()
+                ),
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,366))   
         
-#     def test_forward_decl_param(self):
-#         '''Simple forward func with array params'''
-#         input = """
-#         func foo(string a[2,3,4],bool b[2,3])
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,267))   
+    def test_forward_decl_param(self):
+        '''Simple forward func with array params'''
+        input = """
+        func foo(string a[2,3,4],bool b[2,3])
+        func main() 
+        begin
+            foo(2,2)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("foo"),
+                    param=[
+                        VarDecl(
+                            name=Id("a"),
+                            varType=ArrayType(
+                                size=[2.0,3.0,4.0],
+                                eleType=StringType()
+                            )    
+                        ),
+                        VarDecl(
+                            name=Id("b"),
+                            varType=ArrayType(
+                                size=[2.0,3.0],
+                                eleType=BoolType()
+                            )
+                        ),
+                    ],
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(name=Id("foo"), 
+                                    args=
+                                    [
+                                        NumberLiteral(2.0), 
+                                        NumberLiteral(2.0)
+                                    ])
+                        ]
+                    )
+                ),
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,367))   
     
-#     def test_func_param_missing_coma(self):
-#         '''Simple forward func with array params err missing coma'''
-#         input = """
-#         func foo(string a[2,3,4] bool b[2,3]) return
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = error_msg(2,33,"bool")
-#         self.assertTrue(TestAST.test(input,expected,268))  
+    def test_func_call_expr(self):
+        '''Function expression'''
+        input = """
+        func main() 
+        begin
+            var a <- foo(2,2)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("a"),
+                                modifier="var",
+                                varInit=CallExpr(name=Id("foo"), 
+                                                args=[NumberLiteral(2.0),NumberLiteral(2.0)])  
+                            ),
+                        ]
+                    )
+                ),
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,368))  
     
-#     def test_func_param_semi_err(self):
-#         '''Simple forward func with array params mistake semicol'''
-#         input = """
-#         func foo(string a[2,3,4]; bool b[2,3]) return
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = lexer_err_msg(";")
-#         self.assertTrue(TestAST.test(input,expected,269))  
+    def test_func_call_stmt(self):
+        '''function statement'''
+        input = """
+        func main() 
+        begin
+            dynamic a <- 2
+            foo(a)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("a"),
+                                modifier="dynamic",
+                                varInit=NumberLiteral(2.0)
+                            ),
+                            CallStmt(name=Id("foo"), args=[Id("a")])
+                        ]
+                    )
+                ),
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,369))  
     
-#     def test_func_param_missing_paren_err(self):
-#         '''Simple forward func with missing param'''
-#         input = """
-#         func foo(string a[2,3,4], bool b[2,3] return
-#         func main() 
-#         begin
-#             foo(2,2)
-#         end
-#         """
-#         expected = error_msg(2,46,"return")
-#         self.assertTrue(TestAST.test(input,expected,270))  
+    def test_func_in_func_call(self):
+        '''Simple forward func with missing param'''
+        input = """
+        func main() 
+        begin
+            foo(foo(2))
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            CallStmt(
+                                name=Id("foo"),
+                                args=[CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)])]
+                            )
+                        ]
+                    )
+                ),
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,370))  
     
 #     #*Case 271- 280: complex var decl and assignment
-#     def test_long_var_decl(self):
-#         '''Long array, var declare'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[2,3] <- [2,a*2/f,foo(2),true,[2,3]]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,271))
+    def test_long_var_decl(self):
+        '''Long array, var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2.e45,3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType(
+                                    size=[2.0e45,3.0],
+                                    eleType=NumberType()
+                                ),
+                                varInit=ArrayLiteral(
+                                    [
+                                        NumberLiteral(2.0),
+                                        BinaryOp(
+                                            op="/",
+                                            left=BinaryOp(
+                                                op="*",
+                                                left=Id("a"),
+                                                right=NumberLiteral(2.0)
+                                            ),
+                                            right=Id("f")
+                                        ),
+                                        CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)]),
+                                        BooleanLiteral(True),
+                                        ArrayLiteral([
+                                            NumberLiteral(2.0),
+                                            NumberLiteral(3.0)
+                                        ])
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,371))
         
-#     def test_long_var_decl_dimension_expr_err(self):
-#         '''Long implicit type var declare'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[foo(2),3] <- [2,a*2/f,foo(2),true,[2,3]]
-#         end
-#         """
-#         expected = error_msg(5,21,"foo")
-#         self.assertTrue(TestAST.test(input,expected,272))
+    def test_dynamic_var_no_assign(self):
+        '''Long implicit type var declare'''
+        input = """
+        dynamic a
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="dynamic"
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,372))
     
-#     def test_elem_expr_assignment(self):
-#         '''Long implicit type var declare'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[2,3]
-#             b[a,foo(2)] <- b[foo(2),a]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,273))
+    def test_elem_expr_assignment(self):
+        '''Long implicit type var declare'''
+        input = """
+        func main() 
+        begin
+            b[a,foo(2)] <- b[foo(2),a]
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            Assign(
+                                lhs=ArrayCell(
+                                    arr=Id("b"),
+                                    idx=[
+                                        Id("a"),
+                                        CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)])
+                                    ]
+                                ),
+                                rhs=ArrayCell(
+                                    arr=Id("b"),
+                                    idx=[
+                                        CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)]),
+                                        Id("a"),
+                                    ]
+                                ),
+                            )
+                        ]
+                    )
+                ),
+                
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,373))
     
 #     def test_long_var_decl_dimension_with_float(self):
 #         '''floating point dim'''

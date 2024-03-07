@@ -2,6 +2,6 @@
         var a <- 2*3-foo()+b[2,3]
         func main() 
         begin
-            number b[2,3] <- [2,a*2/f,foo(2),true,[2,3]]
+            number b[2e-12,3] <- [2,a*2/f,foo(2),true,[2,3]]
         end
         

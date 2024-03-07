@@ -1,7 +1,7 @@
-func main()
-begin
-    if (10 + 20 < 30) 
-    begin
-        number x <- 40
-    end
-end
+
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2.e45,3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        

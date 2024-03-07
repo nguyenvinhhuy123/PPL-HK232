@@ -1,1 +1,1 @@
-Program([FuncDecl(Id(main), [], Block([VarDecl(Id(result), NumberType, None, BinaryOp(+, UnaryOp(-, NumLit(10.0)), UnaryOp(not, BooleanLit(True))))]))])
+Program([FuncDecl(Id(main), [], Block([VarDecl(Id(a), None, dynamic, NumLit(2.0)), CallStmt(Id(foo), [Id(a)])]))])
