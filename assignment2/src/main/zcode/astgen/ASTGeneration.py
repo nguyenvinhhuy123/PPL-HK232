@@ -12,8 +12,8 @@ class ASTGeneration(ZCodeVisitor):
     def visitProgram(self,ctx:ZCodeParser.ProgramContext):
         #*List of forward func and others define
         #! EOF is child then childe count should > 2 
+        def_list = []
         if ctx.getChildCount() > 2:
-            def_list = []
             for i in range(1, ctx.getChildCount()-1):
                 def_list.append(ctx.getChild(i).accept(self)) #* we dont care about if child is forward def or normal def 
         
