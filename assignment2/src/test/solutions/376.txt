@@ -1,1 +1,1 @@
-Program([FuncDecl(Id(main), [], Block([For(Id(i), NumLit(10.0), NumLit(1.0), Block([If((BinaryOp(=, Id(i), NumLit(5.0)), Block([Continue])), [], None)]))]))])
+Program([VarDecl(Id(a), None, var, BinaryOp(+, BinaryOp(-, BinaryOp(*, NumLit(2.0), NumLit(3.0)), CallExpr(Id(foo), [])), ArrayCell(Id(b), [NumLit(2.0), NumLit(3.0)]))), FuncDecl(Id(main), [], Block([VarDecl(Id(b), ArrayType([2.0, 3.0], NumberType), None, None), AssignStmt(ArrayCell(Id(b), [StringLit(string), NumLit(2.123e-32)]), ArrayCell(Id(b), [CallExpr(Id(foo), [NumLit(2.0)]), Id(a)]))]))])

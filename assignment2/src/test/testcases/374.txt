@@ -1,8 +1,7 @@
-func main()
-begin
-    number sum <- 0
-    for i until 10 by 1 
-    begin
-        sum <- sum + i
-    end
-end
+
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2.293E21,3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        

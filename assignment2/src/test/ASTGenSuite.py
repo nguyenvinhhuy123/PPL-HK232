@@ -3008,7 +3008,7 @@ class ASTGenSuite(unittest.TestCase):
         var a <- 2*3-foo()+b[2,3]
         func main() 
         begin
-            number b[2.e45,3] <- [2,a*2/f,foo(2),true,[2,3]]
+            number b[2,3] <- [2,a*2/f,foo(2),true,[2,3]]
         end
         """
         expected = str(Program(
@@ -3044,7 +3044,7 @@ class ASTGenSuite(unittest.TestCase):
                             VarDecl(
                                 name=Id("b"),
                                 varType=ArrayType(
-                                    size=[2.0e45,3.0],
+                                    size=[2.0,3.0],
                                     eleType=NumberType()
                                 ),
                                 varInit=ArrayLiteral(
@@ -3130,179 +3130,851 @@ class ASTGenSuite(unittest.TestCase):
         ))
         self.assertTrue(TestAST.test(input,expected,373))
     
-#     def test_long_var_decl_dimension_with_float(self):
-#         '''floating point dim'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[2.293E21,3] <- [2,a*2/f,foo(2),true,[2,3]]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,274))
+    def test_long_var_decl_dimension_with_float(self):
+        '''floating point dim'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2.293E21,3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType(
+                                    size=[2.293E21,3.0],
+                                    eleType=NumberType()
+                                ),
+                                varInit=ArrayLiteral(
+                                    [
+                                        NumberLiteral(2.0),
+                                        BinaryOp(
+                                            op="/",
+                                            left=BinaryOp(
+                                                op="*",
+                                                left=Id("a"),
+                                                right=NumberLiteral(2.0)
+                                            ),
+                                            right=Id("f")
+                                        ),
+                                        CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)]),
+                                        BooleanLiteral(True),
+                                        ArrayLiteral([
+                                            NumberLiteral(2.0),
+                                            NumberLiteral(3.0)
+                                        ])
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,374))
     
-#     def test_long_var_decl_dimension_with_string(self):
-#         '''Long string dim error'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b["string",3] <- [2,a*2/f,foo(2),true,[2,3]]
-#         end
-#         """
-#         expected = error_msg(5,21,"string")
-#         self.assertTrue(TestAST.test(input,expected,275))
+    def test_long_var_decl_dimension_case_2(self):
+        '''Long string dim error'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[0.0123E-123,3] <- [2,a*2/f,foo(2),true,[2,3]]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType(
+                                    size=[0.0123E-123,3.0],
+                                    eleType=NumberType()
+                                ),
+                                varInit=ArrayLiteral(
+                                    [
+                                        NumberLiteral(2.0),
+                                        BinaryOp(
+                                            op="/",
+                                            left=BinaryOp(
+                                                op="*",
+                                                left=Id("a"),
+                                                right=NumberLiteral(2.0)
+                                            ),
+                                            right=Id("f")
+                                        ),
+                                        CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)]),
+                                        BooleanLiteral(True),
+                                        ArrayLiteral([
+                                            NumberLiteral(2.0),
+                                            NumberLiteral(3.0)
+                                        ])
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,375))
     
-#     def test_elem_expr_assignment(self):
-#         '''element expr assignment'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[2,3]
-#             b["string",2.123E-32] <- b[foo(2),a]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,276))
+    def test_elem_expr_assignment_case_2(self):
+        '''element expr assignment'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3]
+            b["string",2.123E-32] <- b[foo(2),a]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType(
+                                    size=[2.0,3.0],
+                                    eleType=NumberType()
+                                )
+                            ),
+                            Assign(
+                                lhs=ArrayCell(
+                                    arr=Id("b"),
+                                    idx=[
+                                        StringLiteral("string"),
+                                        NumberLiteral(2.123E-32)
+                                    ]
+                                ),
+                                rhs=ArrayCell(
+                                    arr=Id("b"),
+                                    idx=[
+                                        CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)]),
+                                        Id("a")
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,376))
     
-#     def test_array_assign_with_id(self):
-#         '''Long array assign case 1'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[2,3] <- a
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,277))
+    def test_array_assign_with_id(self):
+        '''Long array assign case 1'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- a
+        end
+        """
+        expected =  str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType(
+                                    size=[2.0,3.0],
+                                    eleType=NumberType()
+                                ),
+                                varInit=Id("a")
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,377))
     
-#     def test_array_assign_with_function(self):
-#         '''Long array assign case 2'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[2,3] <- foo(2)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,278))
+    def test_array_assign_with_function(self):
+        '''Long array assign case 2'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- foo(2)
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType(
+                                    size=[2.0,3.0],
+                                    eleType=NumberType()
+                                ),
+                                varInit=CallExpr(name=Id("foo"), args=[NumberLiteral(2.0)])
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,378))
     
-#     def test_number_assign_with_array_val(self):
-#         '''test number var assign with array value'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b <- [2,3]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,279))
+    def test_number_assign_with_array_val(self):
+        '''test number var assign with array value'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b <- [2,3]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=NumberType(),
+                                varInit=ArrayLiteral(
+                                    [
+                                        NumberLiteral(2.0),
+                                        NumberLiteral(3.0)
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,379))
     
-#     def test_complex_array_value(self):
-#         '''Long implicit type var declare'''
-#         input = """
-#         var a <- 2*3-foo()+b[2,3]
-#         func main() 
-#         begin
-#             number b[2,3] <- [[2,foo(3)], [23.1237E-2,[1237,232]], 123, a[1,foo(3)]]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,280))
+    def test_complex_array_value(self):
+        '''Long implicit type var declare'''
+        input = """
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- [[2,foo(3)], [23.1237E-2,[1237,232]], 123, a[1,foo(3)]]
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=BinaryOp(
+                        op='+',
+                        left=BinaryOp(                          
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(3.0)    
+                            ),
+                            right=CallExpr(name=Id("foo"), args=[])
+                        ),
+                        right=ArrayCell(
+                            arr=Id("b"),
+                            idx=[
+                                NumberLiteral(2.0),
+                                NumberLiteral(3.0)
+                            ]
+                        )
+                    ),
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=ArrayType(
+                                    size=[2.0,3.0],
+                                    eleType=NumberType()
+                                ),
+                                varInit=ArrayLiteral(
+                                    [
+                                        ArrayLiteral([
+                                            NumberLiteral(2.0),
+                                            CallExpr(name=Id("foo"),
+                                                    args=[NumberLiteral(3.0)])    
+                                        ]),
+                                        ArrayLiteral([
+                                            NumberLiteral(23.1237E-2),
+                                            ArrayLiteral([
+                                                NumberLiteral(1237.0),
+                                                NumberLiteral(232.0)    
+                                            ]),
+                                        ]),
+                                        NumberLiteral(123.0),
+                                        ArrayCell(
+                                            arr=Id("a"),
+                                            idx=[
+                                                NumberLiteral(1.0),
+                                                CallExpr(name=Id("foo"),
+                                                    args=[NumberLiteral(3.0)])    
+                                            ]
+                                        )
+                                    ]
+                                )
+                            )
+                        ]
+                    )
+                    
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,380))
     
 #     #*Case 281-290: Complex expression testing
-#     def test_complex_expr_case_1(self):
-#         '''Complex expr case 1'''
-#         input = """
-#         func main() 
-#         begin
-#             var a <- (num1 - num2 / 2 * 3 = 0) or (num1 - -num2*5/2+3 >= 0)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,281))
+    def test_complex_expr_case_1(self):
+        '''Complex expr case 1'''
+        input = """
+        func main() 
+        begin
+            var a <- (num1 - num2 / 2 * 3 = 0) or (num1 - -num2*5/2+3 >= 0)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            modifier="var",
+                            varInit=BinaryOp(
+                                op="or",
+                                left=BinaryOp(
+                                    op="=",
+                                    left=BinaryOp(
+                                        op="-",
+                                        left=Id("num1"),
+                                        right=BinaryOp(
+                                            op="*",
+                                            left=BinaryOp(
+                                                op="/",
+                                                left=Id("num2"),
+                                                right=NumberLiteral(2.0)    
+                                            ),
+                                            right=NumberLiteral(3.0)
+                                        )
+                                    ),
+                                    right=NumberLiteral(0.0)
+                                ),
+                                right=BinaryOp(
+                                    op=">=",
+                                    left=BinaryOp(
+                                        op="+",
+                                        left=BinaryOp(
+                                            op="-",
+                                            left=Id("num1"),
+                                            right=BinaryOp(
+                                                op="/",
+                                                left=BinaryOp(
+                                                    op="*",
+                                                    left=UnaryOp(
+                                                        op="-",
+                                                        operand=Id("num2")
+                                                    ),
+                                                    right=NumberLiteral(5.0)    
+                                                ),
+                                                right=NumberLiteral(2.0)
+                                            )
+                                        ),
+                                        right=NumberLiteral(3.0)
+                                    ),
+                                    right=NumberLiteral(0.0)
+                                )
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,381))
     
-#     def test_complex_expr_case_1_err(self):
-#         '''Complex expr case 1 err'''
-#         input = """
-#         func main() 
-#         begin
-#             var a <- (num1 - num2 / 2 * 3 = 0) or (num1 - +num2*5/2+3 >= 0)
-#         end
-#         """
-#         expected = error_msg(4,58,"+")
-#         self.assertTrue(TestAST.test(input,expected,282))
+    def test_nest_unary_op_case_1(self):
+        '''Complex expr case 1 err'''
+        input = """
+        func main() 
+        begin
+            var a <- ---3
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            modifier="var",
+                            varInit=UnaryOp(
+                                op="-",
+                                operand=UnaryOp(
+                                    op="-",
+                                    operand=UnaryOp(
+                                        op="-",
+                                        operand=NumberLiteral(3.0),
+                                    ),
+                                ),
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,382))
     
-#     def test_complex_expr_case_2(self):
-#         '''Complex expr case 2'''
-#         input = """
-#         func main() 
-#         begin
-#             var a <- (bool1 or (bool2 and not bool3 )) or (isFoo(a) and not isFoo(b))
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,283))
+    def test_complex_expr_case_2(self):
+        '''Complex expr case 2'''
+        input = """
+        func main() 
+        begin
+            var a <- (bool1 or (bool2 and not bool3 )) or (isFoo(a) and not isFoo(b))
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            modifier="var",
+                            varInit=BinaryOp(
+                                op="or",
+                                left=BinaryOp(
+                                    op="or",
+                                    left=Id("bool1"),
+                                    right=BinaryOp(
+                                        op="and",
+                                        left=Id("bool2"),
+                                        right=UnaryOp(
+                                            op="not",
+                                            operand=Id("bool3")
+                                        )
+                                    )
+                                ),
+                                right=BinaryOp(
+                                    op="and",
+                                    left=CallExpr(name=Id("isFoo"),
+                                                args=[Id("a")]),
+                                    right=UnaryOp(
+                                        op="not",
+                                        operand=CallExpr(name=Id("isFoo"),
+                                                    args=[Id("b")])
+                                        )
+                                )
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,383))
     
-#     def test_complex_expr_case_2_err(self):
-#         '''Complex expr case 2 err'''
-#         input = """
-#         func main() 
-#         begin
-#             var a <- (bool1 or (bool2 and and bool3 )) or (isFoo(a) and not isFoo(b))
-#         end
-#         """
-#         expected = error_msg(4,42,"and")
-#         self.assertTrue(TestAST.test(input,expected,284))
+    def test_complex_expr_case_2_err(self):
+        '''Complex expr case 2 err'''
+        input = """
+        func main() 
+        begin
+            var a <- not not not b
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            modifier="var",
+                            varInit=UnaryOp(
+                                op="not",
+                                operand=UnaryOp(
+                                    op="not",
+                                    operand=UnaryOp(
+                                        op="not",
+                                        operand=Id("b"),
+                                    ),
+                                ),
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,384))
     
-#     def test_complex_expr_case_3(self):
-#         '''Complex expr case 3 '''
-#         input = """
-#         func main() 
-#         begin
-#             var a <- (bool1 or (var1 + var2 >= 3 )) + (isFoo(a) and not isFoo(b,a[2]))
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,285))
+    def test_complex_expr_case_3(self):
+        '''Complex expr case 3 '''
+        input = """
+        func main() 
+        begin
+            var a <- (bool1 or (var1 + var2 >= 3 )) + (isFoo(a) and not isFoo(b,a[2]))
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            modifier="var",
+                            varInit=BinaryOp(
+                                op="+",
+                                left=BinaryOp(
+                                    op="or",
+                                    left=Id("bool1"),
+                                    right=BinaryOp(
+                                        op=">=",
+                                        left=BinaryOp(
+                                            op="+",
+                                            left=Id("var1"),
+                                            right=Id("var2")    
+                                        ),
+                                        right=NumberLiteral(3.0)
+                                    )
+                                ),
+                                right=BinaryOp(
+                                    op="and",
+                                    left=CallExpr(name=Id("isFoo"),
+                                                args=[Id("a")]),
+                                    right=UnaryOp(
+                                        op="not",
+                                        operand=CallExpr(name=Id("isFoo"),
+                                                    args=[
+                                                        Id("b"),
+                                                        ArrayCell(
+                                                            arr=Id("a"),
+                                                            idx=[NumberLiteral(2.0)]
+                                                        )
+                                                    ])
+                                        )
+                                )
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,385))
     
-#     def test_complex_expr_case_3_err(self):
-#         '''Complex expr case 3 err '''
-#         input = """
-#         func main() 
-#         begin
-#             var a <- (bool1 or (var1 + var2 >= 3 < 5 )) + (isFoo(a) and not isFoo(b,a[2]))
-#         end
-#         """
-#         expected = error_msg(4,49,"<")
-#         self.assertTrue(TestAST.test(input,expected,286))
+    def test_string_concat_multiple_time(self):
+        '''string concat multiple time'''
+        input = """
+        func main() 
+        begin
+            var a <- toString(n) ... (toString(a) ... "lmao")
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            modifier="var",
+                            varInit=BinaryOp(
+                                op="...",
+                                left=CallExpr(name=Id("toString"),
+                                            args=[Id("n")]),
+                                right=BinaryOp(
+                                    op="...",
+                                    left=CallExpr(name=Id("toString"),
+                                                args=[Id("a")]),
+                                    right=StringLiteral("lmao")
+                                )
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,386))
     
-#     def test_complex_expr_case_4(self):
-#         '''Complex expr case 4 '''
-#         input = """
-#         func main() 
-#         begin
-#             string a <- toString(b) + toString(c) ... d[2,3] == str(123825) + d[23,54]
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,286))
+    def test_complex_expr_case_4(self):
+        '''Complex expr case 4 '''
+        input = """
+        func main() 
+        begin
+            string a <- toString(b) + toString(c) ... d[2,3] == str(123825) + d[23,54]
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            varType=StringType(),
+                            varInit=BinaryOp(
+                                op="...",
+                                left=BinaryOp(
+                                    op="+",
+                                    left=CallExpr(name=Id("toString"),
+                                                args=[Id("b")]),
+                                    right=CallExpr(name=Id("toString"),
+                                                args=[Id("c")]),    
+                                ),
+                                right=BinaryOp(
+                                    op="==",
+                                    left=ArrayCell(
+                                        arr=Id("d"),
+                                        idx=[NumberLiteral(2.0),
+                                            NumberLiteral(3.0)]    
+                                    ),
+                                    right=BinaryOp(
+                                        op="+",
+                                        left=CallExpr(
+                                            name=Id("str"),
+                                            args=[NumberLiteral(123825.0)]
+                                        ),
+                                        right=ArrayCell(
+                                            arr=Id("d"),
+                                            idx=[NumberLiteral(23.0),
+                                            NumberLiteral(54.0)]    
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,387))
     
-#     def test_complex_expr_case_5(self):
-#         '''Complex expr case 5 err '''
-#         input = """
-#         func main() 
-#         begin
-#             bool b <- str(a) ... str(b) == (a >= b/c)
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,287))
+    def test_complex_expr_case_5(self):
+        '''Complex expr case 5 '''
+        input = """
+        func main() 
+        begin
+            bool b <- str(a) ... str(b) == (a >= b/c)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("a"),
+                            varType=BoolType(),
+                            varInit=BinaryOp(
+                                op="...",
+                                left=CallExpr(
+                                    name=Id("str"),
+                                    args=Id("a")
+                                ),
+                                right=BinaryOp(
+                                    op="==",
+                                    left=CallExpr(
+                                        name=Id("str"),
+                                        args=Id("b")
+                                    ),
+                                    right=BinaryOp(
+                                        op="+",
+                                        left=CallExpr(
+                                            name=Id("str"),
+                                            args=[NumberLiteral(123825.0)]
+                                        ),
+                                        right=ArrayCell(
+                                            arr=Id("d"),
+                                            idx=[NumberLiteral(23.0),
+                                            NumberLiteral(54.0)]    
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,287))
     
 #     def test_complex_expr_case_5_err(self):
 #         '''Complex expr case 5 err '''

@@ -1,10 +1,7 @@
-func main()
-begin
-    for i until 10 by 1 
-    begin
-        if (i = 5) 
+
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
         begin
-            break
+            number b[0.0123E-123,3] <- [2,a*2/f,foo(2),true,[2,3]]
         end
-    end
-end
+        

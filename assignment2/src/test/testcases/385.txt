@@ -1,8 +1,6 @@
-func add(number a, number b) 
-begin
-    return a + b
-end
-func main()
-begin
-    number result <- add(10 + 20, 30 * 40)
-end
+
+        func main() 
+        begin
+            var a <- (bool1 or (var1 + var2 >= 3 )) + (isFoo(a) and not isFoo(b,a[2]))
+        end
+        

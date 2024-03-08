@@ -1,5 +1,6 @@
-func getNumber() 
-begin
-    number arr[3] <- [1, 2, 3]
-    arr[0] <- 10 + 20
-end
+
+        func main() 
+        begin
+            var a <- (bool1 or (bool2 and not bool3 )) or (isFoo(a) and not isFoo(b))
+        end
+        

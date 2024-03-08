@@ -1,4 +1,7 @@
-func getNumber() 
-begin
-    return 10 + 20
-end
+
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- a
+        end
+        

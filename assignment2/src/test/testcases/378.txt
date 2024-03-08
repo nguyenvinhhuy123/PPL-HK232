@@ -1,6 +1,7 @@
-func getNumber() 
-begin
-    number a <- 10
-    number b <- 20
-    number c <- a + b
-end
+
+        var a <- 2*3-foo()+b[2,3]
+        func main() 
+        begin
+            number b[2,3] <- foo(2)
+        end
+        
