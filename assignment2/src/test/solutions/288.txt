@@ -1,1 +1,1 @@
-Error on line 4 col 52: ]
+Program([FuncDecl(Id(main), [], Block([VarDecl(Id(b), BoolType, None, BinaryOp(..., CallExpr(Id(str), [Id(a)]), BinaryOp(==, CallExpr(Id(str), [Id(b)]), BinaryOp(>=, Id(a), BinaryOp(/, Id(b), Id(c))))))]))])

@@ -3941,30 +3941,27 @@ class ASTGenSuite(unittest.TestCase):
                     param=[],
                     body=Block([
                         VarDecl(
-                            name=Id("a"),
+                            name=Id("b"),
                             varType=BoolType(),
                             varInit=BinaryOp(
                                 op="...",
                                 left=CallExpr(
                                     name=Id("str"),
-                                    args=Id("a")
+                                    args=[Id("a")]
                                 ),
                                 right=BinaryOp(
                                     op="==",
                                     left=CallExpr(
                                         name=Id("str"),
-                                        args=Id("b")
+                                        args=[Id("b")]
                                     ),
                                     right=BinaryOp(
-                                        op="+",
-                                        left=CallExpr(
-                                            name=Id("str"),
-                                            args=[NumberLiteral(123825.0)]
-                                        ),
-                                        right=ArrayCell(
-                                            arr=Id("d"),
-                                            idx=[NumberLiteral(23.0),
-                                            NumberLiteral(54.0)]    
+                                        op=">=",
+                                        left=Id("a"),
+                                        right=BinaryOp(
+                                            op="/",
+                                            left=Id("b"),
+                                            right=Id("c")
                                         )
                                     )
                                 )
@@ -3974,147 +3971,313 @@ class ASTGenSuite(unittest.TestCase):
                 )
             ]
         ))
-        self.assertTrue(TestAST.test(input,expected,287))
+        self.assertTrue(TestAST.test(input,expected,288))
     
-#     def test_complex_expr_case_5_err(self):
-#         '''Complex expr case 5 err '''
-#         input = """
-#         func main() 
-#         begin
-#             bool b <- str(a) ... str(b) == (a >= b/c]
-#         end
-#         """
-#         expected = error_msg(4,52,"]")
-#         self.assertTrue(TestAST.test(input,expected,288))
+    def test_complex_expr_nested_and_or(self):
+        '''Complex expr case 5 err '''
+        input = """
+        func main() 
+        begin
+            bool b <- (a or b) and (c or d or e)
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("b"),
+                            varType=BoolType(),
+                            varInit=BinaryOp(
+                                op="and",
+                                left=BinaryOp(
+                                    op="or",
+                                    left=Id("a"),
+                                    right=Id("b")
+                                ),
+                                right=BinaryOp(
+                                    op="or",
+                                    left=BinaryOp(
+                                        op="or",
+                                        left=Id("c"),
+                                        right=Id("d"),
+                                    ),
+                                    right=Id("e")
+                                )
+                            )
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,389))
     
-#     def test_complex_expr_case_6_stmt_in_assign(self):
-#         '''Complex expr case 6 err '''
-#         input = """
-#         func main() 
-#         begin
-#             bool b <- if a do(b)
-#         end
-#         """
-#         expected = error_msg(4,22,"if")
-#         self.assertTrue(TestAST.test(input,expected,289))
-    
-#     def test_complex_expr_case_7_empty_array_val(self):
-#         '''Complex expr case 7 err '''
-#         input = """
-#         func main() 
-#         begin
-#             bool b <- [[[[]]]]
-#         end
-#         """
-#         expected = error_msg(4,26,"]")
-#         self.assertTrue(TestAST.test(input,expected,290))
+    def test_complex_expr_nested_arr_idx(self):
+        '''Complex expr case 7 err '''
+        input = """
+        func main() 
+        begin
+            bool b <- [[[[a]]]]
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("b"),
+                            varType=BoolType(),
+                            varInit=ArrayLiteral(
+                                [
+                                    ArrayLiteral(
+                                        [
+                                            ArrayLiteral(
+                                                [
+                                                    ArrayLiteral(
+                                                        [
+                                                            Id("a")
+                                                        ]
+                                                    )
+                                                ]
+                                            )
+                                        ]
+                                    )
+                                ]
+                            ),
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,390))
     
 #     #*Case 291 - 300 : Random test
-#     def test_simple_implicit_var_declare(self):
-#         '''Simple implicit type var declare'''
-#         input = """
-#         var a <- 2
-#         func main() 
-#         begin
-#             dynamic b <- "String"
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,291))
+    def test_simple_implicit_var_declare_case_2(self):
+        '''Simple implicit type var declare'''
+        input = """
+        var a <- 2
+        func main() 
+        begin
+            dynamic b <- "String"
+        end
+        """
+        expected = str(Program(
+            [
+                VarDecl(
+                    name=Id("a"),
+                    modifier="var",
+                    varInit=NumberLiteral(2.0)
+                ),
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        VarDecl(
+                            name=Id("b"),
+                            modifier="dynamic",
+                            varInit=StringLiteral("String")
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,391))
     
-#     def test_simple_if_no_paren(self):
-#         '''Simple if else stmt'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#             if a > 3
-#                 printString("Yes")
-#             else 
-#                 printString("No")
-#         end
-#         """
-#         expected = error_msg(5,15,"a")
-#         self.assertTrue(TestAST.test(input,expected,292))
+    def test_simple_if_case_2(self):
+        '''Simple if else stmt'''
+        input = """
+        func main() 
+        begin
+            if (a > 3)
+                begin
+                end
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block([
+                        If(
+                            expr=BinaryOp(
+                                op=">",
+                                left=Id("a"),
+                                right=NumberLiteral(3.0)
+                            ),
+                            thenStmt=Block([])
+                        )
+                    ])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,392))
     
-#     def test_begin_no_newline(self):
-#         '''Simple begin stmt no newline'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin end
-#         """
-#         expected = error_msg(4,14,"end")
-#         self.assertTrue(TestAST.test(input,expected,293))
+    def test_func_main_empty_body(self):
+        '''Simple begin stmt no newline'''
+        input = """
+        func main() 
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,393))
     
-#     def test_simple_comment(self):
-#         '''Simple program with comment'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#         number b <- 2 ##This is a comment
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,294))
+    def test_simple_comment(self):
+        '''Simple program with comment'''
+        input = """
+        func main() 
+        begin
+        number b <- 2 ##This is a comment
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=NumberType(),
+                                varInit=NumberLiteral(2.0)
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,394))
     
-#     def test_simple_comment_weird_char(self):
-#         '''Simple comment with weird char'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#         number b <- 2 ##This is a comment with weird character \a
-#         end
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,295))
+    def test_simple_comment_weird_char(self):
+        '''Simple comment with weird char'''
+        input = """
+        func main() 
+        begin
+        number b <- 2 ##This is a comment with weird character \a
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=NumberType(),
+                                varInit=NumberLiteral(2.0)
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,395))
     
-#     def test_simple_comment_error(self):
-#         '''Simple comment program'''
-#         input = """
-#         number a <- 2*5-3
-#         func main() 
-#         begin
-#         number b <- 2 ##This is a 
-#         comment
-#         end
-#         """
-#         expected = error_msg(6,15,"\n")
-#         self.assertTrue(TestAST.test(input,expected,296))
+    def test_func_main_with_param(self):
+        '''Simple comment program'''
+        input = """
+        func main(number a) 
+        begin
+            number b <- 2
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("main"),
+                    param=[
+                        VarDecl(
+                                name=Id("a"),
+                                varType=NumberType(),
+                        )
+                    ],
+                    body=Block(
+                        [
+                            VarDecl(
+                                name=Id("b"),
+                                varType=NumberType(),
+                                varInit=NumberLiteral(2.0)
+                            )
+                        ]
+                    )
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,396))
     
-#     def test_simple_program_no_func(self):
-#         '''Simple program no function'''
-#         input = """
-#         number a <- 2*5-3
-#         number b <- 2 ##This is a 
-#         """
-#         expected = SUCCESSFUL
-#         self.assertTrue(TestAST.test(input,expected,297))
+    def test_simple_program_no_func(self):
+        '''Simple program no function'''
+        input = """
+        number a <- 2*5-3
+        number b <- 2 ##This is a 
+        """
+        expected = str(Program(
+            [
+                    VarDecl(
+                        name=Id("a"),
+                        varType=NumberType(),
+                        varInit=BinaryOp(
+                            op="-",
+                            left=BinaryOp(
+                                op="*",
+                                left=NumberLiteral(2.0),
+                                right=NumberLiteral(5.0),
+                            ),
+                            right=NumberLiteral(3.0)
+                        )
+                    ),
+                    VarDecl(
+                        name=Id("b"),
+                        varType=NumberType(),
+                        varInit=NumberLiteral(2.0)
+                    )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,397))
     
-#     def test_simple_program_no_func_with_outside_stmt(self):
-#         '''Simple outside stmt error'''
-#         input = """
-#         number a <- 2*5-3
-#         number b <- 2 ##This is a 
-#         if a do(B)
-#         """
-#         expected = error_msg(4,8,"if")
-#         self.assertTrue(TestAST.test(input,expected,298))
+    def test_main_func_with_underscore(self):
+        '''Simple outside stmt error'''
+        input = """
+        func _main()
+        begin
+        end
+        """
+        expected = str(Program(
+            [
+                FuncDecl(
+                    name=Id("_main"),
+                    param=[],
+                    body=Block([])
+                )
+            ]
+        ))
+        self.assertTrue(TestAST.test(input,expected,398))
     
-#     def test_comment_only_program(self):
-#         '''Program with comment only'''
-#         input = """
-#         ##number b <- 2 ##This is a 
-#         ##if a do(B)
-#         """
-#         expected = str(Program([]))
-#         self.assertTrue(TestAST.test(input,expected,299))
+    def test_comment_only_program(self):
+        '''Program with comment only'''
+        input = """
+        ##number b <- 2 ##This is a 
+        ##if a do(B)
+        """
+        expected = str(Program([]))
+        self.assertTrue(TestAST.test(input,expected,399))
     
-    # def test_empty_program(self):
-    #     '''Empty program'''
-    #     input = """"""
-    #     expected = str(Program([]))
-    #     self.assertTrue(TestAST.test(input,expected,400))
+    def test_empty_program(self):
+        '''Empty program'''
+        input = """"""
+        expected = str(Program([]))
+        self.assertTrue(TestAST.test(input,expected,400))
     

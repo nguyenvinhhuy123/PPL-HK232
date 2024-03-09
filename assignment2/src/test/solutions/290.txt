@@ -1,1 +1,1 @@
-Error on line 4 col 26: ]
+Program([FuncDecl(Id(main), [], Block([VarDecl(Id(b), BoolType, None, ArrayLit(ArrayLit(ArrayLit(ArrayLit(Id(a))))))]))])

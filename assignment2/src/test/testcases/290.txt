@@ -1,6 +1,6 @@
 
         func main() 
         begin
-            bool b <- [[[[]]]]
+            bool b <- [[[[a]]]]
         end
         
