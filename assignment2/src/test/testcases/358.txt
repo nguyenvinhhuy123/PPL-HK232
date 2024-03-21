@@ -1,0 +1,10 @@
+
+        func main() 
+        begin
+            for i until i >= 10 by 1
+                begin
+                    a <- 3
+                    return a
+                end   
+        end
+        

@@ -1,0 +1,8 @@
+
+        func foo() begin
+        end
+        func main() 
+        begin
+            a <- foo()
+        end
+        

@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            b[a,foo(2)] <- b[foo(2),a]
+        end
+        

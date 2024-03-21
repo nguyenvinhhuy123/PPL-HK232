@@ -1,0 +1,7 @@
+
+        number a[2,3]
+        func main() 
+        begin
+            number b[3] <- a[foo(2), 3+5*2,1]
+        end
+        

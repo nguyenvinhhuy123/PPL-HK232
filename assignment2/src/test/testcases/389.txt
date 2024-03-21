@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            bool b <- (a or b) and (c or d or e)
+        end
+        

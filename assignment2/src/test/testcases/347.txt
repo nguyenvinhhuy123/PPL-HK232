@@ -1,0 +1,7 @@
+
+        func main() 
+        begin
+            for i until (i < -10*(i-2)) by i*i
+            printString(i)
+        end
+        

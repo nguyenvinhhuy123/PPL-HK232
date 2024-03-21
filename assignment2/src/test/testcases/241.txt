@@ -1,0 +1,7 @@
+
+        number a <- 2*5-3
+        func main() 
+        begin
+            if (a > 3) printString("Yes")
+        end
+        
