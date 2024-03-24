@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            var a <- not not not b
+        end
+        

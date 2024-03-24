@@ -1,0 +1,7 @@
+
+        func main() 
+        begin
+            dynamic a <- 2
+            foo(a)
+        end
+        

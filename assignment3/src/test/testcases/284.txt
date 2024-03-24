@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            var a <- (bool1 or (bool2 and and bool3 )) or (isFoo(a) and not isFoo(b))
+        end
+        

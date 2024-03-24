@@ -1,0 +1,1 @@
+Program([FuncDecl(Id(main), [], Block([VarDecl(Id(a), None, var, BinaryOp(or, BinaryOp(or, Id(bool1), BinaryOp(and, Id(bool2), UnaryOp(not, Id(bool3)))), BinaryOp(and, CallExpr(Id(isFoo), [Id(a)]), UnaryOp(not, CallExpr(Id(isFoo), [Id(b)])))))]))])

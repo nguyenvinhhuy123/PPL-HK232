@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            var a <- foo(2,2)
+        end
+        

@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            var a <- (bool1 or (var1 + var2 >= 3 )) + (isFoo(a) and not isFoo(b,a[2]))
+        end
+        

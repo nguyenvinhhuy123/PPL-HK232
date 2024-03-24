@@ -1,0 +1,7 @@
+
+        func foo(string a) return a ... a
+        func main() 
+        begin
+            a <- foo()
+        end
+        

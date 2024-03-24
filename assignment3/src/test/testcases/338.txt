@@ -1,0 +1,7 @@
+
+        func main() 
+        begin
+            number b[2,3]
+            foo()[2,0] <- a
+        end
+        

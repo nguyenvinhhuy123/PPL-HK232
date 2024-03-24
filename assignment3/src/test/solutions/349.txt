@@ -1,0 +1,1 @@
+Program([FuncDecl(Id(main), [], Block([For(Id(i), CallExpr(Id(isPrime), [Id(i)]), CallExpr(Id(adjust), [Id(i)]), CallStmt(Id(printString), [Id(i)]))]))])

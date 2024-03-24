@@ -1,0 +1,1 @@
+_myLogic,<-,_myVar,and,_myOther,<EOF>

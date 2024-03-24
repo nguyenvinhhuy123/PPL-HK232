@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            var a <- toString(n) ... (toString(a) ... "lmao")
+        end
+        

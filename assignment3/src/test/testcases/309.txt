@@ -1,0 +1,7 @@
+
+        func main()
+        begin
+            string b <- "Hello, World!"
+            printString(b)
+        end
+        
