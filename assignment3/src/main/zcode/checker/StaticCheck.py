@@ -16,13 +16,74 @@ def param_logger(func):
         return func(obj,ast,param)
     return wrapper
 
+class Symbol:
+    name: Id
+    kind: Kind
+    scope: int
+    
+    def __init__(self,
+                name,
+                kind,
+                scope):
+        self.name = name
+        self.kind = kind
+        self.scope = scope
+        
+    def __str__(self):
+        pass
+
+class VariableSymbol(Symbol):
+    '''Type of variable'''
+    value_type: Type
+    def __init__(self, name, kind, scope, value_type):
+        super().__init__(name, kind, scope)
+        self.value_type = value_type
+
+class FunctionSymbol(Symbol):
+    ''' Param of a function'''
+    param: List[VarDecl]
+    ''' define is if a symbol have a definition,
+    ie if function is forward declared -> define = false
+    ie if var does not have a var init value yet -> define = false
+    '''
+    define: bool
+    '''Return type of symbol,
+    None if symbol is funcDecl and have no return stmt 
+    if varDecl is scala typed then return type = type declared
+    if varDecl is dynamic (var and dynamic kw) then return type = type of Expression
+    if if varDecl is dynamic kw and have no expr then return type None'''
+    #!None might change to VoidType? 
+    #TODO: fix Symbol accordingly
+    return_type = Type
+    def __init__(self, name, kind, scope,
+                param = [], define=False, return_type = VoidType()):
+        super().__init__(name, kind, scope)
+        self.param = param
+        self.define = define
+        self.return_type = return_type
+        
 class StaticChecker(BaseVisitor, Utils):
-    #*
-    #*
+    
     def __init__(self,ast):
         self.ast = ast
+        
+        #*Loop pointers, value + 1 when visit a loop ctx, 
+        #*value - 1 when done visiting a loop ctx
+        self.in_loop_pointer = 0;
+        
+        #*Scope pointers, value + 1 when go to inner scope
+        #*Value - 1 when get out of inner scope
+        self.scope_pointer = 0;
+        
         self.global_env = [
-            
+            #* I/O API Symbol
+            FunctionSymbol(
+                name= Id("readString"),
+                kind = Function(),
+                scope = 0,
+                define=True,
+                return_type = NumberType()
+            ),
         ]
     
     def check(self):
@@ -82,7 +143,7 @@ class StaticChecker(BaseVisitor, Utils):
         if not isinstance(look_res,FuncDecl):
             #*found symbol is not a function
             raise Undeclared(kind=Function(),name=name)
-    
+        
     def func_definition_check(self, env):
         '''Check if all functions are defined'''
         '''env: Environment to check'''
@@ -94,12 +155,15 @@ class StaticChecker(BaseVisitor, Utils):
     #**********************************#
     #*          VISIT METHOD          *#
     #**********************************#
+    #! Every method control it own scope to pass to children via param ref
+    #! Children return a symbolic reference of it self, 
+    #! or a type for parent to handle
     @param_logger
     def visitProgram(self, ast, param):
         [self.visit(x,param) for x in ast.decl]
         
-        #TODO: Check program entry point
         self.entry_check(param)
+        self.func_definition_check(param)
 
     @param_logger
     def visitVarDecl(self, ast, param):
