@@ -1,4 +1,6 @@
 number a
-        number a
-        func main() return 1
+        func main() 
+        begin
+            number a <- 2
+        end
         

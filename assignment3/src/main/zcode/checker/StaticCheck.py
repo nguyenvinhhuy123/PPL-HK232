@@ -40,21 +40,21 @@ class VariableSymbol(Symbol):
         self.value_type = value_type
 
 class FunctionSymbol(Symbol):
+    param: List[VariableSymbol]
     ''' Param of a function'''
-    param: List[VarDecl]
+    define: bool
     ''' define is if a symbol have a definition,
     ie if function is forward declared -> define = false
     ie if var does not have a var init value yet -> define = false
     '''
-    define: bool
+    #!None might change to VoidType? 
+    #TODO: fix Symbol accordingly
+    return_type = Type
     '''Return type of symbol,
     None if symbol is funcDecl and have no return stmt 
     if varDecl is scala typed then return type = type declared
     if varDecl is dynamic (var and dynamic kw) then return type = type of Expression
     if if varDecl is dynamic kw and have no expr then return type None'''
-    #!None might change to VoidType? 
-    #TODO: fix Symbol accordingly
-    return_type = Type
     def __init__(self, name, kind, scope,
                 param = [], define=False, return_type = VoidType()):
         super().__init__(name, kind, scope)
@@ -102,26 +102,28 @@ class StaticChecker(BaseVisitor, Utils):
         
     def var_redeclared_check(self,target,env):
         '''Check if a variable is declared in the current environment'''
-        '''target: variable to check, should pass in VarDecl object'''
+        '''target: variable to check, should pass in VarSymbol object'''
         '''env: Environment to check'''
         name = target.name
-        if self.lookup(name, env, lambda x: x.name):
-            raise Redeclared(kind=Variable(),name=name)
+        found = self.lookup(name, env, lambda x: x.name)
+        if found:
+            if (target.scope == found.scope):
+                raise Redeclared(kind=Variable(),name=name)
     
     def func_redeclared_check(self,target,env):
         '''Check if a variable is declared in the current environment'''
-        '''target: function to check, should pass in FuncDecl object'''
+        '''target: function to check, should pass in FuncSymbol object'''
         '''env: Environment to check'''
         name = target.name
         look_res = self.lookup(name, env, lambda x: x.name)
         if look_res:
-            if (isinstance(look_res,FuncDecl)
+            if (isinstance(look_res,FunctionSymbol)
                 and (look_res.body == None)
                 and look_res.params == target.params
                 #TODO: write simple param comparision check for this
             ):  #* These condittion verified if a symbol is a forwards declaration
                 #*So we should update the body of the function too match the later declaration
-                look_res.body == target.body
+                look_res.define = True
             else: 
                 raise Redeclared(kind=Function(),name=name)
     
@@ -160,10 +162,11 @@ class StaticChecker(BaseVisitor, Utils):
     #! or a type for parent to handle
     @param_logger
     def visitProgram(self, ast, param):
-        [self.visit(x,param) for x in ast.decl]
-        
-        self.entry_check(param)
-        self.func_definition_check(param)
+        scope = param
+        decl_list = []
+        list(map(lambda symbol : decl_list.append(self.visit(symbol, decl_list + scope)), ast.decl))
+        self.entry_check(decl_list)
+        self.func_definition_check(decl_list)
 
     @param_logger
     def visitVarDecl(self, ast, param):
@@ -171,17 +174,52 @@ class StaticChecker(BaseVisitor, Utils):
         #* look up similar symbol and check var type
         #? should we check for lookups result kind here?
         #? ex: var a lookup res is function a
-        self.var_redeclared_check(ast, param)
+        if (ast.varInit):
+            exprType = self.visit(ast.varInit, param)
+            #TODO: Type mismatch checking here
         
-        #TODO: Check variable type mismatch in assignment if any 
+        symbol = VariableSymbol(
+            name = ast.name,
+            kind=Variable(),
+            scope=self.scope_pointer,
+            value_type=ast.varType
+        )
         
-        #?Should we append to param list here 
-        #?or return a VarDecl obj for parent to handle?
-        param.append(ast)
+        self.var_redeclared_check(symbol, param)
 
+        return symbol
 
+    @param_logger
     def visitFuncDecl(self, ast, param):
-        pass
+        
+        self.scope_pointer += 1
+        scope = param
+        func_param_list = []
+        map(lambda symbol: 
+                func_param_list.append(self.visit(symbol, scope + func_param_list))
+            , ast.param)
+        
+        for symbol in func_param_list:
+            symbol.kind = Parameter()
+        scope = scope + func_param_list
+        if (ast.body):
+            define= True
+            ret = self.visit(ast.body, scope)
+        else: 
+            define = False
+            ret = VoidType()
+        self.scope_pointer -= 1
+        print(ret)
+        symbol = FunctionSymbol(
+            name=ast.name,
+            kind=Function(),
+            scope=self.scope_pointer,
+            param=func_param_list,
+            define=define,
+            return_type=ret
+        )
+        self.func_redeclared_check(symbol, param)
+        return symbol
 
     def visitNumberType(self, ast, param):
         pass
@@ -210,8 +248,22 @@ class StaticChecker(BaseVisitor, Utils):
     def visitArrayCell(self, ast, param):
         pass
 
+    @param_logger
     def visitBlock(self, ast, param):
-        pass
+        '''Return tuple (List[Stmt], List[Decl])'''
+        scope = param
+        decl_list = []
+        stmt_list = []
+        list(
+            map(lambda symbol : 
+                decl_list.append(self.visit(symbol, decl_list + scope))
+                if isinstance(symbol, Decl) 
+                else stmt_list.append(self.visit(symbol, decl_list + scope))
+                , ast.stmt
+            )
+        )
+        #TODO: Return Type of body
+        return None
 
     def visitIf(self, ast, param):
         pass
