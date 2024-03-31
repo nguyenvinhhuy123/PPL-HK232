@@ -82,7 +82,60 @@ class StaticChecker(BaseVisitor, Utils):
                 kind = Function(),
                 scope = 0,
                 define=True,
+                return_type = StringType()
+            ),
+            FunctionSymbol(
+                name= Id("readBool"),
+                kind = Function(),
+                scope = 0,
+                define=True,
+                return_type = BoolType()
+            ),
+            FunctionSymbol(
+                name= Id("readNumber"),
+                kind = Function(),
+                scope = 0,
+                define=True,
                 return_type = NumberType()
+            ),
+            FunctionSymbol(
+                name= Id("writeString"),
+                kind = Function(),
+                scope = 0,
+                param= [VariableSymbol(
+                    name=Id("anArg"),
+                    kind = Parameter(),
+                    scope = 1,
+                    value_type = StringType()  
+                )],
+                define=True,
+                return_type = VoidType()
+            ),
+            FunctionSymbol(
+                name= Id("writeBool"),
+                kind = Function(),
+                scope = 0,
+                param= [VariableSymbol(
+                    name=Id("anArg"),
+                    kind = Parameter(),
+                    scope = 1,
+                    value_type = BoolType()  
+                )],
+                define=True,
+                return_type = VoidType()
+            ),
+            FunctionSymbol(
+                name= Id("writeNumber"),
+                kind = Function(),
+                scope = 0,
+                param= [VariableSymbol(
+                    name=Id("anArg"),
+                    kind = Parameter(),
+                    scope = 1,
+                    value_type = NumberType()  
+                )],
+                define=True,
+                return_type = VoidType()
             ),
         ]
     
@@ -160,7 +213,7 @@ class StaticChecker(BaseVisitor, Utils):
     #! Every method control it own scope to pass to children via param ref
     #! Children return a symbolic reference of it self, 
     #! or a type for parent to handle
-    @param_logger
+   # @param_logger
     def visitProgram(self, ast, param):
         scope = param
         decl_list = []
@@ -168,7 +221,7 @@ class StaticChecker(BaseVisitor, Utils):
         self.entry_check(decl_list)
         self.func_definition_check(decl_list)
 
-    @param_logger
+    #@param_logger
     def visitVarDecl(self, ast, param):
         #*param should be a list of current environment variables
         #* look up similar symbol and check var type
@@ -176,6 +229,8 @@ class StaticChecker(BaseVisitor, Utils):
         #? ex: var a lookup res is function a
         if (ast.varInit):
             exprType = self.visit(ast.varInit, param)
+            if (type(exprType) != type(ast.varType)):
+                raise TypeMismatchInStatement(ast)
             #TODO: Type mismatch checking here
         
         symbol = VariableSymbol(
@@ -189,7 +244,7 @@ class StaticChecker(BaseVisitor, Utils):
 
         return symbol
 
-    @param_logger
+    #@param_logger
     def visitFuncDecl(self, ast, param):
         
         self.scope_pointer += 1
@@ -248,9 +303,9 @@ class StaticChecker(BaseVisitor, Utils):
     def visitArrayCell(self, ast, param):
         pass
 
-    @param_logger
+    #@param_logger
     def visitBlock(self, ast, param):
-        '''Return tuple (List[Stmt], List[Decl])'''
+        '''Return type of return stmt if any else return VoidType'''
         scope = param
         decl_list = []
         stmt_list = []
@@ -262,8 +317,9 @@ class StaticChecker(BaseVisitor, Utils):
                 , ast.stmt
             )
         )
+        return_type = VoidType()
         #TODO: Return Type of body
-        return None
+        return return_type
 
     def visitIf(self, ast, param):
         pass

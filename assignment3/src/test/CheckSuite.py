@@ -5,7 +5,7 @@ from main.zcode.checker.StaticError import *
 from main.zcode.utils.AST import *
 
 SUCCESSFUL = ""
-class CheckerSuite(unittest.TestCase):
+class CheckSuite(unittest.TestCase):
     
     def test_no_entry_point(self):
         input = """number a
