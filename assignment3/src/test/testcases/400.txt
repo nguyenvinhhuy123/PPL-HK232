@@ -1,6 +1,6 @@
-number a
+
         func main() 
         begin
-            number a <- 2
+            number a[3] <- [1,2,3]
         end
         

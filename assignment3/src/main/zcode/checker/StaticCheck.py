@@ -145,8 +145,18 @@ class StaticChecker(BaseVisitor, Utils):
     #**********************************#
     #*          UTILS METHOD          *#
     #**********************************#
+    def move_scope_in(self):
+        self.scope_pointer += 1
     
+    def move_scope_out(self):
+        self.scope_pointer -= 1
+        
+    def move_loop_in(self):
+        self.in_loop_pointer += 1
     
+    def move_loop_out(self):
+        self.in_loop_pointer -= 1
+        
     def entry_check(self, env):
         '''Check if environment have entry point'''
         '''env: Environment to check'''
@@ -158,7 +168,10 @@ class StaticChecker(BaseVisitor, Utils):
         '''target: variable to check, should pass in VarSymbol object'''
         '''env: Environment to check'''
         name = target.name
-        found = self.lookup(name, env, lambda x: x.name)
+        found = self.lookup(name, reversed(env), lambda x: x.name)
+        #!Use reverse to reverser the env list, 
+        #!thus the element with match name is the lastest ele
+        #*This is a way to "hidden" outer scope elements (!! idk man, wtf)
         if found:
             if (target.scope == found.scope):
                 raise Redeclared(kind=Variable(),name=name)
@@ -168,7 +181,7 @@ class StaticChecker(BaseVisitor, Utils):
         '''target: function to check, should pass in FuncSymbol object'''
         '''env: Environment to check'''
         name = target.name
-        look_res = self.lookup(name, env, lambda x: x.name)
+        look_res = self.lookup(name, reversed(env), lambda x: x.name)
         if look_res:
             if (isinstance(look_res,FunctionSymbol)
                 and (look_res.body == None)
@@ -184,14 +197,14 @@ class StaticChecker(BaseVisitor, Utils):
         '''Check if variable symbol is declared in the current environment'''
         '''name: variable symbol to check, should pass in ID object'''
         '''env: Environment to check'''
-        if not self.lookup(name, env, lambda x: x.name):
+        if not self.lookup(name, reversed(env), lambda x: x.name):
             raise Undeclared(kind=Identifier(),name=name)
     
     def func_undeclared_check(self, name, env):
         '''Check if func symbol is declared in the current environment'''
         '''name: func  symbol to check, should pass in ID object'''
         '''env: Environment to check'''
-        look_res = self.lookup(name, env, lambda x: x.name)
+        look_res = self.lookup(name, reversed(env), lambda x: x.name)
         if not look_res:
             #*No symbol found
             raise Undeclared(kind=Identifier(),name=name)
@@ -207,28 +220,35 @@ class StaticChecker(BaseVisitor, Utils):
                 continue
             if not func.body:
                 raise NoDefinition(name=func.name)
+    
+    def compare_type(self, type1, type2):#
+        #TODO: Implement method to compare 2 type definitions
+        pass
     #**********************************#
     #*          VISIT METHOD          *#
     #**********************************#
     #! Every method control it own scope to pass to children via param ref
     #! Children return a symbolic reference of it self, 
     #! or a type for parent to handle
-   # @param_logger
+    
+    #!Scope env list should be in order [outermost scope, .. innermost scope]
+    @param_logger
     def visitProgram(self, ast, param):
-        scope = param
+        parent_env = param
         decl_list = []
-        list(map(lambda symbol : decl_list.append(self.visit(symbol, decl_list + scope)), ast.decl))
+        list(map(lambda symbol : decl_list.append(self.visit(symbol, parent_env + decl_list)), ast.decl))
         self.entry_check(decl_list)
         self.func_definition_check(decl_list)
 
-    #@param_logger
+    @param_logger
     def visitVarDecl(self, ast, param):
         #*param should be a list of current environment variables
         #* look up similar symbol and check var type
         #? should we check for lookups result kind here?
         #? ex: var a lookup res is function a
+        parent_env = param
         if (ast.varInit):
-            exprType = self.visit(ast.varInit, param)
+            exprType = self.visit(ast.varInit, parent_env)
             if (type(exprType) != type(ast.varType)):
                 raise TypeMismatchInStatement(ast)
             #TODO: Type mismatch checking here
@@ -240,30 +260,31 @@ class StaticChecker(BaseVisitor, Utils):
             value_type=ast.varType
         )
         
-        self.var_redeclared_check(symbol, param)
+        self.var_redeclared_check(symbol, parent_env)
 
         return symbol
 
-    #@param_logger
+    @param_logger
     def visitFuncDecl(self, ast, param):
-        
-        self.scope_pointer += 1
-        scope = param
+        parent_env = param
+        self.move_scope_in()
         func_param_list = []
         map(lambda symbol: 
-                func_param_list.append(self.visit(symbol, scope + func_param_list))
+                func_param_list.append(self.visit(symbol, parent_env + func_param_list))
             , ast.param)
         
         for symbol in func_param_list:
             symbol.kind = Parameter()
-        scope = scope + func_param_list
+        
+        self.move_scope_out()
+        
         if (ast.body):
             define= True
-            ret = self.visit(ast.body, scope)
+            ret = self.visit(ast.body, parent_env + func_param_list)
         else: 
             define = False
             ret = VoidType()
-        self.scope_pointer -= 1
+            
         print(ret)
         symbol = FunctionSymbol(
             name=ast.name,
@@ -306,6 +327,7 @@ class StaticChecker(BaseVisitor, Utils):
     #@param_logger
     def visitBlock(self, ast, param):
         '''Return type of return stmt if any else return VoidType'''
+        self.move_scope_in()
         scope = param
         decl_list = []
         stmt_list = []
@@ -318,6 +340,7 @@ class StaticChecker(BaseVisitor, Utils):
             )
         )
         return_type = VoidType()
+        self.move_scope_out()
         #TODO: Return Type of body
         return return_type
 
@@ -328,10 +351,12 @@ class StaticChecker(BaseVisitor, Utils):
         pass
 
     def visitContinue(self, ast, param):
-        pass
+        if self.in_loop_pointer == 0:
+            raise MustInLoop(ast)
 
     def visitBreak(self, ast, param):
-        pass
+        if self.in_loop_pointer == 0:
+            raise MustInLoop(ast)
 
     def visitReturn(self, ast, param):
         pass
@@ -343,13 +368,28 @@ class StaticChecker(BaseVisitor, Utils):
         pass
 
     def visitNumberLiteral(self, ast, param):
-        pass
+        '''Return Number Type'''
+        return NumberType()
 
     def visitBooleanLiteral(self, ast, param):
-        pass
+        '''Return Bool Type'''
+        return BoolType()
 
     def visitStringLiteral(self, ast, param):
-        pass
+        '''Return String Type'''
+        return StringType()
 
     def visitArrayLiteral(self, ast, param):
-        pass
+        '''Return Number Type'''
+        array_ele_type_list = [self.visit(ele,param) for ele in ast.value]
+        initial_type = type(array_ele_type_list[0])
+        if (isinstance(initial_type, ArrayType)):
+            initial_size = array_ele_type_list[0].size
+            if not all(isinstance(x, initial_type) and initial_size == x.size for x in array_ele_type_list):
+                raise TypeMismatchInStatement(ast)
+            arr_size = [float(len(array_ele_type_list))]+ initial_size
+            return ArrayType(size= arr_size, eleType=array_ele_type_list[0])
+        if (not all(isinstance(x, initial_type) for x in array_ele_type_list)):
+            raise TypeMismatchInStatement(ast)
+        arr_size = [float(len(array_ele_type_list))]
+        return ArrayType(size=arr_size, eleType=array_ele_type_list[0])
