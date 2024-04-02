@@ -48,7 +48,6 @@ class FunctionSymbol(Symbol):
     ie if var does not have a var init value yet -> define = false
     '''
     #!None might change to VoidType? 
-    #TODO: fix Symbol accordingly
     return_type = Type
     '''Return type of symbol,
     None if symbol is funcDecl and have no return stmt 
@@ -158,15 +157,22 @@ class StaticChecker(BaseVisitor, Utils):
         self.in_loop_pointer -= 1
         
     def entry_check(self, env):
-        '''Check if environment have entry point'''
-        '''env: Environment to check'''
-        if not self.lookup(name=Id("main"),lst=env,func=lambda x: x.name):
+        '''Check if environment have entry point
+        env: Environment to check'''
+        main_check = self.lookup(name=Id("main"),lst=env,func=lambda x: x.name)
+        if (not main_check or  (main_check.param is not []) or not main_check.define):
             raise NoEntryPoint()
         
     def var_redeclared_check(self,target,env):
-        '''Check if a variable is declared in the current environment'''
-        '''target: variable to check, should pass in VarSymbol object'''
-        '''env: Environment to check'''
+        """Check if a variable is declared in the current environment
+
+        Args:
+            target (VariableSymbol): variable to check
+            env (List[Symbol]): Environment to check
+
+        Raises:
+            Redeclared: if found a symbol witth similar name and scope
+        """
         name = target.name
         found = self.lookup(name, reversed(env), lambda x: x.name)
         #!Use reverse to reverser the env list, 
@@ -174,56 +180,130 @@ class StaticChecker(BaseVisitor, Utils):
         #*This is a way to "hidden" outer scope elements (!! idk man, wtf)
         if found:
             if (target.scope == found.scope):
-                raise Redeclared(kind=Variable(),name=name)
+                raise Redeclared(kind=Variable(),name=str(name))
     
     def func_redeclared_check(self,target,env):
-        '''Check if a variable is declared in the current environment'''
-        '''target: function to check, should pass in FuncSymbol object'''
-        '''env: Environment to check'''
+        """Check if a function is declared in the current environment
+
+        Args:
+            target (FunctionSymbol): function to check
+            env (List[Symbol]): Environment to check
+
+        Raises:
+            Redeclared: if a function symbol with similar name is found 
+            with matching parameters and already have a body
+        """
         name = target.name
         look_res = self.lookup(name, reversed(env), lambda x: x.name)
         if look_res:
             if (isinstance(look_res,FunctionSymbol)
-                and (look_res.body == None)
-                and look_res.params == target.params
-                #TODO: write simple param comparision check for this
+                and self.compare_parameter_list(look_res.params,target.params)
+                and ((look_res.define == False) and (target.define == True))
             ):  #* These condittion verified if a symbol is a forwards declaration
                 #*So we should update the body of the function too match the later declaration
                 look_res.define = True
             else: 
-                raise Redeclared(kind=Function(),name=name)
+                raise Redeclared(kind=Function(),name=str(name))
     
     def var_undeclared_check(self, name, env):
-        '''Check if variable symbol is declared in the current environment'''
-        '''name: variable symbol to check, should pass in ID object'''
-        '''env: Environment to check'''
-        if not self.lookup(name, reversed(env), lambda x: x.name):
-            raise Undeclared(kind=Identifier(),name=name)
+        """ Check if variable symbol is declared in the current environment
+
+        Args:
+            name (Id): name to check
+            env (List[Symbol]): Environment to check
+
+        Raises:
+            Undeclared: no Symbol with name = name is declared
+            
+        Returns: 
+            symbol(Symbol): inner most scope symbol with name = name
+        """
+        symbol = self.lookup(name, reversed(env), lambda x: x.name)
+        if not symbol:
+            raise Undeclared(kind=Identifier(),name=str(name))
+        if not isinstance(symbol, VariableSymbol):
+            raise Undeclared(kind=Identifier(),name=str(name))
+        return symbol
     
     def func_undeclared_check(self, name, env):
-        '''Check if func symbol is declared in the current environment'''
-        '''name: func  symbol to check, should pass in ID object'''
-        '''env: Environment to check'''
+        """Check if func symbol is declared in the current environment
+
+        Args:
+            name (Id): func symbol to check
+            env (List[Symbol]): Environment to check
+
+        Raises:
+            Undeclared: if no symbol found
+            Undeclared: found symbol is not a function
+        """
         look_res = self.lookup(name, reversed(env), lambda x: x.name)
         if not look_res:
             #*No symbol found
-            raise Undeclared(kind=Identifier(),name=name)
+            raise Undeclared(kind=Identifier(),name=str(name))
         if not isinstance(look_res,FuncDecl):
             #*found symbol is not a function
-            raise Undeclared(kind=Function(),name=name)
+            raise Undeclared(kind=Function(),name=str(name))
         
     def func_definition_check(self, env):
-        '''Check if all functions are defined'''
-        '''env: Environment to check'''
+        """Check if all functions are defined
+
+        Args:
+            env (List[Symbol]): Environment to check
+
+        Raises:
+            NoDefinition: exist a function symbol without definition
+        """
         for func in env:
-            if not isinstance(func,FuncDecl):
+            if not isinstance(func,FunctionSymbol):
                 continue
-            if not func.body:
-                raise NoDefinition(name=func.name)
+            if not func.define:
+                raise NoDefinition(name=str(func.name))
     
-    def compare_type(self, type1, type2):#
-        #TODO: Implement method to compare 2 type definitions
-        pass
+    def compare_type(self, type_1, type_2):#
+        """Compare 2 type object
+
+        Args:
+            type_1 (Type): first type object
+            type_2 (Type): second type object
+
+        Returns:
+            bool: True if equal, False otherwise
+        """        
+        
+        #*Both are scala types
+        if ((isinstance(type_1, NumberType) and isinstance(type_2, NumberType))
+        or (isinstance(type_1, BoolType) and isinstance(type_2, BoolType))
+        or (isinstance(type_1, StringType) and isinstance(type_2, StringType))):
+            return True
+        if (isinstance(type_1, ArrayType) and isinstance(type_2, ArrayType)):
+            #*both are arrays
+            #*compare array elements type
+            if (not self.compare_type(type_1.eleType, type_2.eleType)):
+                return False
+            #*compare array elements size
+            if (type_1.size != type_2.size):
+                return False
+            return True
+        return False
+    
+    def compare_parameter_list(self, param_list_1, param_list_2):
+        """Compare 2 parameter lists
+
+        Args:
+            param_list_1 (list[VariableSymbol]): list of parameter symbols
+            param_list_2 (list[VariableSymbol]): list of parameter symbols
+
+        Returns:
+            bool : True if parameter lists are equal, False otherwise
+        """
+        if (len(param_list_1)!= len(param_list_2)):
+            return False
+        for i in range(len(param_list_1)):
+            if (param_list_1[i].name != param_list_2[i].name):
+                return False
+            if (not self.compare_type(param_list_1[i].value_type, param_list_2[i].value_type)):
+                return False
+        return True
     #**********************************#
     #*          VISIT METHOD          *#
     #**********************************#
@@ -249,9 +329,8 @@ class StaticChecker(BaseVisitor, Utils):
         parent_env = param
         if (ast.varInit):
             exprType = self.visit(ast.varInit, parent_env)
-            if (type(exprType) != type(ast.varType)):
+            if (self.compare_type(exprType, ast.varType)):
                 raise TypeMismatchInStatement(ast)
-            #TODO: Type mismatch checking here
         
         symbol = VariableSymbol(
             name = ast.name,
@@ -319,12 +398,13 @@ class StaticChecker(BaseVisitor, Utils):
         pass
 
     def visitId(self, ast, param):
-        pass
+        '''Return Id'''
+        return ast
 
     def visitArrayCell(self, ast, param):
         pass
 
-    #@param_logger
+    @param_logger
     def visitBlock(self, ast, param):
         '''Return type of return stmt if any else return VoidType'''
         self.move_scope_in()
@@ -359,7 +439,10 @@ class StaticChecker(BaseVisitor, Utils):
             raise MustInLoop(ast)
 
     def visitReturn(self, ast, param):
-        pass
+        '''Return a type object'''
+        if (ast.expr):
+            return self.visit(ast.expr, param)
+        return VoidType()
 
     def visitAssign(self, ast, param):
         pass
