@@ -1,0 +1,5 @@
+
+        func foo(number a) return a
+        number a <- 2
+        func main() return 1
+        
