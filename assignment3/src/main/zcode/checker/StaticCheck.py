@@ -5,9 +5,9 @@ from StaticError import *
 from functools import reduce
 
 #!Import to use intelisense
-# from main.zcode.utils.AST import *
-# from main.zcode.utils.Visitor import *
-# from main.zcode.utils.Utils import Utils
+from main.zcode.utils.AST import *
+from main.zcode.utils.Visitor import *
+from main.zcode.utils.Utils import Utils
 def param_logger(func):
     def wrapper(obj,ast,param):
         print("At " + func.__name__)
@@ -77,6 +77,10 @@ class FunctionSymbol(Symbol):
                 str(self.return_type) + ", " )
         return res
 
+class UnResolveType(Type):
+    
+    def __str__(self):
+        return "UnResolve"
 class StaticChecker(BaseVisitor, Utils):
     
     def __init__(self,ast):
@@ -225,8 +229,8 @@ class StaticChecker(BaseVisitor, Utils):
             else: 
                 raise Redeclared(kind=Function(),name=target_id.name)
     
-    def var_undeclared_check(self, target_id, env):
-        """ Check if variable symbol is declared in the current environment
+    def symbol_undeclared_check(self, target_id, env):
+        """ Check if a symbol is declared in the current environment
 
         Args:
             target_id (Id): target_id to check
@@ -241,8 +245,6 @@ class StaticChecker(BaseVisitor, Utils):
         symbol = self.lookup(target_id, reversed(env), lambda x: x.name)
         if not symbol:
             raise Undeclared(kind=Identifier(),name=target_id.name)
-        if not isinstance(symbol, VariableSymbol):
-            raise Undeclared(kind=Identifier(),name=target_id.name)
         return symbol
     
     def func_undeclared_check(self, target_id, env):
@@ -256,11 +258,8 @@ class StaticChecker(BaseVisitor, Utils):
             Undeclared: if no symbol found
             Undeclared: found symbol is not a function
         """
-        look_res = self.lookup(target_id, reversed(env), lambda x: x.name)
-        if not look_res:
-            #*No symbol found
-            raise Undeclared(kind=Identifier(),name=target_id.name)
-        if not isinstance(look_res,FuncDecl):
+        symbol = self.symbol_undeclared_check(target_id, env)
+        if not isinstance(symbol,FunctionSymbol):
             #*found symbol is not a function
             raise Undeclared(kind=Function(),name=target_id.name)
         
@@ -326,6 +325,62 @@ class StaticChecker(BaseVisitor, Utils):
             if (not self.compare_type(param_list_1[i].value_type, param_list_2[i].value_type)):
                 return False
         return True
+    
+    def get_id_type(self, target_id, current_inferred_type, param, is_function):
+        """Get the type of the Id object
+
+        Args:
+            target_id (Id): target Id to find the type of
+            current_inferred_type (Type): type inferred from the outer expr
+            If current_inferred_type value is None 
+            -> mean outer expr/stmt can not inferred a type to this Id
+            param (List[Symbol]): environment to find Symbol of Id
+            is_function (bool): true mean need to find a function symbol for this Id
+
+        Returns:
+            Type: Type of the found symbol match with Id
+            None: if return type is mismatched with outer inferred type (for outer to call Type mismatch)
+            UnresolveType: if Id type is unresolved and outer type is None (cant be inferred)
+            a valid type if symbol return type match with inferred type or symbol type can be inferred
+        """
+        if (is_function):
+            symbol = self.func_undeclared_check(target_id, param)
+            if (isinstance(symbol.return_type, UnResolveType)):
+                if (current_inferred_type == None):
+                    return UnResolveType()
+                symbol.return_type = current_inferred_type
+                return current_inferred_type
+            if (symbol.return_type != current_inferred_type):
+                return None
+            
+        else:
+            symbol = self.symbol_undeclared_check(target_id, param)
+            if (isinstance(symbol.value_type, UnResolveType)):
+                if (current_inferred_type == None):
+                    return UnResolveType()
+                symbol.value_type = current_inferred_type
+                return current_inferred_type
+            if (symbol.value_type != current_inferred_type):
+                return None
+
+    def get_op_type(self, op):
+        #TODO: Implement get_binary_op_type return operator, operand type
+        if (op in ["+", "-", "*", "/", "%"]):
+            operand_type = NumberType()
+            return_type = NumberType()
+        if (op in ["and", "or", "not"]):
+            operand_type = BoolType()
+            return_type = BoolType()
+        if (op in ["..."]):
+            operand_type = StringType()
+            return_type = StringType()
+        if (op in ["=", "!=", ">", "<", ">=", "<="]):
+            operand_type = NumberType()
+            return_type = BoolType()
+        if (op in ["=="]):
+            operand_type = StringType()
+            return_type = BoolType()
+        return (operand_type, return_type)
     #**********************************#
     #*          VISIT METHOD          *#
     #**********************************#
@@ -333,6 +388,8 @@ class StaticChecker(BaseVisitor, Utils):
     #! Children return a symbolic reference of it self, 
     #! or a type for parent to handle
     
+    #! If expression is type Id -> use get_id_type_instead
+     
     #!Scope env list should be in order [outermost scope, .. innermost scope]
     @param_logger
     def visitProgram(self, ast, param):
@@ -358,17 +415,23 @@ class StaticChecker(BaseVisitor, Utils):
         #* look up similar symbol and check var type
         #? should we check for lookups result kind here?
         #? ex: var a lookup res is function a
+        result_type = ast.varType
         parent_env = param
         if (ast.varInit):
             exprType = self.visit(ast.varInit, parent_env)
-            if (not self.compare_type(exprType, ast.varType)):
+            if (exprType == UnResolveType()):
+                raise TypeCannotBeInferred(ast)
+            if (not self.compare_type(exprType, ast.varType) and 
+                ast.varType != None):
                 raise TypeMismatchInStatement(ast)
+            result_type = exprType
+            
         
         symbol = VariableSymbol(
             name = ast.name,
             kind=Variable(),
             scope=self.scope_pointer,
-            value_type=ast.varType
+            value_type=result_type if result_type else UnResolveType()
         )
         
         self.var_redeclared_check(symbol, parent_env)
@@ -390,7 +453,7 @@ class StaticChecker(BaseVisitor, Utils):
             scope=self.scope_pointer,
             param=func_param_list,
             define=True if ast.body else False,
-            return_type=VoidType()
+            return_type=UnResolveType()
         )
         self.move_scope_in()
         list(map(lambda symbol: 
@@ -402,18 +465,11 @@ class StaticChecker(BaseVisitor, Utils):
         
         self.move_scope_out()
 
-        symbol = FunctionSymbol(
-            name=ast.name,
-            kind=Function(),
-            scope=self.scope_pointer,
-            param=func_param_list,
-            define=True if ast.body else False,
-            return_type=VoidType()
-        )
+        #TODO: check again return type algorithm
         return_symbol.return_type = self.visit(ast.body,
                                             parent_env + 
                                             [return_symbol] + 
-                                            func_param_list) if ast.body else VoidType()
+                                            func_param_list) if ast.body else UnResolveType()
         
         self.func_redeclared_check(return_symbol, param)
         return return_symbol
@@ -434,20 +490,66 @@ class StaticChecker(BaseVisitor, Utils):
         """
         pass
 
+    @param_logger
     def visitBinaryOp(self, ast, param):
         """
         # op: str
         # left: Expr
         # right: Expr
         """
-        pass
-
+        
+        (operand_type, return_type) = self.get_op_type(op=ast.op)
+        if (isinstance(ast.left, Id)):
+            left_type = self.get_id_type(
+                target_id=ast.left,
+                current_inferred_type=operand_type,
+                param=param,
+                is_function=False
+            )
+        if (isinstance(ast.right, Id)):
+            right_type = self.get_id_type(
+                target_id=ast.right,
+                current_inferred_type=operand_type,
+                param=param,
+                is_function=False
+            )
+        if (
+            isinstance(left_type,UnResolvedType) or 
+            isinstance(right_type,UnResolvedType)
+        ):
+            return UnResolveType()
+        
+        if (left_type == None or right_type == None):
+            raise TypeMismatchInExpression(ast)
+        if (not self.compare_type(left_type, right_type)
+            or not self.compare_type(left_type, operand_type)):
+            raise TypeMismatchInExpression(ast)
+        return return_type
+        
     def visitUnaryOp(self, ast, param):
         """
         # op: str
         # operand: Expr
         """
-        pass
+        (operand_type, return_type) = self.get_op_type(op=ast.op)
+        (operand_type, return_type) = self.get_op_type(op=ast.op)
+        if (isinstance(ast.operand, Id)):
+            left_type = self.get_id_type(
+                target_id=ast.left,
+                current_inferred_type=operand_type,
+                param=param,
+                is_function=False
+            )
+        if (
+            isinstance(left_type,UnResolvedType)
+        ):
+            return UnResolveType()
+        
+        if (left_type == None):
+            raise TypeMismatchInExpression(ast)
+        if (not self.compare_type(left_type, right_type)):
+            raise TypeMismatchInExpression(ast)
+        return return_type
 
     def visitCallExpr(self, ast, param):
         """
@@ -461,7 +563,7 @@ class StaticChecker(BaseVisitor, Utils):
         # name: str
         """
         '''Return Id'''
-        return ast
+        return self.symbol_undeclared_check(ast,param)
 
     def visitArrayCell(self, ast, param):
         """
