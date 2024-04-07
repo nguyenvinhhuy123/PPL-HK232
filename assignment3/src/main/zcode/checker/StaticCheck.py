@@ -5,9 +5,9 @@ from StaticError import *
 from functools import reduce
 
 #!Import to use intelisense
-from main.zcode.utils.AST import *
-from main.zcode.utils.Visitor import *
-from main.zcode.utils.Utils import Utils
+# from main.zcode.utils.AST import *
+# from main.zcode.utils.Visitor import *
+# from main.zcode.utils.Utils import Utils
 def param_logger(func):
     def wrapper(obj,ast,param):
         print("At " + func.__name__)
@@ -447,13 +447,13 @@ class StaticChecker(BaseVisitor, Utils):
     def visitExpr(self, current_inferred_type, ast, param):
         if (isinstance(ast, Id)):
             return self.get_var_type_by_id(
-                target_id=ast.left,
+                target_id=ast,
                 current_inferred_type=current_inferred_type,
                 param=param,
             )
         elif (isinstance(ast, CallExpr)):
             return self.inferred_to_call_expression(
-            target_id=ast.left,
+            target_id=ast.name,
             current_inferred_type=current_inferred_type,
             param=param,
             )
@@ -486,7 +486,8 @@ class StaticChecker(BaseVisitor, Utils):
         parent_env = param
         if (ast.varInit):
             exprType = self.visitExpr(None, ast.varInit, parent_env)
-            if (exprType == UnResolveType()):
+            print(exprType)
+            if (isinstance(exprType,UnResolveType)):
                 raise TypeCannotBeInferred(ast)
             if (not self.compare_type(exprType, ast.varType) and 
                 ast.varType != None):
@@ -570,12 +571,12 @@ class StaticChecker(BaseVisitor, Utils):
         right_type = self.visitExpr(operand_type, ast.right, param)
         
         if (
-            isinstance(left_type,UnResolvedType) or 
-            isinstance(right_type,UnResolvedType)
+            isinstance(left_type,UnResolveType) or 
+            isinstance(right_type,UnResolveType)
         ):
             return UnResolveType()
         
-        if (left_type == None or right_type == None):
+        if (left_type is None or right_type is None):
             raise TypeMismatchInExpression(ast)
         if (not self.compare_type(left_type, right_type)
             or not self.compare_type(left_type, operand_type)):
