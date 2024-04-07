@@ -32,6 +32,10 @@ class Symbol:
     def __str__(self):
         pass
 
+class UnResolveType(Type):
+    def __str__(self):
+        return "UnResolve"
+
 class VariableSymbol(Symbol):
     '''Type of variable'''
     value_type: Type
@@ -45,7 +49,7 @@ class VariableSymbol(Symbol):
                 str(self.scope) + ", " +
                 str(self.value_type) + ", " )
         return res
-
+    
 class FunctionSymbol(Symbol):
     param: List[VariableSymbol]
     ''' Param of a function'''
@@ -62,7 +66,7 @@ class FunctionSymbol(Symbol):
     if varDecl is dynamic (var and dynamic kw) then return type = type of Expression
     if if varDecl is dynamic kw and have no expr then return type None'''
     def __init__(self, name, kind, scope,
-                param = [], define=False, return_type = VoidType()):
+                param = [], define=False, return_type = UnResolveType()):
         super().__init__(name, kind, scope)
         self.param = param
         self.define = define
@@ -77,10 +81,6 @@ class FunctionSymbol(Symbol):
                 str(self.return_type) + ", " )
         return res
 
-class UnResolveType(Type):
-    
-    def __str__(self):
-        return "UnResolve"
 class StaticChecker(BaseVisitor, Utils):
     
     def __init__(self,ast):
@@ -289,8 +289,6 @@ class StaticChecker(BaseVisitor, Utils):
         Returns:
             bool: True if equal, False otherwise
         """
-        print(isinstance(type_1,NumberType))
-        print(isinstance(type_2,NumberType))
         #*Both are scala types
         if ((isinstance(type_1, NumberType) and isinstance(type_2, NumberType))
         or (isinstance(type_1, BoolType) and isinstance(type_2, BoolType))
@@ -326,8 +324,8 @@ class StaticChecker(BaseVisitor, Utils):
                 return False
         return True
     
-    def get_id_type(self, target_id, current_inferred_type, param, is_function):
-        """Get the type of the Id object
+    def get_var_type_by_id(self, target_id, current_inferred_type, param):
+        """Get the type of the Id object with variable kind
 
         Args:
             target_id (Id): target Id to find the type of
@@ -335,7 +333,6 @@ class StaticChecker(BaseVisitor, Utils):
             If current_inferred_type value is None 
             -> mean outer expr/stmt can not inferred a type to this Id
             param (List[Symbol]): environment to find Symbol of Id
-            is_function (bool): true mean need to find a function symbol for this Id
 
         Returns:
             Type: Type of the found symbol match with Id
@@ -343,26 +340,82 @@ class StaticChecker(BaseVisitor, Utils):
             UnresolveType: if Id type is unresolved and outer type is None (cant be inferred)
             a valid type if symbol return type match with inferred type or symbol type can be inferred
         """
-        if (is_function):
-            symbol = self.func_undeclared_check(target_id, param)
-            if (isinstance(symbol.return_type, UnResolveType)):
-                if (current_inferred_type == None):
-                    return UnResolveType()
-                symbol.return_type = current_inferred_type
-                return current_inferred_type
-            if (symbol.return_type != current_inferred_type):
-                return None
             
-        else:
-            symbol = self.symbol_undeclared_check(target_id, param)
-            if (isinstance(symbol.value_type, UnResolveType)):
-                if (current_inferred_type == None):
-                    return UnResolveType()
-                symbol.value_type = current_inferred_type
-                return current_inferred_type
-            if (symbol.value_type != current_inferred_type):
-                return None
+        symbol = self.symbol_undeclared_check(target_id, param)
+        if (isinstance(symbol.value_type, UnResolveType)):
+            if (current_inferred_type == None):
+                return UnResolveType()
+            symbol.value_type = current_inferred_type
+        if (symbol.value_type != current_inferred_type):
+            return None
+        return symbol.value_type
+        
+    def get_function_type_by_id(self, target_id, current_inferred_type, param):
+        """Get the type of the Id object with variable kind
 
+        Args:
+            target_id (Id): target Id to find the type of
+            current_inferred_type (Type): type inferred from the outer expr
+            If current_inferred_type value is None 
+            -> mean outer expr/stmt can not inferred a type to this Id
+            param (List[Symbol]): environment to find Symbol of Id
+
+        Returns:
+            (Type, param_list)
+            param_list: list of function parameters
+            Type : Type of the found symbol match with Id
+            None: if return type is mismatched with outer inferred type (for outer to call Type mismatch)
+            UnresolveType: if Id type is unresolved and outer type is None (cant be inferred)
+            a valid type if symbol return type match with inferred type or symbol type can be inferred
+        """
+        symbol = self.func_undeclared_check(target_id, param)
+        param_list = symbol.param
+        if (isinstance(symbol.return_type, UnResolveType)):
+            if (current_inferred_type == None):
+                return (UnResolveType(), param_list)
+            symbol.return_type = current_inferred_type
+        if (symbol.return_type != current_inferred_type):
+            return (None, param_list)
+        return (symbol.return_type, param_list)
+    
+    def inferred_to_call_expression(self, call_expression_ast, current_inferred_type, param):
+        (target_id, args_list) = self.visit(call_expression_ast, param)
+        (symbol_type, param_list) = self.get_function_type_by_id(
+            target_id=target_id,
+            current_inferred_type=current_inferred_type,
+            param=param
+        )
+        #*Check symbol_type
+        if (symbol_type is None):
+            raise TypeMismatchInExpression(call_expression_ast)
+        if (isinstance(symbol_type, VoidType)):
+            raise TypeMismatchInExpression(call_expression_ast)
+        
+        #*Compare and inferred args list to parameter list
+        if (len(args_list) != len(param_list)):
+            raise TypeMismatchInExpression(call_expression_ast)
+        for i in range(len(args_list)):
+            if (isinstance(args_list[i], Id)):
+                args_type = self.get_var_type_by_id(
+                target_id=args_list[i],
+                current_inferred_type=param_list[i].value_type,
+                param=param,
+                )
+            elif (isinstance(args_list[i], CallExpr)):
+                args_type = self.inferred_to_call_expression(
+                target_id=args_list[i],
+                current_inferred_type=param_list[i].value_type,
+                param=param,
+                )
+            else :
+                args_type = self.visit(args_list[i], param)
+            if (args_type is None):
+                raise TypeMismatchInExpression(call_expression_ast)
+            if (isinstance(args_type, UnResolveType)):
+                return args_type
+        #Return symbol type if every param and args is checked
+        return symbol_type
+                
     def get_op_type(self, op):
         #TODO: Implement get_binary_op_type return operator, operand type
         if (op in ["+", "-", "*", "/", "%"]):
@@ -391,6 +444,21 @@ class StaticChecker(BaseVisitor, Utils):
     #! If expression is type Id -> use get_id_type_instead
      
     #!Scope env list should be in order [outermost scope, .. innermost scope]
+    def visitExpr(self, current_inferred_type, ast, param):
+        if (isinstance(ast, Id)):
+            return self.get_var_type_by_id(
+                target_id=ast.left,
+                current_inferred_type=current_inferred_type,
+                param=param,
+            )
+        elif (isinstance(ast, CallExpr)):
+            return self.inferred_to_call_expression(
+            target_id=ast.left,
+            current_inferred_type=current_inferred_type,
+            param=param,
+            )
+        else :
+            return self.visit(ast, param)
     @param_logger
     def visitProgram(self, ast, param):
         """
@@ -402,7 +470,6 @@ class StaticChecker(BaseVisitor, Utils):
         print([str(x) for x in decl_list])
         self.entry_check(decl_list)
         self.func_definition_check(decl_list)
-
     @param_logger
     def visitVarDecl(self, ast, param):
         """
@@ -418,7 +485,7 @@ class StaticChecker(BaseVisitor, Utils):
         result_type = ast.varType
         parent_env = param
         if (ast.varInit):
-            exprType = self.visit(ast.varInit, parent_env)
+            exprType = self.visitExpr(None, ast.varInit, parent_env)
             if (exprType == UnResolveType()):
                 raise TypeCannotBeInferred(ast)
             if (not self.compare_type(exprType, ast.varType) and 
@@ -437,7 +504,6 @@ class StaticChecker(BaseVisitor, Utils):
         self.var_redeclared_check(symbol, parent_env)
 
         return symbol
-
     @param_logger
     def visitFuncDecl(self, ast, param):
         """
@@ -499,20 +565,10 @@ class StaticChecker(BaseVisitor, Utils):
         """
         
         (operand_type, return_type) = self.get_op_type(op=ast.op)
-        if (isinstance(ast.left, Id)):
-            left_type = self.get_id_type(
-                target_id=ast.left,
-                current_inferred_type=operand_type,
-                param=param,
-                is_function=False
-            )
-        if (isinstance(ast.right, Id)):
-            right_type = self.get_id_type(
-                target_id=ast.right,
-                current_inferred_type=operand_type,
-                param=param,
-                is_function=False
-            )
+        left_type = self.visitExpr(operand_type, ast.left, param)
+
+        right_type = self.visitExpr(operand_type, ast.right, param)
+        
         if (
             isinstance(left_type,UnResolvedType) or 
             isinstance(right_type,UnResolvedType)
@@ -525,7 +581,7 @@ class StaticChecker(BaseVisitor, Utils):
             or not self.compare_type(left_type, operand_type)):
             raise TypeMismatchInExpression(ast)
         return return_type
-        
+    @param_logger
     def visitUnaryOp(self, ast, param):
         """
         # op: str
@@ -533,31 +589,28 @@ class StaticChecker(BaseVisitor, Utils):
         """
         (operand_type, return_type) = self.get_op_type(op=ast.op)
         (operand_type, return_type) = self.get_op_type(op=ast.op)
-        if (isinstance(ast.operand, Id)):
-            left_type = self.get_id_type(
-                target_id=ast.left,
-                current_inferred_type=operand_type,
-                param=param,
-                is_function=False
-            )
+        op_type = self.visitExpr(ast.operand, param)
         if (
-            isinstance(left_type,UnResolvedType)
+            isinstance(op_type,UnResolvedType)
         ):
             return UnResolveType()
         
-        if (left_type == None):
+        if (op_type == None):
             raise TypeMismatchInExpression(ast)
-        if (not self.compare_type(left_type, right_type)):
+        if (not self.compare_type(op_type, operand_type)):
             raise TypeMismatchInExpression(ast)
         return return_type
 
+    @param_logger
     def visitCallExpr(self, ast, param):
         """
         # name: Id
         # args: List[Expr]
         """
-        pass
-
+        Id = ast.name
+        args_list = [ele for ele in ast.args]
+        return (Id, args_list)
+    
     def visitId(self, ast, param):
         """
         # name: str
@@ -570,7 +623,18 @@ class StaticChecker(BaseVisitor, Utils):
         # arr: Expr
         # idx: List[Expr]
         """
-        pass
+        idx_type_list = []
+        for ele in ast.idx:
+            idx_num = self.visitExpr(NumberType(), ele, param)
+            if (idx_num is None): 
+                raise TypeMismatchInExpression(ast)
+            if (isinstance(idx_num, UnResolveType)): 
+                return idx_num
+            idx_type_list.append(idx_num)
+        arr = self.visitExpr(None, ast, param)
+        if (not isinstance(arr, ArrayType)):
+            raise TypeMismatchInExpression(ast)
+        return arr
 
     @param_logger
     def visitBlock(self, ast, param):
@@ -660,9 +724,10 @@ class StaticChecker(BaseVisitor, Utils):
         """
         # value: List[Expr]
         """
-        '''Return Number Type'''
-        array_ele_type_list = [self.visit(ele,param) for ele in ast.value]
-        initial_type = type(array_ele_type_list[0])
+        '''Return Array Type'''
+        #TODO: Handle type inference
+        initial_type =self.visitExpr(None, array_ele_type_list ,param)
+        array_ele_type_list = [self.visitExpr(initial_type, ele,param) for ele in ast.value[1:]]
         if (isinstance(initial_type, ArrayType)):
             initial_size = array_ele_type_list[0].size
             if not all(isinstance(x, initial_type) and initial_size == x.size for x in array_ele_type_list):
