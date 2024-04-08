@@ -5,13 +5,16 @@ from StaticError import *
 from functools import reduce
 
 #!Import to use intelisense
-# from main.zcode.utils.AST import *
-# from main.zcode.utils.Visitor import *
-# from main.zcode.utils.Utils import Utils
+from main.zcode.utils.AST import *
+from main.zcode.utils.Visitor import *
+from main.zcode.utils.Utils import Utils
 def param_logger(func):
     def wrapper(obj,ast,param):
         print("At " + func.__name__)
-        print("Param: ", [str(x) for x in param])
+        if (isinstance(param, list)):
+            print("Param: ", [str(x) for x in param])
+        else:
+            print("Param: ", [str(x) for x in param[0]], "Return Symbol: ", param[1])
         print("AST: ", str(ast))
         return func(obj,ast,param)
     return wrapper
@@ -290,6 +293,8 @@ class StaticChecker(BaseVisitor, Utils):
             bool: True if equal, False otherwise
         """
         #*Both are scala types
+        if (type_1 is None or type_2 is None):
+            return False
         if ((isinstance(type_1, NumberType) and isinstance(type_2, NumberType))
         or (isinstance(type_1, BoolType) and isinstance(type_2, BoolType))
         or (isinstance(type_1, StringType) and isinstance(type_2, StringType))):
@@ -340,13 +345,13 @@ class StaticChecker(BaseVisitor, Utils):
             UnresolveType: if Id type is unresolved and outer type is None (cant be inferred)
             a valid type if symbol return type match with inferred type or symbol type can be inferred
         """
-            
         symbol = self.symbol_undeclared_check(target_id, param)
         if (isinstance(symbol.value_type, UnResolveType)):
             if (current_inferred_type == None):
                 return UnResolveType()
             symbol.value_type = current_inferred_type
-        if (symbol.value_type != current_inferred_type):
+        if (not self.compare_type(symbol.value_type, current_inferred_type)):
+            if (current_inferred_type == None): return symbol.value_type
             return None
         return symbol.value_type
         
@@ -379,6 +384,23 @@ class StaticChecker(BaseVisitor, Utils):
         return (symbol.return_type, param_list)
     
     def inferred_to_call_expression(self, call_expression_ast, current_inferred_type, param):
+        """Type inferrence and checking of call expression
+
+        Args:
+            call_expression_ast (call_expr_tree): target Id to find the type of
+            current_inferred_type (Type): type inferred from the outer expr
+            If current_inferred_type value is None 
+            -> mean outer expr/stmt can not inferred a type to this Id
+            param (List[Symbol]): environment to find Symbol of Id
+
+        Returns:
+            (Type, param_list)
+            param_list: list of function parameters
+            Type : Type of the found symbol match with Id
+            None: if return type is mismatched with outer inferred type (for outer to call Type mismatch)
+            UnresolveType: if Id type is unresolved and outer type is None (cant be inferred)
+            a valid type if symbol return type match with inferred type or symbol type can be inferred
+        """
         (target_id, args_list) = self.visit(call_expression_ast, param)
         (symbol_type, param_list) = self.get_function_type_by_id(
             target_id=target_id,
@@ -390,7 +412,6 @@ class StaticChecker(BaseVisitor, Utils):
             raise TypeMismatchInExpression(call_expression_ast)
         if (isinstance(symbol_type, VoidType)):
             raise TypeMismatchInExpression(call_expression_ast)
-        
         #*Compare and inferred args list to parameter list
         if (len(args_list) != len(param_list)):
             raise TypeMismatchInExpression(call_expression_ast)
@@ -412,7 +433,7 @@ class StaticChecker(BaseVisitor, Utils):
             if (args_type is None):
                 raise TypeMismatchInExpression(call_expression_ast)
             if (isinstance(args_type, UnResolveType)):
-                return args_type
+                return UnResolveType()
         #Return symbol type if every param and args is checked
         return symbol_type
                 
@@ -441,8 +462,9 @@ class StaticChecker(BaseVisitor, Utils):
     #! Children return a symbolic reference of it self, 
     #! or a type for parent to handle
     
-    #! If expression is type Id -> use get_id_type_instead
-     
+    #! Every expr should call visitExpr wrapper method
+    #! Every non vardecl stmt should call visitStmt wrapper method
+    
     #!Scope env list should be in order [outermost scope, .. innermost scope]
     def visitExpr(self, current_inferred_type, ast, param):
         if (isinstance(ast, Id)):
@@ -459,6 +481,12 @@ class StaticChecker(BaseVisitor, Utils):
             )
         else :
             return self.visit(ast, param)
+    
+    def visitStmt(self, outer_return_symbol, ast, param):
+        if (isinstance(ast, VarDecl)):
+            return self.visit(ast, param)
+        return self.visit(ast, (param, outer_return_symbol))
+        
     @param_logger
     def visitProgram(self, ast, param):
         """
@@ -533,10 +561,8 @@ class StaticChecker(BaseVisitor, Utils):
         self.move_scope_out()
 
         #TODO: check again return type algorithm
-        return_symbol.return_type = self.visit(ast.body,
-                                            parent_env + 
-                                            [return_symbol] + 
-                                            func_param_list) if ast.body else UnResolveType()
+        if (ast.body):
+            self.visitStmt(return_symbol, ast.body, parent_env + [return_symbol]+ func_param_list)
         
         self.func_redeclared_check(return_symbol, param)
         return return_symbol
@@ -569,7 +595,7 @@ class StaticChecker(BaseVisitor, Utils):
         left_type = self.visitExpr(operand_type, ast.left, param)
 
         right_type = self.visitExpr(operand_type, ast.right, param)
-        
+        print(left_type, right_type, operand_type)
         if (
             isinstance(left_type,UnResolveType) or 
             isinstance(right_type,UnResolveType)
@@ -642,23 +668,19 @@ class StaticChecker(BaseVisitor, Utils):
         """
         # stmt: List[Stmt]  # empty list if there is no statement in block
         """
-        '''Return type of return stmt if any else return VoidType'''
         self.move_scope_in()
-        scope = param
+        (parent_env, outer_symbol) = param
         decl_list = []
-        stmt_list = []
         list(
-            map(lambda symbol : 
-                decl_list.append(self.visit(symbol, decl_list + scope))
-                if isinstance(symbol, Decl) 
-                else stmt_list.append(self.visit(symbol, decl_list + scope))
+            map(lambda children_ast : 
+                decl_list.append(self.visitStmt(outer_symbol,children_ast, (parent_env + decl_list )))
+                if isinstance(children_ast, VarDecl) 
+                else self.visitStmt(outer_symbol,children_ast, (parent_env + decl_list ))
                 , ast.stmt
             )
         )
-        return_type = VoidType()
         self.move_scope_out()
-        #TODO: Return Type of body
-        return return_type
+        return None
 
     def visitIf(self, ast, param):
         """
@@ -667,7 +689,35 @@ class StaticChecker(BaseVisitor, Utils):
         # elifStmt: List[Tuple[Expr, Stmt]] # empty list if there is no elif statement
         # elseStmt: Stmt = None  # None if there is no else branch
         """
-        pass
+        self.move_scope_in()
+        (parent_env, outer_symbol) = param
+        decl_list = []
+        condition_type = self.visitExpr(BoolType(), ast.expr, parent_env + decl_list, outer_)
+        if (condition_type is None):
+            raise TypeMismatchInStatement(ast)
+        if (isinstance(condition_type,UnResolveType)):
+            raise TypeCannotBeInferred(ast)
+        then_type = self.visitStmt(outer_symbol, ast.thenStmt, parent_env + decl_list, outer_)
+        if (isinstance(then_type, VarDecl)):
+            decl_list.append(then_type)
+        #*Handle all elif statements
+        for ele in ast.elifStmt:
+            elif_condition_type = self.visitExpr(BoolType(), ele[0], parent_env + decl_list)
+            if (elif_condition_type is None):
+                raise TypeMismatchInStatement(ast)
+            if (isinstance(elif_condition_type,UnResolveType)):
+                raise TypeCannotBeInferred(ast)
+            if (not self.compare_type(elif_condition_type, BoolType())):
+                raise TypeMismatchInStatement(ast)
+            elif_type = self.visitStmt(outer_symbol, ele[1], parent_env + decl_list)
+            if (isinstance(elif_type, VarDecl)):
+                decl_list.append(elif_type)
+        if (ast.elseStmt):
+            else_type = self.visitStmt(outer_symbol, ast.elseStmt, parent_env + decl_list)
+            if (isinstance(else_type, VarDecl)):
+                decl_list.append(else_type)
+        self.move_scope_out()
+        return then_type
 
     def visitFor(self, ast, param):
         """
@@ -676,6 +726,7 @@ class StaticChecker(BaseVisitor, Utils):
         # updExpr: Expr
         # body: Stmt
         """
+        
         pass
 
     def visitContinue(self, ast, param):
@@ -685,15 +736,34 @@ class StaticChecker(BaseVisitor, Utils):
     def visitBreak(self, ast, param):
         if self.in_loop_pointer == 0:
             raise MustInLoop(ast)
-
+    @param_logger
     def visitReturn(self, ast, param):
         """
         expr: Expr
         """
         '''Return a type object'''
+        (parent_env, outer_symbol) = param
+        inferred_type = outer_symbol.return_type
+        if (isinstance(inferred_type,UnResolveType)):
+            inferred_type = None
+        print(inferred_type)
         if (ast.expr):
-            res = self.visit(ast.expr, param)
-        return VoidType()
+            res = self.visitExpr(inferred_type,ast.expr, parent_env)
+            if (res is None):
+                raise TypeMismatchInStatement(ast)
+            if (isinstance(res,UnResolveType)):
+                raise TypeCannotBeInferred(ast)
+            if (isinstance(outer_symbol.return_type,UnResolveType)):
+                outer_symbol.return_type = res
+                return res
+            if (not self.compare_type(outer_symbol.return_type,res)):
+                raise TypeMismatchInStatement(ast)
+        else: 
+            if (isinstance(outer_symbol.return_type,UnResolveType)):
+                outer_symbol.return_type = VoidType()
+                return VoidType()
+            if (not self.compare_type(outer_symbol.return_type,VoidType())):
+                raise TypeMismatchInStatement(ast)
 
     def visitAssign(self, ast, param):
         """
