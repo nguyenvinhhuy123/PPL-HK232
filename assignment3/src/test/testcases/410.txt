@@ -1,7 +1,6 @@
 
-        number a <- 2
         func main() 
         begin
-            continue
+            a <- 2
         end
         

@@ -1,6 +1,7 @@
 
-        func foo(number a)
-        number a <- 2
-        func main() return 1
-        func foo(number b,number a) return b
+        number a <- 2*"b"
+        func main() 
+        begin
+            return 1
+        end
         

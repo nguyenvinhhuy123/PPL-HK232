@@ -1,6 +1,8 @@
 
-        func foo(number a) return a
-        number a <- 2
-        func main() return 1
-        func foo(number a) return a+1
+        dynamic a
+        dynamic b
+        func main() 
+        begin
+            a <- b
+        end
         

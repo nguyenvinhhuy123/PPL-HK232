@@ -1,7 +1,8 @@
 
         number a <- 2
+        number a <- 3
         func main() 
         begin
-            continue
+            return 1
         end
         
