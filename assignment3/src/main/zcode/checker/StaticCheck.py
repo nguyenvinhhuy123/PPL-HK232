@@ -475,8 +475,12 @@ class StaticChecker(BaseVisitor, Utils):
             current_inferred_type=current_inferred_type,
             param=param,
             )
+        
         else :
-            return_type = self.visit(ast, param)
+            if (isinstance(ast, ArrayLiteral)):
+                return_type = self.visit(ast, (param, current_inferred_type))
+            else:
+                return_type = self.visit(ast, param)
             if (return_type is None):
                 return None
             if (isinstance(return_type,UnResolveType)):
@@ -519,7 +523,7 @@ class StaticChecker(BaseVisitor, Utils):
         result_type = ast.varType
         parent_env = param
         if (ast.varInit):
-            exprType = self.visitExpr(None, ast.varInit, parent_env)
+            exprType = self.visitExpr(result_type, ast.varInit, parent_env)
             if (exprType is None):
                 raise TypeMismatchInStatement(ast)
             if (isinstance(exprType,UnResolveType)):
@@ -870,32 +874,50 @@ class StaticChecker(BaseVisitor, Utils):
         """
         '''Return Array Type'''
         #TODO: Handle type inference
-        array_ele_type_list = []
-        #*Visit first element of array without inference
-        initial_type =self.visitExpr(None, ast.value[0],param)
-        if (initial_type is None):
-            raise TypeMismatchInExpression(ast)
-        if (isinstance(initial_type,UnResolveType)):
-            return UnResolveType() 
-        array_ele_type_list.append(initial_type)
+        (parent_env, inferred_type) = param
+        #*outer type is not array type 
+        if (inferred_type is not None and
+            not isinstance(inferred_type, ArrayType)):
+                return None
         
-        #*Visit all other elements of the array with inference type is array[0] type
+        #*Handle no type inference
+        if (inferred_type is None):
+            #*Loop through the array to find the first resolved element
+            for ele in ast.value[1:]:
+                ele_type = self.visitExpr(None, ele ,parent_env)
+                if (ele_type == None): 
+                    raise TypeMismatchInExpression(ast)
+                #*take this type if not an unresolved
+                if (not isinstance(ele_type, UnResolveType)):
+                    if (isinstance(ele_type, ArrayType)):
+                        #*Handle inferred_type if first found resolve type is an ArrayType
+                        inferred_type =  ArrayType(
+                                size=[len(ast.value)]+ele_type.size,
+                                eleType=ele_type.eleType
+                            )
+                    else:
+                        inferred_type = ArrayType(size=[len(ast.value)], eleType=ele_type) 
+                    break
+            #*If cannot find any resolved element in array lit,
+            #*return an unresolved
+            if (inferred_type is None):
+                return UnResolveType()
+            
+        #*If array is one dimension inferred type is eleType
+        if (len(inferred_type.size) == 1):
+            inferred_elem_type = inferred_type.eleType
+        #*else inferred elem type should be an array type with same eleType 
+        #*and new_size should be size[1:] (strip first elem)
+        #*think of : array[2,3,4]is array[2] of array[3,4] and so on.
+        else:
+            new_size = inferred_type.size[1:]
+            inferred_elem_type = ArrayType(size=new_size,eleType=inferred_type.eleType)
         for ele in ast.value[1:]:
-            ele_type = self.visitExpr(initial_type, ele ,param)
+            ele_type = self.visitExpr(inferred_elem_type, ele ,parent_env)
             if (ele_type is None):
                 raise TypeMismatchInExpression(ast)
             if (isinstance(ele_type,UnResolveType)):
                 return UnResolveType()
+        #*All elements are resolved
+        return inferred_type
             
-        #* Handle array size in case element is array
-        if (isinstance(initial_type, ArrayType)):
-            initial_size = array_ele_type_list[0].size
-            if not all(isinstance(x, initial_type) and initial_size == x.size for x in array_ele_type_list):
-                raise TypeMismatchInExpression(ast)
-            arr_size = [float(len(array_ele_type_list))]+ initial_size
-            return ArrayType(size= arr_size, eleType=array_ele_type_list[0])
-        else:
-            if (not all(isinstance(x, initial_type) for x in array_ele_type_list)):
-                raise TypeMismatchInExpression(ast)
-            arr_size = [float(len(array_ele_type_list))]
-            return ArrayType(size=arr_size, eleType=array_ele_type_list[0])
