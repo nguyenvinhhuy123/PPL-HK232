@@ -81,6 +81,19 @@ class CheckSuite(unittest.TestCase):
     #     ))
     #     self.assertTrue(TestChecker.test(input, expect, 407))
     
+    # def test_no_definition(self):
+    #     input = """
+    #     dynamic a
+    #     dynamic b
+    #     func foo()
+    #     func main() 
+    #     begin
+    #         a <- b
+    #     end
+    #     """
+    #     expect = str(NoDefinition("foo"))
+    #     self.assertTrue(TestChecker.test(input, expect, 408))
+    
     # def test_redeclare(self):
     #     input = """
     #     number a <- 2
@@ -109,7 +122,7 @@ class CheckSuite(unittest.TestCase):
     #     ))
     #     self.assertTrue(TestChecker.test(input, expect, 410))
     
-    # #*Case 411-420: function_declared test
+    #*Case 411-420: function_declared test
     # def test_forward_define(self):
     #     input = """
     #     func foo(number a)
@@ -148,3 +161,59 @@ class CheckSuite(unittest.TestCase):
     #     """
     #     expect = str(Redeclared(Function(),"foo"))
     #     self.assertTrue(TestChecker.test(input, expect, 414))
+    
+    # def test_forward_redeclare(self):
+    #     input = """
+    #     func foo(number a)
+    #     func foo(number a)
+    #     number a <- 2
+    #     func main() return 1
+    #     func foo(number a) return a+1
+    #     """
+    #     expect = str(Redeclared(Function(),"foo"))
+    #     self.assertTrue(TestChecker.test(input, expect, 415))
+    
+    # def test_main_redeclare(self):
+    #     input = """
+    #     number a <- 2
+    #     func main() return 1
+    #     func main(number a) return a+1
+    #     """
+    #     expect = str(Redeclared(Function(),"main"))
+    #     self.assertTrue(TestChecker.test(input, expect, 416))
+    
+    # def test_no_definition(self):
+    #     input = """
+    #     number a <- 2
+    #     func main() return 1
+    #     func foo(number a)
+    #     """
+    #     expect = str(NoDefinition("foo"))
+    #     self.assertTrue(TestChecker.test(input, expect, 417))
+        
+    # def test_no_definition_main(self):
+    #     input = """
+    #     number a <- 2
+    #     func main() 
+    #     """
+    #     expect = str(NoDefinition("main"))
+    #     self.assertTrue(TestChecker.test(input, expect, 418))
+    
+    # def test_main_with_param(self):
+    #     input = """
+    #     number a <- 2
+    #     func main(number a) return a 
+    #     """
+    #     expect = str(NoEntryPoint())
+    #     self.assertTrue(TestChecker.test(input, expect, 419))
+    
+    # def test_main_forward_declare(self):
+    #     input = """
+    #     number a <- 2
+    #     func main()
+    #     func main() return 2
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 420))
+    
+    #*Case 421-430: Var Declaration test

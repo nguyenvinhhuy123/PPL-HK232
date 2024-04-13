@@ -569,6 +569,8 @@ class StaticChecker(BaseVisitor, Utils):
         #TODO: check again return type algorithm
         if (ast.body):
             self.visitStmt(return_symbol, ast.body, parent_env + [return_symbol]+ func_param_list)
+            if (isinstance(return_symbol.return_type,UnResolveType)):
+                return_symbol.return_type = VoidType()
         self.move_scope_out()
         self.func_redeclared_check(return_symbol, param)
         return return_symbol
@@ -867,7 +869,7 @@ class StaticChecker(BaseVisitor, Utils):
     def visitStringLiteral(self, ast, param):
         '''Return String Type'''
         return StringType()
-
+    @param_logger(show_args=True)
     def visitArrayLiteral(self, ast, param):
         """
         # value: List[Expr]
