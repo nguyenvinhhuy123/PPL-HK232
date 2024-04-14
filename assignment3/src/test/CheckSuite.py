@@ -122,7 +122,7 @@ class CheckSuite(unittest.TestCase):
     #     ))
     #     self.assertTrue(TestChecker.test(input, expect, 410))
     
-    #*Case 411-420: function_declared test
+    # #*Case 411-420: function_declared test
     # def test_forward_define(self):
     #     input = """
     #     func foo(number a)
@@ -216,4 +216,113 @@ class CheckSuite(unittest.TestCase):
     #     expect = SUCCESSFUL
     #     self.assertTrue(TestChecker.test(input, expect, 420))
     
-    #*Case 421-430: Var Declaration test
+    # #*Case 421-430: Var Declaration test
+    
+    # def test_var_re_declare(self):
+    #     input = """
+    #     number a <- 2
+    #     number a <- 3
+    #     func main() return 2
+    #     """
+    #     expect = str(Redeclared(Variable(),"a"))
+    #     self.assertTrue(TestChecker.test(input, expect, 421))
+    
+    # def test_var_re_declare_inner_scope(self):
+    #     input = """
+    #     number a <- 2
+
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 422))
+        
+    # def test_param_re_declare(self):
+    #     input = """
+    #     func foo(number a, number a)
+    #     begin 
+    #         return a+a
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = str(Redeclared(Parameter(), "a"))
+    #     self.assertTrue(TestChecker.test(input, expect, 423))
+
+    # def test_param_re_declare_same_name_with_func(self):
+    #     input = """
+    #     func foo(number foo)
+    #     begin 
+    #         return a+a
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = str(Redeclared(Parameter(), "foo"))
+    #     self.assertTrue(TestChecker.test(input, expect, 424))
+    
+    # def test_var_redeclare_in_inner_scope_same_name_with_func(self):
+    #     input = """
+    #     func foo(number a)
+    #     begin 
+    #         bool foo <- true
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 425))
+    
+    # def test_var_redeclare_in_inner_scope_same_name_with_param(self):
+    #     input = """
+    #     func foo(number a)
+    #     begin 
+    #         bool a <- true
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 426))
+    
+    # def test_var_redeclare_in_nested_inner(self):
+    #     input = """
+    #     func foo(number a)
+    #     begin 
+    #         bool a <- true
+    #         begin 
+    #             string a <- "hehe"
+    #             begin 
+    #                 string a <- "hehehe"
+    #             end
+    #         end
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 427))
+    
+    #*Case 431-440: Type inference for variables
+    # def test_var_type_inference(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         number a <- b
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 431))
