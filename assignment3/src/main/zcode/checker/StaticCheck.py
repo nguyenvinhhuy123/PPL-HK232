@@ -203,7 +203,7 @@ class StaticChecker(BaseVisitor, Utils):
             env (List[Symbol]): Environment to check
 
         Raises:
-            Redeclared: if found a symbol witth similar name and scope
+            Redeclared: if found a symbol with similar name and scope
         """
         target_id = target.name
         found = self.lookup(target_id, reversed(env), lambda x: x.name)
@@ -213,6 +213,25 @@ class StaticChecker(BaseVisitor, Utils):
         if found:
             if (target.scope == found.scope):
                 raise Redeclared(kind=Variable(),name=target_id.name)
+    
+    def param_redeclared_check(self,target,env):
+        """Check if a variable is declared in the current environment
+
+        Args:
+            target (VariableSymbol): variable to check
+            env (List[Symbol]): Environment to check
+
+        Raises:
+            Redeclared: if found a symbol with similar name and scope
+        """
+        target_id = target.name
+        found = self.lookup(target_id, reversed(env), lambda x: x.name)
+        #!Use reverse to reverser the env list, 
+        #!thus the element with match name is the lastest ele
+        #*This is a way to "hidden" outer scope elements (!! idk man, wtf)
+        if found:
+            if (target.scope == found.scope):
+                raise Redeclared(kind=Parameter(),name=target_id.name)
     
     def func_redeclared_check(self,target,env):
         """Check if a function is declared in the current environment
@@ -353,11 +372,11 @@ class StaticChecker(BaseVisitor, Utils):
         """
         symbol = self.symbol_undeclared_check(target_id, param)
         if (isinstance(symbol.value_type, UnResolveType)):
-            if (current_inferred_type == None):
+            if (current_inferred_type is None):
                 return UnResolveType()
             symbol.value_type = current_inferred_type
         if (not self.compare_type(symbol.value_type, current_inferred_type)):
-            if (current_inferred_type == None): return symbol.value_type
+            if (current_inferred_type is None): return symbol.value_type
             return None
         return symbol.value_type
         
@@ -382,7 +401,7 @@ class StaticChecker(BaseVisitor, Utils):
         symbol = self.func_undeclared_check(target_id, param)
         param_list = symbol.param
         if (isinstance(symbol.return_type, UnResolveType)):
-            if (current_inferred_type == None):
+            if (current_inferred_type is None):
                 return (UnResolveType(), param_list)
             symbol.return_type = current_inferred_type
         if (symbol.return_type != current_inferred_type):
@@ -496,6 +515,38 @@ class StaticChecker(BaseVisitor, Utils):
         if (isinstance(ast, VarDecl)):
             return self.visit(ast, param)
         return self.visit(ast, (param, outer_return_symbol))
+    def visitParam(self, ast, param):
+        """
+        # name: Id
+        # varType: Type = None  # None if there is no type
+        # modifier: str = None  # None if there is no modifier
+        # varInit: Expr = None  # None if there is no initial
+        """
+        #*param should be a list of current environment variables
+        #* look up similar symbol and check var type
+        #? should we check for lookups result kind here?
+        #? ex: var a lookup res is function a
+        result_type = ast.varType
+        parent_env = param
+        symbol = VariableSymbol(
+            name = ast.name,
+            kind=Parameter(),
+            scope=self.scope_pointer,
+            value_type=result_type if result_type else UnResolveType()
+        )
+        
+        if (ast.varInit):
+            exprType = self.visitExpr(result_type, ast.varInit, parent_env + [symbol])
+            if (exprType is None):
+                raise TypeMismatchInStatement(ast)
+            if (isinstance(exprType,UnResolveType)):
+                raise TypeCannotBeInferred(ast)
+            result_type = exprType
+        
+        symbol.value_type = result_type if result_type else UnResolveType()
+        self.param_redeclared_check(symbol, parent_env)
+        
+        return symbol
     @param_logger(show_args=False)
     def visitProgram(self, ast, param):
         """
@@ -522,15 +573,6 @@ class StaticChecker(BaseVisitor, Utils):
         #? ex: var a lookup res is function a
         result_type = ast.varType
         parent_env = param
-        if (ast.varInit):
-            exprType = self.visitExpr(result_type, ast.varInit, parent_env)
-            if (exprType is None):
-                raise TypeMismatchInStatement(ast)
-            if (isinstance(exprType,UnResolveType)):
-                raise TypeCannotBeInferred(ast)
-            result_type = exprType
-            
-        
         symbol = VariableSymbol(
             name = ast.name,
             kind=Variable(),
@@ -538,6 +580,15 @@ class StaticChecker(BaseVisitor, Utils):
             value_type=result_type if result_type else UnResolveType()
         )
         
+        if (ast.varInit):
+            exprType = self.visitExpr(result_type, ast.varInit, parent_env + [symbol])
+            if (exprType is None):
+                raise TypeMismatchInStatement(ast)
+            if (isinstance(exprType,UnResolveType)):
+                raise TypeCannotBeInferred(ast)
+            result_type = exprType
+        
+        symbol.value_type = result_type if result_type else UnResolveType()
         self.var_redeclared_check(symbol, parent_env)
 
         return symbol
@@ -558,14 +609,12 @@ class StaticChecker(BaseVisitor, Utils):
             define=True if ast.body else False,
             return_type=UnResolveType()
         )
-        self.move_scope_in()
-        list(map(lambda symbol: 
-                func_param_list.append(self.visit(symbol, parent_env + [return_symbol]+ func_param_list))
-            , ast.param))
         
-        for symbol in func_param_list:
-            symbol.kind = Parameter()
+        list(map(lambda symbol: 
+                func_param_list.append(self.visitParam(symbol, [return_symbol]+ func_param_list))
+            , ast.param))
 
+        self.move_scope_in()
         #TODO: check again return type algorithm
         if (ast.body):
             self.visitStmt(return_symbol, ast.body, parent_env + [return_symbol]+ func_param_list)
@@ -625,7 +674,7 @@ class StaticChecker(BaseVisitor, Utils):
         ):
             return UnResolveType()
         
-        if (op_type == None):
+        if (op_type is None):
             raise TypeMismatchInExpression(ast)
         if (not self.compare_type(op_type, operand_type)):
             raise TypeMismatchInExpression(ast)
@@ -887,7 +936,7 @@ class StaticChecker(BaseVisitor, Utils):
             #*Loop through the array to find the first resolved element
             for ele in ast.value[1:]:
                 ele_type = self.visitExpr(None, ele ,parent_env)
-                if (ele_type == None): 
+                if (ele_type is None): 
                     raise TypeMismatchInExpression(ast)
                 #*take this type if not an unresolved
                 if (not isinstance(ele_type, UnResolveType)):

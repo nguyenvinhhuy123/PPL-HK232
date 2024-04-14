@@ -153,7 +153,7 @@ class Decl(AST):
 
 class Assign(Stmt):
     # lhs: Expr
-    # rhs: Expr
+    # exp: Expr
 
     def __init__(self, lhs, rhs):
         self.lhs = lhs
