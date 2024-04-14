@@ -547,7 +547,7 @@ class StaticChecker(BaseVisitor, Utils):
         self.param_redeclared_check(symbol, parent_env)
         
         return symbol
-    @param_logger(show_args=False)
+    # #@param_logger(show_args=False)
     def visitProgram(self, ast, param):
         """
         # decl: List[Decl]
@@ -559,7 +559,7 @@ class StaticChecker(BaseVisitor, Utils):
         self.func_definition_check(decl_list)
         
         self.entry_check(decl_list)
-    @param_logger(show_args=True)
+    # #@param_logger(show_args=True)
     def visitVarDecl(self, ast, param):
         """
         # name: Id
@@ -592,7 +592,7 @@ class StaticChecker(BaseVisitor, Utils):
         self.var_redeclared_check(symbol, parent_env)
 
         return symbol
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitFuncDecl(self, ast, param):
         """
         # name: Id
@@ -635,7 +635,7 @@ class StaticChecker(BaseVisitor, Utils):
         # eleType: Type
         """
         pass
-    @param_logger(show_args=False)
+    # #@param_logger(show_args=False)
     def visitBinaryOp(self, ast, param):
         """
         # op: str
@@ -660,7 +660,7 @@ class StaticChecker(BaseVisitor, Utils):
             or not self.compare_type(left_type, operand_type)):
             raise TypeMismatchInExpression(ast)
         return return_type
-    @param_logger(show_args=False)
+    # #@param_logger(show_args=False)
     def visitUnaryOp(self, ast, param):
         """
         # op: str
@@ -679,7 +679,7 @@ class StaticChecker(BaseVisitor, Utils):
         if (not self.compare_type(op_type, operand_type)):
             raise TypeMismatchInExpression(ast)
         return return_type
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitCallExpr(self, ast, param):
         """
         # name: Id
@@ -688,14 +688,14 @@ class StaticChecker(BaseVisitor, Utils):
         Id = ast.name
         args_list = [ele for ele in ast.args]
         return (Id, args_list)
-    @param_logger(show_args=False)
+    #@param_logger(show_args=False)
     def visitId(self, ast, param):
         """
         # name: str
         """
         '''Return Id'''
         return self.symbol_undeclared_check(ast,param)
-    @param_logger(show_args=False)
+    #@param_logger(show_args=False)
     def visitArrayCell(self, ast, param):
         """
         # arr: Expr
@@ -713,11 +713,12 @@ class StaticChecker(BaseVisitor, Utils):
         if (not isinstance(arr, ArrayType)):
             raise TypeMismatchInExpression(ast)
         return arr
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitBlock(self, ast, param):
         """
         # stmt: List[Stmt]  # empty list if there is no statement in block
         """
+        self.move_scope_in()
         (parent_env, outer_symbol) = param
         decl_list = []
         list(
@@ -728,8 +729,9 @@ class StaticChecker(BaseVisitor, Utils):
                 , ast.stmt
             )
         )
+        self.move_scope_out()
         return None
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitIf(self, ast, param):
         """
         # expr: Expr
@@ -766,7 +768,7 @@ class StaticChecker(BaseVisitor, Utils):
                 decl_list.append(else_type)
         self.move_scope_out()
         return then_type
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitFor(self, ast, param):
         """
         # name: Id
@@ -798,15 +800,15 @@ class StaticChecker(BaseVisitor, Utils):
         self.move_loop_out()
         self.move_scope_out()
         return body_type
-    @param_logger(show_args=False)
+    #@param_logger(show_args=False)
     def visitContinue(self, ast, param):
         if self.in_loop_pointer == 0:
             raise MustInLoop(ast)
-    @param_logger(show_args=False)
+    #@param_logger(show_args=False)
     def visitBreak(self, ast, param):
         if self.in_loop_pointer == 0:
             raise MustInLoop(ast)
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitReturn(self, ast, param):
         """
         expr: Expr
@@ -836,7 +838,7 @@ class StaticChecker(BaseVisitor, Utils):
                 return VoidType()
             if (not self.compare_type(outer_symbol.return_type,VoidType())):
                 raise TypeMismatchInStatement(ast)
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitAssign(self, ast, param):
         """
         # lhs: Expr
@@ -874,7 +876,7 @@ class StaticChecker(BaseVisitor, Utils):
             else:
                 return VoidType()
 
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitCallStmt(self, ast, param):
         """
         # name: Id
@@ -918,7 +920,7 @@ class StaticChecker(BaseVisitor, Utils):
     def visitStringLiteral(self, ast, param):
         '''Return String Type'''
         return StringType()
-    @param_logger(show_args=True)
+    #@param_logger(show_args=True)
     def visitArrayLiteral(self, ast, param):
         """
         # value: List[Expr]
