@@ -284,11 +284,14 @@ class StaticChecker(BaseVisitor, Utils):
         Raises:
             Undeclared: if no symbol found
             Undeclared: found symbol is not a function
+        Returns: 
+            symbol(Symbol): inner most scope func symbol with target_id = target_id
         """
         symbol = self.symbol_undeclared_check(target_id, env)
         if not isinstance(symbol,FunctionSymbol):
             #*found symbol is not a function
             raise Undeclared(kind=Function(),name=target_id.name)
+        return symbol
         
     def func_definition_check(self, env):
         """Check if all functions are defined
@@ -490,7 +493,7 @@ class StaticChecker(BaseVisitor, Utils):
             )
         elif (isinstance(ast, CallExpr)):
             return self.inferred_to_call_expression(
-            target_id=ast.name,
+            call_expression_ast=ast,
             current_inferred_type=current_inferred_type,
             param=param,
             )
@@ -559,7 +562,7 @@ class StaticChecker(BaseVisitor, Utils):
         self.func_definition_check(decl_list)
         
         self.entry_check(decl_list)
-    # #@param_logger(show_args=True)
+    # @param_logger(show_args=True)
     def visitVarDecl(self, ast, param):
         """
         # name: Id
@@ -665,17 +668,19 @@ class StaticChecker(BaseVisitor, Utils):
         # op: str
         # operand: Expr
         """
-        (operand_type, return_type) = self.get_op_type(op=ast.op)
-        (operand_type, return_type) = self.get_op_type(op=ast.op)
-        op_type = self.visitExpr(ast.operand, param)
+        (op_type, return_type) = self.get_op_type(op=ast.op)
+        operand_type = self.visitExpr(
+            current_inferred_type=op_type,
+            ast=ast.operand, 
+            param=param)
         if (
-            isinstance(op_type,UnResolvedType)
+            isinstance(operand_type,UnResolveType)
         ):
             return UnResolveType()
         
-        if (op_type is None):
+        if (operand_type is None):
             raise TypeMismatchInExpression(ast)
-        if (not self.compare_type(op_type, operand_type)):
+        if (not self.compare_type(operand_type, op_type)):
             raise TypeMismatchInExpression(ast)
         return return_type
     #@param_logger(show_args=True)
@@ -700,18 +705,27 @@ class StaticChecker(BaseVisitor, Utils):
         # arr: Expr
         # idx: List[Expr]
         """
+        parent_env = param
         idx_type_list = []
         for ele in ast.idx:
-            idx_num = self.visitExpr(NumberType(), ele, param)
+            idx_num = self.visitExpr(NumberType(), ele, parent_env)
             if (idx_num is None): 
                 raise TypeMismatchInExpression(ast)
             if (isinstance(idx_num, UnResolveType)): 
                 return idx_num
             idx_type_list.append(idx_num)
-        arr = self.visitExpr(None, ast, param)
-        if (not isinstance(arr, ArrayType)):
+        arr = self.visitExpr(None, ast.arr, parent_env)
+        if (arr is None):
             raise TypeMismatchInExpression(ast)
-        return arr
+        if (not isinstance(arr,ArrayType) or len(idx_type_list) > len(arr.size)):
+            raise TypeMismatchInExpression(ast)
+        if (isinstance(arr,UnResolveType)):
+            return UnResolveType()
+        if (len(idx_type_list) == len(arr.size)):
+            return arr.eleType
+        return_array_type = ArrayType(size=arr.size[len(idx_type_list):],
+                                    eleType=arr.eleType,)
+        return return_array_type
     #@param_logger(show_args=True)
     def visitBlock(self, ast, param):
         """
@@ -915,7 +929,7 @@ class StaticChecker(BaseVisitor, Utils):
     def visitStringLiteral(self, ast, param):
         '''Return String Type'''
         return StringType()
-    #@param_logger(show_args=True)
+    @param_logger(show_args=True)
     def visitArrayLiteral(self, ast, param):
         """
         # value: List[Expr]
@@ -963,7 +977,8 @@ class StaticChecker(BaseVisitor, Utils):
         for ele in ast.value[1:]:
             ele_type = self.visitExpr(inferred_elem_type, ele ,parent_env)
             if (ele_type is None):
-                raise TypeMismatchInExpression(ast)
+                # raise TypeMismatchInExpression(ast)
+                return None
             if (isinstance(ele_type,UnResolveType)):
                 return UnResolveType()
         #*All elements are resolved
