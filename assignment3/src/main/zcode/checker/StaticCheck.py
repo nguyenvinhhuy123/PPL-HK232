@@ -484,7 +484,7 @@ class StaticChecker(BaseVisitor, Utils):
     
     #!Scope env list should be in order [outermost scope, .. innermost scope]
     def visitExpr(self, current_inferred_type, ast, param):
-        print("at visitExpr")
+        print("at visitExpr", ast)
         if (isinstance(ast, Id)):
             return self.get_var_type_by_id(
                 target_id=ast,
@@ -929,58 +929,71 @@ class StaticChecker(BaseVisitor, Utils):
     def visitStringLiteral(self, ast, param):
         '''Return String Type'''
         return StringType()
-    @param_logger(show_args=True)
+    # @param_logger(show_args=True)
     def visitArrayLiteral(self, ast, param):
         """
         # value: List[Expr]
         """
         '''Return Array Type'''
-        #TODO: Handle type inference
         (parent_env, inferred_type) = param
         #*outer type is not array type 
         if (inferred_type is not None and
             not isinstance(inferred_type, ArrayType)):
                 return None
-        
-        #*Handle no type inference
-        if (inferred_type is None):
-            #*Loop through the array to find the first resolved element
-            for ele in ast.value[1:]:
-                ele_type = self.visitExpr(None, ele ,parent_env)
-                if (ele_type is None): 
+        #*First loop to find the initial type resolved expr:
+        init_ele_type = None
+        for ele in ast.value:
+            ele_type = self.visitExpr(None, ele ,parent_env)
+            if (ele_type is None): 
+                raise TypeMismatchInExpression(ast)
+            #*take this type if not an unresolved
+            if (not isinstance(ele_type, UnResolveType)):
+                init_ele_type = ele_type
+                break
+        #*If found a resolve type
+        if (init_ele_type is not None):
+            #*Loop through array elem with type inference
+            for ele in ast.value:
+                ele_type = self.visitExpr(init_ele_type, ele ,parent_env)
+                if (ele_type is None):
                     raise TypeMismatchInExpression(ast)
-                #*take this type if not an unresolved
-                if (not isinstance(ele_type, UnResolveType)):
-                    if (isinstance(ele_type, ArrayType)):
-                        #*Handle inferred_type if first found resolve type is an ArrayType
-                        inferred_type =  ArrayType(
-                                size=[len(ast.value)]+ele_type.size,
-                                eleType=ele_type.eleType
-                            )
-                    else:
-                        inferred_type = ArrayType(size=[len(ast.value)], eleType=ele_type) 
-                    break
-            #*If cannot find any resolved element in array lit,
-            #*return an unresolved
+                if (isinstance(ele_type,UnResolveType)):
+                    return UnResolveType()
+            if (isinstance(init_ele_type, ArrayType)):
+                #*Handle inferred_type if first found resolve type is an ArrayType
+                return_type =  ArrayType(
+                        size=[len(ast.value)]+init_ele_type.size,
+                        eleType=init_ele_type.eleType
+                    )
+            else:
+                return_type = ArrayType(size=[len(ast.value)], eleType=init_ele_type) 
+            print("return_type:",return_type)
+            return return_type
+        else: 
+            #*If not found a resolve type
+            #*Handle array elem type:
             if (inferred_type is None):
                 return UnResolveType()
-            
-        #*If array is one dimension inferred type is eleType
-        if (len(inferred_type.size) == 1):
-            inferred_elem_type = inferred_type.eleType
-        #*else inferred elem type should be an array type with same eleType 
-        #*and new_size should be size[1:] (strip first elem)
-        #*think of : array[2,3,4]is array[2] of array[3,4] and so on.
-        else:
-            new_size = inferred_type.size[1:]
-            inferred_elem_type = ArrayType(size=new_size,eleType=inferred_type.eleType)
-        for ele in ast.value[1:]:
-            ele_type = self.visitExpr(inferred_elem_type, ele ,parent_env)
-            if (ele_type is None):
-                # raise TypeMismatchInExpression(ast)
-                return None
-            if (isinstance(ele_type,UnResolveType)):
-                return UnResolveType()
-        #*All elements are resolved
-        return inferred_type
-            
+            if (len(inferred_type.size) > 1):
+                init_ele_type =  ArrayType(
+                        size=inferred_type.size[1:],
+                        eleType=inferred_type.eleType
+                    )
+            else:
+                init_ele_type = inferred_type.e
+            #*Loop through array elem with type inference
+            for ele in ast.value:
+                ele_type = self.visitExpr(init_ele_type, ele ,parent_env)
+                if (ele_type is None):
+                    return None
+                if (isinstance(ele_type,UnResolveType)):
+                    return UnResolveType()
+            if (isinstance(init_ele_type, ArrayType)):
+                #*Handle inferred_type if first found resolve type is an ArrayType
+                return_type =  ArrayType(
+                        size=[len(ast.value)]+init_ele_type.size,
+                        eleType=init_ele_type.eleType
+                    )
+            else:
+                return_type = ArrayType(size=[len(ast.value)], eleType=init_ele_type) 
+            return return_type

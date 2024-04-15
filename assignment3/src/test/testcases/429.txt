@@ -2,7 +2,9 @@
         func foo(number a)
         begin 
             number b <- 2
-            if (a < b) number b <- 3
+            bool c <- true
+            for b until b > 10 by 2
+                bool c <- false
         end
         func main()
         begin

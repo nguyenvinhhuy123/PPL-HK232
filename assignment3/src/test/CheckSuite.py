@@ -468,24 +468,24 @@ class CheckSuite(unittest.TestCase):
     #     )))
     #     self.assertTrue(TestChecker.test(input, expect, 437))
 
-    ##TODO: Recheck array lit related tests
-    # def test_type_inferred_success_array_type(self):
-    #     input = """
-    #     func main()
-    #     begin
-    #         dynamic b
-    #         number x[2,2]<- b
-    #         b <- [[2,3],[2,3]]
-    #         dynamic c
-    #         bool y[2]<- c
-    #         c <- [true,false]
-    #         dynamic d
-    #         string z[1,1,1]<- d
-    #         d <- [[["hehe"]]]
-    #     end
-    #     """
-    #     expect = SUCCESSFUL
-    #     self.assertTrue(TestChecker.test(input, expect, 438))
+    # #TODO: Recheck array lit related tests
+    def test_type_inferred_success_array_type(self):
+        input = """
+        func main()
+        begin
+            dynamic b
+            number x[2,2]<- b
+            b <- [[2,3],[2,3]]
+            dynamic c
+            bool y[2]<- c
+            c <- [true,false]
+            dynamic d
+            string z[1,1,1]<- d
+            d <- [[["hehe"]]]
+        end
+        """
+        expect = SUCCESSFUL
+        self.assertTrue(TestChecker.test(input, expect, 438))
         
     def test_type_inferred_failed_ele_type_mismatch(self):
         input = """
@@ -493,7 +493,7 @@ class CheckSuite(unittest.TestCase):
         begin
             dynamic b
             number x[2,2]<- b
-            b <- "str"
+            b <- [[true, true], [true, true]]
         end
         """
         expect = str(TypeMismatchInStatement(Assign(
