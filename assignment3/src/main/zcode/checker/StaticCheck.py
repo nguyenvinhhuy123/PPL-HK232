@@ -609,12 +609,11 @@ class StaticChecker(BaseVisitor, Utils):
             define=True if ast.body else False,
             return_type=UnResolveType()
         )
-        
+        self.move_scope_in()
         list(map(lambda symbol: 
                 func_param_list.append(self.visitParam(symbol, [return_symbol]+ func_param_list))
             , ast.param))
 
-        self.move_scope_in()
         #TODO: check again return type algorithm
         if (ast.body):
             self.visitStmt(return_symbol, ast.body, parent_env + [return_symbol]+ func_param_list)
@@ -739,15 +738,14 @@ class StaticChecker(BaseVisitor, Utils):
         # elifStmt: List[Tuple[Expr, Stmt]] # empty list if there is no elif statement
         # elseStmt: Stmt = None  # None if there is no else branch
         """
-        self.move_scope_in()
         (parent_env, outer_symbol) = param
         decl_list = []
-        condition_type = self.visitExpr(BoolType(), ast.expr, parent_env + decl_list, outer_)
+        condition_type = self.visitExpr(BoolType(), ast.expr, parent_env + decl_list)
         if (condition_type is None):
             raise TypeMismatchInStatement(ast)
         if (isinstance(condition_type,UnResolveType)):
             raise TypeCannotBeInferred(ast)
-        then_type = self.visitStmt(outer_symbol, ast.thenStmt, parent_env + decl_list, outer_)
+        then_type = self.visitStmt(outer_symbol, ast.thenStmt, parent_env + decl_list)
         if (isinstance(then_type, VarDecl)):
             decl_list.append(then_type)
         #*Handle all elif statements
@@ -766,7 +764,6 @@ class StaticChecker(BaseVisitor, Utils):
             else_type = self.visitStmt(outer_symbol, ast.elseStmt, parent_env + decl_list)
             if (isinstance(else_type, VarDecl)):
                 decl_list.append(else_type)
-        self.move_scope_out()
         return then_type
     #@param_logger(show_args=True)
     def visitFor(self, ast, param):
@@ -777,10 +774,9 @@ class StaticChecker(BaseVisitor, Utils):
         # body: Stmt
         """
         (parent_env, outer_symbol) = param
-        self.move_scope_in()
         self.move_loop_in()
         name_type = self.get_var_type_by_id(target_id=ast.name,
-                                        current_inferred_type=None,
+                                        current_inferred_type=NumberType(),
                                         param=parent_env)
         if (name_type is None):
             raise TypeMismatchInStatement(ast)
@@ -791,13 +787,12 @@ class StaticChecker(BaseVisitor, Utils):
             raise TypeMismatchInStatement(ast)
         if (isinstance(condition_type,UnResolveType)):
             raise TypeCannotBeInferred(ast)
-        update_type = self.visitExpr(None, ast.updateExpr, parent_env)
+        update_type = self.visitExpr(NumberType(), ast.updExpr, parent_env)
         if (update_type is None):
             raise TypeMismatchInStatement(ast)
         if (isinstance(update_type,UnResolveType)):
             raise TypeCannotBeInferred(ast)
         body_type = self.visitStmt(outer_symbol, ast.body, parent_env)
-        self.move_loop_out()
         self.move_scope_out()
         return body_type
     #@param_logger(show_args=False)
