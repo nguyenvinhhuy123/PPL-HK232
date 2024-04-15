@@ -1,0 +1,8 @@
+
+        func main()
+        begin
+            dynamic b
+            number x[2,2]<- b
+            b <- [[true,true],[true,true]]
+        end
+        

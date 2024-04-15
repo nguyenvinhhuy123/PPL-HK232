@@ -1,0 +1,7 @@
+
+        func main()
+        begin
+            dynamic b
+            number a <- b
+        end
+        

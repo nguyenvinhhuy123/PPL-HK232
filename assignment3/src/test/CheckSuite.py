@@ -7,12 +7,12 @@ from main.zcode.utils.AST import *
 SUCCESSFUL = ""
 class CheckSuite(unittest.TestCase):
     #*Case 401 - 410: Simple exception check
-    def test_no_entry_point(self):
-        input = """
-        number a <- 2
-        """
-        expect = str(NoEntryPoint())
-        self.assertTrue(TestChecker.test(input, expect, 401))
+    # def test_no_entry_point(self):
+    #     input = """
+    #     number a <- 2
+    #     """
+    #     expect = str(NoEntryPoint())
+    #     self.assertTrue(TestChecker.test(input, expect, 401))
     
     # def test_normal_flow(self):
     #     input = """
@@ -257,14 +257,14 @@ class CheckSuite(unittest.TestCase):
     #     input = """
     #     func foo(number foo)
     #     begin 
-    #         return a+a
+    #         return 1
     #     end
     #     func main()
     #     begin
     #         number a <- 3
     #     end
     #     """
-    #     expect = str(Redeclared(Parameter(), "foo"))
+    #     expect = SUCCESSFUL
     #     self.assertTrue(TestChecker.test(input, expect, 424))
     
     # def test_var_redeclare_in_inner_scope_same_name_with_func(self):
@@ -315,7 +315,61 @@ class CheckSuite(unittest.TestCase):
     #     expect = SUCCESSFUL
     #     self.assertTrue(TestChecker.test(input, expect, 427))
     
-    #*Case 431-440: Type inference for variables
+    # def test_var_redeclare_in_if(self):
+    #     input = """
+    #     func foo(number a)
+    #     begin 
+    #         number b <- 2
+    #         if (a < b) number b <- 3
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = str(Redeclared(Variable(), "b"))
+    #     self.assertTrue(TestChecker.test(input, expect, 428))
+    
+    # def test_var_redeclare_in_for(self):
+    #     input = """
+    #     func foo(number a)
+    #     begin 
+    #         number b <- 2
+    #         bool c <- true
+    #         for b until b > 10 by 2
+    #             bool c <- false
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = str(Redeclared(Variable(), "c"))
+    #     self.assertTrue(TestChecker.test(input, expect, 429))
+    
+    # def test_var_redeclare_in_if_and_for_with_block(self):
+    #     input = """
+    #     func foo(number a)
+    #     begin 
+    #         number b <- 2
+    #         bool c <- true
+    #         if (a < b) begin 
+    #             number b <- 3
+    #         end
+    #         for b until b > 10 by 2
+    #         begin
+    #             bool c <- false
+    #         end
+    #     end
+    #     func main()
+    #     begin
+    #         number a <- 3
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 430))
+    
+    # #*Case 431-440: Type inference for variables
     # def test_var_type_inference(self):
     #     input = """
     #     func main()
@@ -326,3 +380,138 @@ class CheckSuite(unittest.TestCase):
     #     """
     #     expect = SUCCESSFUL
     #     self.assertTrue(TestChecker.test(input, expect, 431))
+    
+    # def test_type_mismatch_in_stmt_after_inferred(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         number a <- b
+    #         b <- "string"
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         Assign(Id("b"),
+    #         StringLiteral("string"))
+    #         ))
+    #     self.assertTrue(TestChecker.test(input, expect, 432))
+    
+    # def test_type_mismatch_in_expr_after_inferred(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         number a <- b
+    #         string c <- b..."str"
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInExpression(
+    #         BinaryOp(
+    #             op="...",
+    #             left=Id("b"),
+    #             right=StringLiteral("str")
+    #         )
+    #         ))
+    #     self.assertTrue(TestChecker.test(input, expect, 433))
+    
+    # def test_type_inferred_success_in_binop(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         number a <- b + 2
+    #         b <- 2
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 434))
+        
+    # def test_type_inferred_failed_in_binop(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         number a <- b + 2
+    #         b <- "str"
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(Assign(
+    #         Id("b"),
+    #         StringLiteral("str")
+    #     )))
+    #     self.assertTrue(TestChecker.test(input, expect, 435))
+        
+    # def test_type_inferred_success_in_unop(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         number a <- -b
+    #         b <- 2
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 436))
+        
+    # def test_type_inferred_failed_in_unop(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         bool a <- not b
+    #         b <- "str"
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(Assign(
+    #         Id("b"),
+    #         StringLiteral("str")
+    #     )))
+    #     self.assertTrue(TestChecker.test(input, expect, 437))
+
+    ##TODO: Recheck array lit related tests
+    # def test_type_inferred_success_array_type(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         number x[2,2]<- b
+    #         b <- [[2,3],[2,3]]
+    #         dynamic c
+    #         bool y[2]<- c
+    #         c <- [true,false]
+    #         dynamic d
+    #         string z[1,1,1]<- d
+    #         d <- [[["hehe"]]]
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 438))
+        
+    def test_type_inferred_failed_ele_type_mismatch(self):
+        input = """
+        func main()
+        begin
+            dynamic b
+            number x[2,2]<- b
+            b <- "str"
+        end
+        """
+        expect = str(TypeMismatchInStatement(Assign(
+            Id("b"),
+            ArrayLiteral([ArrayLiteral([BooleanLiteral(True), BooleanLiteral(True)])
+                        , ArrayLiteral([BooleanLiteral(True), BooleanLiteral(True)])])
+        )))
+        self.assertTrue(TestChecker.test(input, expect, 439))
+    
+    #*Case 441-450: Type inference for function
+    # def test_type_inferred_in_call_expr(self):
+    #     input = """
+    #     func foo()
+    #     func main()
+    #     begin
+    #         number a <- foo()
+    #     end
+    #     func foo () return 2
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 441))
