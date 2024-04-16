@@ -246,15 +246,18 @@ class StaticChecker(BaseVisitor, Utils):
         """
         target_id = target.name
         look_res = self.lookup(target_id, reversed(env), lambda x: x.name)
+        print("Target:", target)
+        print("Lookup res:" ,look_res)
         if look_res:
             if (isinstance(look_res,FunctionSymbol)
                 and self.compare_parameter_list(look_res.param,target.param)
                 and ((look_res.define == False) and (target.define == True))
-            ):  #* These condittion verified if a symbol is a forwards declaration
+            ):  #* These condition verified if a symbol is a forwards declaration
                 #*So we should update the body of the function too match the later declaration
-                look_res.define = True
+                return look_res
             else: 
                 raise Redeclared(kind=Function(),name=target_id.name)
+        else: return None
     
     def symbol_undeclared_check(self, target_id, env):
         """ Check if a symbol is declared in the current environment
@@ -595,7 +598,7 @@ class StaticChecker(BaseVisitor, Utils):
         self.var_redeclared_check(symbol, parent_env)
 
         return symbol
-    #@param_logger(show_args=True)
+    @param_logger(show_args=True)
     def visitFuncDecl(self, ast, param):
         """
         # name: Id
@@ -612,19 +615,24 @@ class StaticChecker(BaseVisitor, Utils):
             define=True if ast.body else False,
             return_type=UnResolveType()
         )
+       
         self.move_scope_in()
         list(map(lambda symbol: 
                 func_param_list.append(self.visitParam(symbol, [return_symbol]+ func_param_list))
             , ast.param))
 
+        new_return_symbol = self.func_redeclared_check(return_symbol, param)
+        if (new_return_symbol is None):
+            new_return_symbol = return_symbol
+        
         #TODO: check again return type algorithm
         if (ast.body):
-            self.visitStmt(return_symbol, ast.body, parent_env + [return_symbol]+ func_param_list)
-            if (isinstance(return_symbol.return_type,UnResolveType)):
-                return_symbol.return_type = VoidType()
+            new_return_symbol.define = True
+            self.visitStmt(new_return_symbol, ast.body, parent_env + [new_return_symbol]+ func_param_list)
+            if (isinstance(new_return_symbol.return_type,UnResolveType)):
+                new_return_symbol.return_type = VoidType()
         self.move_scope_out()
-        self.func_redeclared_check(return_symbol, param)
-        return return_symbol
+        return new_return_symbol
     def visitNumberType(self, ast, param):
         pass
     def visitBoolType(self, ast, param):
@@ -901,18 +909,18 @@ class StaticChecker(BaseVisitor, Utils):
         )
         #*Check symbol_type
         if (symbol_type is None):
-            raise TypeMismatchInExpression(ast)
+            raise TypeMismatchInStatement(ast)
         if (not isinstance(symbol_type, VoidType)):
-            raise TypeMismatchInExpression(ast)
+            raise TypeMismatchInStatement(ast)
         if (isinstance(symbol_type, UnResolveType)):
             return UnResolveType()
         #*Compare and inferred args list to parameter list
         if (len(args_list) != len(param_list)):
-            raise TypeMismatchInExpression(ast)
+            raise TypeMismatchInStatement(ast)
         for i in range(len(args_list)):
             args_type = self.visitExpr(param_list[i].value_type, args_list[i], parent_env)
             if (args_type is None):
-                raise TypeMismatchInExpression(ast)
+                raise TypeMismatchInStatement(ast)
             if (isinstance(args_type, UnResolveType)):
                 return UnResolveType()
         #Return symbol type if every param and args is checked
