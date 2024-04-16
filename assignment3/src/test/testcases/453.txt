@@ -1,0 +1,8 @@
+
+        func main()
+        begin
+            dynamic a
+            if (a) writeString("a")
+            a <- 2
+        end
+        

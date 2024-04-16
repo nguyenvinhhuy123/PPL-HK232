@@ -1,5 +1,5 @@
 
         number a <- 2
         func main() return 1
-        func foo(number a)
+        func writeBool(number a) return a
         

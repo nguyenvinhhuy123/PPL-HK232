@@ -1,0 +1,10 @@
+
+        func foo(bool c)
+        begin
+            return c
+        end
+        func main()
+        begin
+            foo(true)
+        end
+        
