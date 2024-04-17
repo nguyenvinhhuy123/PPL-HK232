@@ -1,0 +1,1 @@
+Type Mismatch In Statement: For(Id(a), BinaryOp(>, Id(a), NumLit(10.0)), BinaryOp(=, Id(a), NumLit(1.0)), CallStmt(Id(writeNumber), [Id(a)]))

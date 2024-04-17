@@ -84,7 +84,7 @@ class CheckSuite(unittest.TestCase):
     # def test_no_definition(self):
     #     input = """
     #     dynamic a
-    #     dynamic b
+    #     number b
     #     func foo()
     #     func main() 
     #     begin
@@ -662,7 +662,8 @@ class CheckSuite(unittest.TestCase):
     #     ))
     #     self.assertTrue(TestChecker.test(input, expect, 450))
     
-    # #*Case 451-460: If stmt type check and type inference
+    
+    # #*Case 451-455: If stmt type check and type inference
     # def test_if_normal_flow(self):
     #     input = """
     #     func main()
@@ -710,29 +711,422 @@ class CheckSuite(unittest.TestCase):
     #     ))
     #     self.assertTrue(TestChecker.test(input, expect, 453))
     
-    def test_elif_expr_type_is_not_bool(self):
+    # def test_elif_expr_type_is_not_bool(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         if (a) writeString("a")
+    #         elif (2 + 3) writeString("b")
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         If(
+    #             expr=Id("a"),
+    #             thenStmt=CallStmt(Id("writeString"), 
+    #                             [StringLiteral("a")]),
+    #             elifStmt=[
+    #                     (
+    #                     BinaryOp("+", 
+    #                         NumberLiteral(2.0),
+    #                         NumberLiteral(3.0)),
+    #                     CallStmt(Id("writeString"), 
+    #                             [StringLiteral("b")]),
+    #                     )
+    #                 ]
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 454))
+    
+    # def test_elif_expr_type_inference(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         if (2 > 3) writeString("a")
+    #         elif (a) writeString("b")
+    #         a <- 2
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         Assign(
+    #             Id("a"),
+    #             NumberLiteral(2.0)
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 455))
+    
+    # #*Case 456-465: For stmt type check and type inference
+    
+    # def test_for_normal_flow(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         number a
+    #         for a until a > 10 by a 
+    #         writeNumber(a)
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 456))
+
+    # def test_for_until_condition_not_bool(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         number a
+    #         for a until a by a 
+    #         writeNumber(a)
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         For(
+    #             Id("a"),
+    #             Id("a"),
+    #             Id("a"),
+    #             CallStmt(Id("writeNumber"), [Id("a")]),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 457))
+    
+    # def test_for_var_is_not_number_type(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         bool a
+    #         for a until a > 10 by 1 
+    #         writeNumber(a)
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         For(
+    #             Id("a"),
+    #             BinaryOp(">", Id("a"), NumberLiteral(10.0)),
+    #             NumberLiteral(1.0),
+    #             CallStmt(Id("writeNumber"), [Id("a")]),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 458))
+    
+    # def test_for_update_expr_is_not_number_type(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         number a
+    #         for a until a > 10 by a = 1
+    #         writeNumber(a)
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         For(
+    #             Id("a"),
+    #             BinaryOp(">", Id("a"), NumberLiteral(10.0)),
+    #             BinaryOp("=", Id("a"), NumberLiteral(1.0)),
+    #             CallStmt(Id("writeNumber"), [Id("a")]),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 459))
+    
+    # def test_for_type_inference(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         dynamic b
+    #         dynamic c
+    #         for a until b by c
+    #         writeNumber(a)
+    #         a <- 1
+    #         b <- true
+    #         c <- 2
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 460))
+    
+    # def test_for_type_inference_failed_for_var_not_var(self):
+    #     input = """
+    #     func foo() return 1
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         dynamic b
+    #         dynamic c
+    #         for foo until b by c
+    #         writeNumber(a)
+    #         a <- 1
+    #         b <- true
+    #         c <- 2
+    #     end
+    #     """
+    #     expect = str(Undeclared(Identifier(),"foo"))
+    #     self.assertTrue(TestChecker.test(input, expect, 461))
+    
+    # def test_for_type_inference_failed_for_var_not_number(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         dynamic b
+    #         dynamic c
+    #         for a until b by c
+    #         writeNumber(a)
+    #         a <- true
+    #         b <- true
+    #         c <- 2
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         Assign(
+    #             Id("a"),
+    #             BooleanLiteral(True),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 462))
+        
+    # def test_for_type_inference_failed_for_condExpr_not_bool(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         dynamic b
+    #         dynamic c
+    #         for a until b by c
+    #         writeNumber(a)
+    #         a <- 1
+    #         b <- 2
+    #         c <- 2
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #          Assign(
+    #             Id("b"),
+    #             NumberLiteral(2.0),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 463))
+    
+    # def test_for_type_inference_failed_for_update_not_number(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         dynamic b
+    #         dynamic c
+    #         for a until b by c
+    #         writeNumber(a)
+    #         a <- 1
+    #         b <- true
+    #         c <- true
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #          Assign(
+    #             Id("c"),
+    #             BooleanLiteral(True),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 464))
+
+    # def test_for_type_inference_in_body(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic a
+    #         dynamic b
+    #         dynamic c
+    #         for a until b by c
+    #             a <- 1
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 465))
+        
+    ##*Case 466 - 475: Type inference for array literals
+    
+    # def test_array_lit_type_inference(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         var a <- [[1,2],[3,4]]
+    #         a <- [[1,2],[3,5]]
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 466))
+    
+    # def test_array_lit_type_inference_failed_wrong_ele_type(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         var a <- [[1,2],[3,4]]
+    #         a <- [[true,false],[true,false]]
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         Assign(
+    #             Id("a"),
+    #             ArrayLiteral(
+    #                 [
+    #                     ArrayLiteral(
+    #                         [
+    #                             BooleanLiteral(True),
+    #                             BooleanLiteral(False),
+    #                         ],
+    #                     ),
+    #                     ArrayLiteral(
+    #                         [
+    #                             BooleanLiteral(True),
+    #                             BooleanLiteral(False),
+    #                         ],
+    #                     ),
+    #                 ],
+    #             ),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 467))
+
+    # def test_array_lit_type_inference_failed_wrong_array_dim(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         var a <- [[1,2],[3,4]]
+    #         a <- [1,2]
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         Assign(
+    #             Id("a"),
+    #             ArrayLiteral(
+    #                 [
+    #                     NumberLiteral(1.0),
+    #                     NumberLiteral(2.0),
+    #                 ],
+    #             ),
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 468))
+        
+    # def test_array_lit_failed_ele_not_same_type(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         var a <- [[1,true],[3,4]]
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInExpression(
+    #         ArrayLiteral(
+    #             [
+    #                 NumberLiteral(1.0),
+    #                 BooleanLiteral(True),
+    #             ]
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 469))
+    
+    # def test_array_lit_type_inferred_in_ele(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         var a <- [[1,b],[3,4]]
+    #         b <- 2
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 470))
+    
+    # def test_array_lit_type_inferred_in_ele_failed(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         var a <- [[1,b],[3,4]]
+    #         var c <- [[true,b],[true,true]]
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInExpression(
+    #         ArrayLiteral(
+    #             [
+    #                 BooleanLiteral(True),
+    #                 Id("b")
+    #             ]
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 471))
+    
+    # def test_array_lit_type_inferred_in_ele_array_type_inferred(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         var a <- [b,[3,4]]
+    #         b <- [2,3]
+    #     end
+    #     """
+    #     expect = SUCCESSFUL
+    #     self.assertTrue(TestChecker.test(input, expect, 472))
+
+    # def test_array_lit_type_inferred_in_ele_array_type_inferred_failed(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         var a <- [b,[3,4]]
+    #         b <- [[2,3]]
+    #     end
+    #     """
+    #     expect = str(TypeMismatchInStatement(
+    #         Assign(
+    #             Id("b"),
+    #             ArrayLiteral(
+    #                 [ArrayLiteral(
+    #                     [    
+    #                         NumberLiteral(2.0),
+    #                         NumberLiteral(3.0)
+    #                     ]
+    #                 )]
+    #             )
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 473))
+    
+    # def test_array_lit_type_cannot_inferred_all_element_is_not_resolved(self):
+    #     input = """
+    #     func main()
+    #     begin
+    #         dynamic b
+    #         var a <- [b,b]
+    #     end
+    #     """
+    #     expect = str(TypeCannotBeInferred(
+    #         VarDecl(
+    #             Id("a"),
+    #             None,
+    #             "var",
+    #             ArrayLiteral(
+    #                 [
+    #                     Id("b"),
+    #                     Id("b"),
+    #                 ]               
+    #             )
+    #         )
+    #     ))
+    #     self.assertTrue(TestChecker.test(input, expect, 474))
+    
+    def test_array_lit_type_cannot_inferred_element_is_void(self):
         input = """
+        func foo() return
         func main()
         begin
-            dynamic a
-            if (a) writeString("a")
-            elif (2 + 3) writeString("b")
+            dynamic b
+            var a <- [b,foo()]
         end
         """
-        expect = str(TypeMismatchInStatement(
-            If(
-                expr=Id("a"),
-                thenStmt=CallStmt(Id("writeString"), 
-                                [StringLiteral("a")]),
-                elifStmt=[
-                        (
-                        BinaryOp("+", 
-                            NumberLiteral(2.0),
-                            NumberLiteral(3.0)),
-                        CallStmt(Id("writeString"), 
-                                [StringLiteral("b")]),
-                        )
-                    ]
+        expect = str(TypeMismatchInExpression(
+            CallExpr(
+                Id("foo"),
+                []
             )
         ))
-        self.assertTrue(TestChecker.test(input, expect, 454))
+        self.assertTrue(TestChecker.test(input, expect, 475))

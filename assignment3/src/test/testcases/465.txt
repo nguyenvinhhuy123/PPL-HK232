@@ -1,0 +1,10 @@
+
+        func main()
+        begin
+            dynamic a
+            dynamic b
+            dynamic c
+            for a until b by c
+                a <- 1
+        end
+        

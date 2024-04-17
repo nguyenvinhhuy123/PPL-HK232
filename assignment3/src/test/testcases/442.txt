@@ -1,11 +1,8 @@
 
-        func foo(bool c)
-        begin
-            if (c) return 2
-            else return 3
-        end
+        func foo()
         func main()
         begin
-            number a <- foo(true)
+            number a <- foo()
         end
+        func foo () return true
         
