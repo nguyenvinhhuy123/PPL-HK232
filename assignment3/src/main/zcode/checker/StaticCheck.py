@@ -377,6 +377,8 @@ class StaticChecker(BaseVisitor, Utils):
             a valid type if symbol return type match with inferred type or symbol type can be inferred
         """
         symbol = self.symbol_undeclared_check(target_id, param)
+        if (isinstance(symbol,FunctionSymbol)):
+            raise Undeclared(Identifier(), target_id.name)
         if (isinstance(symbol.value_type, UnResolveType)):
             if (current_inferred_type is None):
                 return UnResolveType()
@@ -410,7 +412,9 @@ class StaticChecker(BaseVisitor, Utils):
             if (current_inferred_type is None):
                 return (UnResolveType(), param_list)
             symbol.return_type = current_inferred_type
-        if (symbol.return_type != current_inferred_type):
+        if (current_inferred_type is None):
+            return (symbol.return_type, param_list)
+        if (not self.compare_type(symbol.return_type, current_inferred_type)):
             return (None, param_list)
         return (symbol.return_type, param_list)
     
