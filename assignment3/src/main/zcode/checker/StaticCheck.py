@@ -192,6 +192,7 @@ class StaticChecker(BaseVisitor, Utils):
             or not isinstance(main_check,FunctionSymbol)
             or (main_check.param != []) 
             or not main_check.define
+            or not isinstance(main_check.return_type,VoidType)
             ):
             raise NoEntryPoint()
         
@@ -246,8 +247,8 @@ class StaticChecker(BaseVisitor, Utils):
         """
         target_id = target.name
         look_res = self.lookup(target_id, reversed(env), lambda x: x.name)
-        print("Target:", target)
-        print("Lookup res:" ,look_res)
+        # print("Target:", target)
+        # print("Lookup res:" ,look_res)
         if look_res:
             if (isinstance(look_res,FunctionSymbol)
                 and self.compare_parameter_list(look_res.param,target.param)
@@ -354,8 +355,6 @@ class StaticChecker(BaseVisitor, Utils):
         if (len(param_list_1)!= len(param_list_2)):
             return False
         for i in range(len(param_list_1)):
-            if (param_list_1[i].name != param_list_2[i].name):
-                return False
             if (not self.compare_type(param_list_1[i].value_type, param_list_2[i].value_type)):
                 return False
         return True
@@ -439,17 +438,14 @@ class StaticChecker(BaseVisitor, Utils):
         (target_id, args_list) = self.visit(call_expression_ast, param)
         (symbol_type, param_list) = self.get_function_type_by_id(
             target_id=target_id,
-            current_inferred_type=current_inferred_type,
+            current_inferred_type=None,
             param=param
         )
-        #*Check symbol_type
         if (symbol_type is None):
-            raise TypeMismatchInExpression(call_expression_ast)
+            return None
         if (isinstance(symbol_type, VoidType)):
             raise TypeMismatchInExpression(call_expression_ast)
-        if (isinstance(symbol_type, UnResolveType)):
-            return UnResolveType()
-        #*Compare and inferred args list to parameter list
+        
         if (len(args_list) != len(param_list)):
             raise TypeMismatchInExpression(call_expression_ast)
         for i in range(len(args_list)):
@@ -458,6 +454,17 @@ class StaticChecker(BaseVisitor, Utils):
                 raise TypeMismatchInExpression(call_expression_ast)
             if (isinstance(args_type, UnResolveType)):
                 return UnResolveType()
+        
+        (symbol_type, param_list) = self.get_function_type_by_id(
+            target_id=target_id,
+            current_inferred_type=current_inferred_type,
+            param=param
+        )
+        #*Check symbol_type
+        if (isinstance(symbol_type, UnResolveType)):
+            return UnResolveType()
+        #*Compare and inferred args list to parameter list
+        
         #Return symbol type if every param and args is checked
         return symbol_type
                 
@@ -466,16 +473,16 @@ class StaticChecker(BaseVisitor, Utils):
         if (op in ["+", "-", "*", "/", "%"]):
             operand_type = NumberType()
             return_type = NumberType()
-        if (op in ["and", "or", "not"]):
+        elif (op in ["and", "or", "not"]):
             operand_type = BoolType()
             return_type = BoolType()
-        if (op in ["..."]):
+        elif (op in ["..."]):
             operand_type = StringType()
             return_type = StringType()
-        if (op in ["=", "!=", ">", "<", ">=", "<="]):
+        elif (op in ["=", "!=", ">", "<", ">=", "<="]):
             operand_type = NumberType()
             return_type = BoolType()
-        if (op in ["=="]):
+        elif (op in ["=="]):
             operand_type = StringType()
             return_type = BoolType()
         return (operand_type, return_type)
@@ -491,7 +498,6 @@ class StaticChecker(BaseVisitor, Utils):
     
     #!Scope env list should be in order [outermost scope, .. innermost scope]
     def visitExpr(self, current_inferred_type, ast, param):
-        print("at visitExpr", ast)
         if (isinstance(ast, Id)):
             return self.get_var_type_by_id(
                 target_id=ast,
@@ -521,7 +527,6 @@ class StaticChecker(BaseVisitor, Utils):
             else:
                 return return_type
     def visitStmt(self, outer_return_symbol, ast, param):
-        print("at visitStmt")
         if (isinstance(ast, VarDecl)):
             return self.visit(ast, param)
         return self.visit(ast, (param, outer_return_symbol))
@@ -589,9 +594,9 @@ class StaticChecker(BaseVisitor, Utils):
             scope=self.scope_pointer,
             value_type=result_type if result_type else UnResolveType()
         )
-        
+        self.var_redeclared_check(symbol, parent_env)
         if (ast.varInit):
-            exprType = self.visitExpr(result_type, ast.varInit, parent_env + [symbol])
+            exprType = self.visitExpr(result_type, ast.varInit, parent_env)
             if (exprType is None):
                 raise TypeMismatchInStatement(ast)
             if (isinstance(exprType,UnResolveType)):
@@ -602,7 +607,7 @@ class StaticChecker(BaseVisitor, Utils):
         self.var_redeclared_check(symbol, parent_env)
 
         return symbol
-    @param_logger(show_args=True)
+    # @param_logger(show_args=True)
     def visitFuncDecl(self, ast, param):
         """
         # name: Id
@@ -624,7 +629,7 @@ class StaticChecker(BaseVisitor, Utils):
         list(map(lambda symbol: 
                 func_param_list.append(self.visitParam(symbol, [return_symbol]+ func_param_list))
             , ast.param))
-
+        
         new_return_symbol = self.func_redeclared_check(return_symbol, param)
         if (new_return_symbol is None):
             new_return_symbol = return_symbol
@@ -661,7 +666,7 @@ class StaticChecker(BaseVisitor, Utils):
         left_type = self.visitExpr(operand_type, ast.left, param)
 
         right_type = self.visitExpr(operand_type, ast.right, param)
-        print(left_type, right_type, operand_type)
+        # print(left_type, right_type, operand_type)
         if (
             isinstance(left_type,UnResolveType) or 
             isinstance(right_type,UnResolveType)
@@ -729,10 +734,10 @@ class StaticChecker(BaseVisitor, Utils):
         arr = self.visitExpr(None, ast.arr, parent_env)
         if (arr is None):
             raise TypeMismatchInExpression(ast)
-        if (not isinstance(arr,ArrayType) or len(idx_type_list) > len(arr.size)):
-            raise TypeMismatchInExpression(ast)
         if (isinstance(arr,UnResolveType)):
             return UnResolveType()
+        if (not isinstance(arr,ArrayType) or len(idx_type_list) > len(arr.size)):
+            raise TypeMismatchInExpression(ast)
         if (len(idx_type_list) == len(arr.size)):
             return arr.eleType
         return_array_type = ArrayType(size=arr.size[len(idx_type_list):],
@@ -839,7 +844,6 @@ class StaticChecker(BaseVisitor, Utils):
         inferred_type = outer_symbol.return_type
         if (isinstance(inferred_type,UnResolveType)):
             inferred_type = None
-        print(inferred_type)
         if (ast.expr):
             if (isinstance(outer_symbol.return_type,VoidType)):
                 raise TypeMismatchInStatement(ast)
@@ -896,7 +900,6 @@ class StaticChecker(BaseVisitor, Utils):
                 raise TypeCannotBeInferred(ast)
             else:
                 return VoidType()
-
     #@param_logger(show_args=True)
     def visitCallStmt(self, ast, param):
         """
@@ -979,7 +982,7 @@ class StaticChecker(BaseVisitor, Utils):
                     )
             else:
                 return_type = ArrayType(size=[len(ast.value)], eleType=init_ele_type) 
-            print("return_type:",return_type)
+            # print("return_type:",return_type)
             return return_type
         else: 
             #*If not found a resolve type
@@ -992,12 +995,12 @@ class StaticChecker(BaseVisitor, Utils):
                         eleType=inferred_type.eleType
                     )
             else:
-                init_ele_type = inferred_type.e
+                init_ele_type = inferred_type.eleType
             #*Loop through array elem with type inference
             for ele in ast.value:
                 ele_type = self.visitExpr(init_ele_type, ele ,parent_env)
                 if (ele_type is None):
-                    return None
+                    raise TypeMismatchInExpression(ast)
                 if (isinstance(ele_type,UnResolveType)):
                     return UnResolveType()
             if (isinstance(init_ele_type, ArrayType)):

@@ -1,5 +1,5 @@
 
         number a <- 2
         func main()
-        func main() return 2
+        func main() return
         

@@ -1,7 +1,7 @@
 
-        dynamic a
         func main()
         begin
-            return
+            var a <- 2
+            number b <- a[3]
         end
         

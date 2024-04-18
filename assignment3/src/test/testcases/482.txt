@@ -1,7 +1,6 @@
 
-        dynamic a
         func main()
         begin
-            return
+            number a <- true + 3
         end
         

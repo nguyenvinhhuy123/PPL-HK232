@@ -1,3 +1,4 @@
-
-        number a <- 2
+dynamic x
+        number a[2,2] <- [x,[x,x]]
+        func main() return
         

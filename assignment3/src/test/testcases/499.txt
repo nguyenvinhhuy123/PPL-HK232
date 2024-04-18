@@ -1,5 +1,5 @@
 
-        dynamic a
+        number main
         func main()
         begin
             return

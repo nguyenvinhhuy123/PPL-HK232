@@ -1,0 +1,8 @@
+
+        func main()
+        begin
+            dynamic a
+            bool b[1,2] <- a
+            a <- [[true, false]]
+        end
+        
