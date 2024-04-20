@@ -3,6 +3,10 @@ from TestUtils import TestChecker
 from AST import *
 from StaticError import *
 
+#!Import to use intelisense
+# from main.zcode.utils.AST import *
+# from main.zcode.utils.Visitor import *
+# from main.zcode.checker.StaticError import *
 
 SUCCESSFUL = ""
 class CheckSuite(unittest.TestCase):
@@ -1497,7 +1501,7 @@ class CheckSuite(unittest.TestCase):
         expect = SUCCESSFUL
         self.assertTrue(TestChecker.test(input, expect, 497))
     
-    def test_var_decl_same_name_with_built_in(self):
+    def test_func_no_return_after_inferred(self):
         input = """
         number writeBool
         func main(number a)
@@ -1511,17 +1515,22 @@ class CheckSuite(unittest.TestCase):
         ))
         self.assertTrue(TestChecker.test(input, expect, 498))
     
-    def test_main_var_declare(self):
+    def test_var_redeclare_after_nested_if(self):
         input = """
-        number main
         func main()
         begin
-            return
+            number a
+            if (a > 1 )
+                if (a > 2)
+                number b <- 3
+            elif (a > 3)
+                if (a > 2)
+                number b <- 2
         end
         """
         expect = str(Redeclared(
-            Function(),
-            "main"
+            Variable(),
+            "b"
         ))
         self.assertTrue(TestChecker.test(input, expect, 499))
     

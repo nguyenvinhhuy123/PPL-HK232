@@ -751,17 +751,15 @@ class StaticChecker(BaseVisitor, Utils):
         self.move_scope_in()
         (parent_env, outer_symbol) = param
         decl_list = []
-        list(
-            map(lambda children_ast : 
-                decl_list.append(self.visitStmt(outer_symbol,children_ast, (parent_env + decl_list )))
-                if isinstance(children_ast, VarDecl) 
-                else self.visitStmt(outer_symbol,children_ast, (parent_env + decl_list ))
-                , ast.stmt
-            )
-        )
+        for children_ast in ast.stmt:
+            stmt = self.visitStmt(outer_symbol,children_ast, (parent_env + decl_list ))
+            if isinstance(stmt, VariableSymbol):
+                decl_list.append(stmt)
+            if (isinstance(stmt, list)):
+                decl_list = decl_list + stmt
         self.move_scope_out()
         return None
-    #@param_logger(show_args=True)
+    # @param_logger(show_args=True)
     def visitIf(self, ast, param):
         """
         # expr: Expr
@@ -777,8 +775,10 @@ class StaticChecker(BaseVisitor, Utils):
         if (isinstance(condition_type,UnResolveType)):
             raise TypeCannotBeInferred(ast)
         then_type = self.visitStmt(outer_symbol, ast.thenStmt, parent_env + decl_list)
-        if (isinstance(then_type, VarDecl)):
+        if (isinstance(then_type, VariableSymbol)):
             decl_list.append(then_type)
+        if (isinstance(then_type, list)):
+                decl_list = decl_list + then_type
         #*Handle all elif statements
         for ele in ast.elifStmt:
             elif_condition_type = self.visitExpr(BoolType(), ele[0], parent_env + decl_list)
@@ -789,13 +789,17 @@ class StaticChecker(BaseVisitor, Utils):
             if (not self.compare_type(elif_condition_type, BoolType())):
                 raise TypeMismatchInStatement(ast)
             elif_type = self.visitStmt(outer_symbol, ele[1], parent_env + decl_list)
-            if (isinstance(elif_type, VarDecl)):
+            if (isinstance(elif_type, VariableSymbol)):
                 decl_list.append(elif_type)
+            if (isinstance(elif_type, list)):
+                decl_list = decl_list + elif_type
         if (ast.elseStmt):
             else_type = self.visitStmt(outer_symbol, ast.elseStmt, parent_env + decl_list)
-            if (isinstance(else_type, VarDecl)):
+            if (isinstance(else_type, VariableSymbol)):
                 decl_list.append(else_type)
-        return then_type
+            if (isinstance(else_type, list)):
+                decl_list = decl_list + else_type
+        return decl_list
     #@param_logger(show_args=True)
     def visitFor(self, ast, param):
         """
@@ -824,7 +828,7 @@ class StaticChecker(BaseVisitor, Utils):
         if (isinstance(update_type,UnResolveType)):
             raise TypeCannotBeInferred(ast)
         body_type = self.visitStmt(outer_symbol, ast.body, parent_env)
-        self.move_scope_out()
+        self.move_loop_out()
         return body_type
     #@param_logger(show_args=False)
     def visitContinue(self, ast, param):
@@ -920,7 +924,7 @@ class StaticChecker(BaseVisitor, Utils):
         if (not isinstance(symbol_type, VoidType)):
             raise TypeMismatchInStatement(ast)
         if (isinstance(symbol_type, UnResolveType)):
-            return UnResolveType()
+            raise TypeCannotBeInferred(ast)
         #*Compare and inferred args list to parameter list
         if (len(args_list) != len(param_list)):
             raise TypeMismatchInStatement(ast)
@@ -929,7 +933,7 @@ class StaticChecker(BaseVisitor, Utils):
             if (args_type is None):
                 raise TypeMismatchInStatement(ast)
             if (isinstance(args_type, UnResolveType)):
-                return UnResolveType()
+                raise TypeCannotBeInferred(ast)
         #Return symbol type if every param and args is checked
         return VoidType()
 
