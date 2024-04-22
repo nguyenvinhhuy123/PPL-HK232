@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            return 2*3
+        end
+        

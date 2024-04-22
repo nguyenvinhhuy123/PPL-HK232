@@ -1,0 +1,7 @@
+
+        string a[3] <- ["Im", "a", "dev"]
+        func main() 
+        begin
+            number b[3] <- a
+        end
+        

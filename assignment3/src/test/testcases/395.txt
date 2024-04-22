@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+        number b <- 2 ##This is a comment with weird character 
+        end
+        

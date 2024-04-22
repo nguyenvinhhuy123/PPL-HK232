@@ -1,0 +1,10 @@
+
+        func main() 
+        begin
+            if (a = 3)
+            begin
+            printString("hahaha")
+            return 1
+            end    
+        end
+        

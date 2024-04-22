@@ -1,0 +1,7 @@
+
+        func main()
+        begin
+            dynamic a
+            var b <- a[1,2]
+        end
+        

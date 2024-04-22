@@ -1,0 +1,11 @@
+
+        func foo(bool c)
+        begin
+            if (c) c <- true
+        end
+        func main()
+        begin
+            bool a
+            a <- foo(true)
+        end
+        

@@ -1,0 +1,1 @@
+Type Mismatch In Statement: AssignStmt(Id(b), NumLit(2.0))

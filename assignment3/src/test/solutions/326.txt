@@ -1,0 +1,1 @@
+Program([VarDecl(Id(a), ArrayType([3.0], StringType), None, ArrayLit(StringLit(Im), StringLit(a), StringLit(dev))), FuncDecl(Id(main), [], Block([VarDecl(Id(b), ArrayType([3.0], NumberType), None, Id(a))]))])

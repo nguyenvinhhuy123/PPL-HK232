@@ -1,0 +1,8 @@
+
+        func main()
+        begin
+            dynamic a
+            if (a) writeString("a")
+            elif (2 + 3) writeString("b")
+        end
+        

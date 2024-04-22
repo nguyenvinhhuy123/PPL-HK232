@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            string b <- (toString(a) ... " '"is a number'" ") ... toString(b)
+        end
+        

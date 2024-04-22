@@ -1,0 +1,4 @@
+
+        number a <- 2
+        func main(number a) return a 
+        

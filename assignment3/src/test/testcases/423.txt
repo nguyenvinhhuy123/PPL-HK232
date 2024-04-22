@@ -1,0 +1,10 @@
+
+        func foo(number a, number a)
+        begin 
+            return a+a
+        end
+        func main()
+        begin
+            number a <- 3
+        end
+        

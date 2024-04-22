@@ -1,0 +1,6 @@
+
+        func main() 
+        begin
+            bool b <- if a do(b)
+        end
+        

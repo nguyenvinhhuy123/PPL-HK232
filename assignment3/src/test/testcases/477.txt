@@ -1,0 +1,7 @@
+
+        func main()
+        begin
+            number b[2,2] <- [[1,2],[3,4]]
+            bool a <- b[0,1]
+        end
+        

@@ -1,0 +1,16 @@
+
+        func foo(number a)
+        begin 
+            bool a <- true
+            begin 
+                string a <- "hehe"
+                begin 
+                    string a <- "hehehe"
+                end
+            end
+        end
+        func main()
+        begin
+            number a <- 3
+        end
+        

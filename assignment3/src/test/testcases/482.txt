@@ -1,0 +1,6 @@
+
+        func main()
+        begin
+            number a <- true + 3
+        end
+        

@@ -1,0 +1,13 @@
+
+        func foo(number a)
+        begin 
+            number b <- 2
+            bool c <- true
+            for b until b > 10 by 2
+                bool c <- false
+        end
+        func main()
+        begin
+            number a <- 3
+        end
+        

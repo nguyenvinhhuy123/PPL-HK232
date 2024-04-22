@@ -1,0 +1,8 @@
+
+        number a <- 2
+        number a <- 3
+        func main() 
+        begin
+            return 1
+        end
+        

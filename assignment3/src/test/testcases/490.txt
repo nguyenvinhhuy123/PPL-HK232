@@ -1,0 +1,7 @@
+
+        func main()
+        begin
+            dynamic a
+            number b <- a[true]
+        end
+        

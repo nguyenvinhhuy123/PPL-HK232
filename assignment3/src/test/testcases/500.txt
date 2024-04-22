@@ -1,5 +1,7 @@
-func main ()
+
+        dynamic a
+        func main()
         begin
-            writeNumber(1)
+            return
         end
         

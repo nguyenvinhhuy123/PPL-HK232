@@ -1,0 +1,8 @@
+
+        func foo() return
+        func main()
+        begin
+            dynamic b
+            var a <- [b,foo()]
+        end
+        

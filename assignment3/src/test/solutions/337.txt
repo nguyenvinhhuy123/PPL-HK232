@@ -1,0 +1,1 @@
+Program([FuncDecl(Id(main), [], Block([VarDecl(Id(b), StringType, None, BinaryOp(..., BinaryOp(..., CallExpr(Id(toString), [Id(a)]), StringLit( '"is a number'" )), CallExpr(Id(toString), [Id(b)])))]))])

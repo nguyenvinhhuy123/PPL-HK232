@@ -1,0 +1,1 @@
+Type Mismatch In Statement: If((Id(a), CallStmt(Id(writeString), [StringLit(a)])), [(BinaryOp(+, NumLit(2.0), NumLit(3.0)), CallStmt(Id(writeString), [StringLit(b)]))], None)

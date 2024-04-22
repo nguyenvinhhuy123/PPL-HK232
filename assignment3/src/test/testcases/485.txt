@@ -1,0 +1,9 @@
+
+        func main()
+        begin
+            dynamic a
+            var b <- -a
+            dynamic c
+            bool d <- not c
+        end
+        

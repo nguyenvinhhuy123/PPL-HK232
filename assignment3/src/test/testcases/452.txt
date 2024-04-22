@@ -1,0 +1,6 @@
+
+        func main()
+        begin
+            if (2+ 3) writeString("a")
+        end
+        

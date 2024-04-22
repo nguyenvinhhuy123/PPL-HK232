@@ -1,0 +1,7 @@
+
+        number a <- 2*"b"
+        func main() 
+        begin
+            return 1
+        end
+        

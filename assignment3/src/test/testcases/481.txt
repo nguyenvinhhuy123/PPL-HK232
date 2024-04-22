@@ -1,0 +1,13 @@
+
+        func main()
+        begin
+            number a <- 2 + 3
+            var b <- a * a
+            dynamic c
+            var d <- 2 * c + b
+            c <- 3 
+            dynamic f
+            bool e <- true and f
+            f <- e or false
+        end
+        

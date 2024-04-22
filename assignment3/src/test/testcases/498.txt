@@ -1,0 +1,7 @@
+
+        number writeBool
+        func main(number a)
+        begin
+            return
+        end
+        

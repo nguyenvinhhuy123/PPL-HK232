@@ -1,0 +1,1 @@
+Program([FuncDecl(Id(main), [], Block([VarDecl(Id(a), None, var, BinaryOp(..., CallExpr(Id(toString), [Id(n)]), BinaryOp(..., CallExpr(Id(toString), [Id(a)]), StringLit(lmao))))]))])

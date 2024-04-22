@@ -1,0 +1,11 @@
+
+        func foo(bool c)
+        begin
+            if (c) return 2
+            else return 3
+        end
+        func main()
+        begin
+            number a <- foo(true)
+        end
+        

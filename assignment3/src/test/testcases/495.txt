@@ -1,0 +1,5 @@
+
+        func writeBool(bool anArg) return true
+        func main()
+        return 
+        
