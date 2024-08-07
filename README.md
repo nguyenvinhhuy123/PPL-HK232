@@ -10,9 +10,10 @@ Parser: 99/100
 -> Parser failed test case fixed in assignment 2. You might want to look aat that part instead.
 ### Assignment 2 : 100/100
 ### Assignment 3 : 91/100
-### Assignment 4 : (Unforturnately I did give up on this assignment. Might come back to this whenever I have time)
+### Assignment 4 : 0/100
+(Unforturnately I did give up on this assignment. Might come back to this whenever I have time)
 
-###To whoever read this.
+### To whoever read this.
 If you are looking at this repo I suppose you might study and struggle with HCMUT-CSE PPL Course at the time.
 
 Feel free to that this as a reference for your own assignments. 
